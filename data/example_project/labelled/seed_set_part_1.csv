@@ -1,0 +1,121 @@
+A	O
+lingonberries	O
+are	O
+red	O
+while	B-contrast
+blueberries	O
+are	O
+blue	O
+.	O
+
+B	O
+I	O
+thought	O
+I	O
+would	O
+be	O
+going	O
+instead	B-contrast
+I	O
+ended	O
+up	O
+staying	O
+.	O
+
+C	O
+You	O
+should	O
+focus	O
+on	O
+the	O
+positive	O
+aspects	O
+even	B-contrast
+if	I-contrast
+it	O
+is	O
+hard	O
+.	O
+
+D	O
+Yes	O
+there	O
+was	O
+,	O
+but	B-contrast
+I	O
+can	O
+not	O
+comment	O
+on	O
+it	O
+.	O
+
+E	O
+that	O
+is	O
+quite	O
+impossible	O
+.	O
+
+F	O
+It	O
+may	O
+be	O
+fine	O
+tomorrow	O
+after	O
+all	O
+.	O
+
+G	O
+There	O
+should	B-speculation
+be	O
+a	O
+good	O
+restaurant	O
+somewhere	O
+behind	O
+the	O
+corner	O
+.	O
+
+H	O
+I	O
+highly	O
+suspect	B-speculation
+there	O
+'	O
+s	O
+something	O
+fishy	O
+going	O
+on	O
+.	O
+
+I	O
+it	O
+'	O
+s	O
+not	B-speculation
+likely	I-speculation
+given	O
+the	O
+circumstances	O
+.	O
+
+J	O
+You	O
+can	B-speculation	
+'	I-speculation
+t	I-speculation
+be	I-speculation
+very	I-speculation
+certain	I-speculation
+
+
+
+
+
+

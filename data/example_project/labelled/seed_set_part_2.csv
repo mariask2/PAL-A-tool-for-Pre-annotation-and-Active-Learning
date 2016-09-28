@@ -1,0 +1,50 @@
+K	O
+The	O
+food	O
+seems	B-speculation
+quite	O
+edible	O
+.	O
+
+L	O
+It	O
+'	O
+s	O
+perhaps	B-speculation
+not	O
+quite	O
+as	O
+you	O
+think	B-speculation
+.	O
+
+M	O
+You	O
+would	B-speculation
+probably	B-speculation
+find	O
+it	O
+quite	O
+boring	O
+.	O
+
+O	O
+If	B-hypothetical
+it	O
+rains	O
+,	O
+we	O
+will	O
+get	O
+wet	O
+.	O
+
+P	O
+Unless	B-hypothetical
+we	O
+have	O
+an	O
+umbrella	O
+of	O
+course	O
+.	O
