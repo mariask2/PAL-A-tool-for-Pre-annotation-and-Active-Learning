@@ -81,8 +81,8 @@ def select_new_data(properties, project_path):
     transform_to_brat_format.transform(to_annotate_file_path, tolabel_data_dir_for_project, interesting_tags, properties.outside_class, properties.beginning_prefix)
 
 
-def load_properties():
-    parser = argparse.ArgumentParser()
+def load_properties(parser):
+    
 
     parser.add_argument('--project', action='store', dest='project_path', help='The path, separated by dots, to where the project i located. For instance: data.example_project')
     args = parser.parse_args()
@@ -113,8 +113,9 @@ def load_properties():
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
     #project_path = "data.example_project"
-    properties, path_slash_format = load_properties()
+    properties, path_slash_format = load_properties(parser)
 
     select_new_data(properties, path_slash_format)
 

@@ -36,5 +36,6 @@ unlabelled_data_dir = "unlabelled"
 unlabelled_data_file = "unlabelled.csv"
 tolabel_data_dir = "tolabel"
 beginning_prefix = "B-"
+inside_prefix = "I-"
 outside_class = "O"
 whether_to_use_word2vec = True

@@ -104,8 +104,14 @@ class Word2vecWrapper:
     def __init__(self, model_path):
         self.word2vec_model = None
         self.model_path = model_path
+
     def get_vector(self, word):
+
+        if len(word) == 3 and word[1] == "_":
+            word = word[0] # To cover for a bug in scikit learn, one char tokens have been transformed to longer. These are here transformed back
         default_vector = [0] * 300
+
+        print("word", word)
         try:
             if self.word2vec_model == None:
                 print("Loading word2vec model, this might take a while ....")
@@ -117,6 +123,7 @@ class Word2vecWrapper:
 
 def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data, index_in_sentence, sentence_length, use_word2vec, word2vecwrapper):
 
+    #print("word", word)
     previous_word = None
     next_word = None
     if index_in_sentence > 0:
@@ -130,6 +137,7 @@ def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data,
     assert(text_concatenated[word_count] == word)
     resulting_vector = None
     vectorized_long_format = vectorized_data[word_count].toarray()[0]
+    print("vectorized_long_format", vectorized_long_format)
     len_2_occ = len(vectorized_long_format)
 
     #print("vectorized_long_format", len(vectorized_long_format))
@@ -152,6 +160,7 @@ def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data,
     if use_word2vec:
         word2vecvector = word2vecwrapper.get_vector(word)
 
+        print(word2vecvector)
         if previous_word:
             previous_vector = word2vecwrapper.get_vector(previous_word)
         else:
