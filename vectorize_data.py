@@ -30,24 +30,35 @@ def read_file_labelled_data(file_path, data_file_extension, minority_classes, ou
 
     for file_name in files:
         f = open(file_name)
+        print("Opened the file " + file_name)
         previous_line = "first_in_" + file_name # only to use for writing out a god error message
+        line_number = 0
         for line in f:
-            if line.strip() != "":
+            line_number = line_number + 1 # for error printing
+            stripped_line = line.strip()
+            if stripped_line != "": # and '\t' in stripped_line:
                 try:
-                    sp = line.strip().split('\t')
-                    if sp[0].strip() != "": #omit when there is nothing associated with the label
+                    if '\t' in stripped_line:
+                        sp = stripped_line.split('\t')
                         word = sp[0]
-                        if len(word) == 1:
-                            word = word + "_" + word  # to cover for a bug in scikit learn's tokenization 
-                        current_text.append(word.lower())
-                        label = sp[1]
-                        if label not in minority_classes:
-                            label = outside_class
-                        current_label.append(label)
+                        if word.strip() != "": #omit when there is nothing associated with the label
+                            if len(word) == 1:
+                                word = word + "_" + word  # to cover for a bug in scikit learn's tokenization 
+                            current_text.append(word.lower())
+                            label = sp[1]
+                            if label not in minority_classes:
+                                label = outside_class
+                            current_label.append(label)
+                        else:
+                            print("Will omit the incorrectly formated line of index " + str(line_number) + " Line: **" + stripped_line +  "**")
+                    else:
+                        print("Will omit the incorrectly formated line of index " + str(line_number) + " Line: **" + stripped_line +  "**")
                 except IndexError:
                     print("Index error")
                     print("The following line is incorrect", line)
                     print("The last correct line is", previous_line)
+                    print("The index of the incorrect line is " + str(line_number))
+                    print("Stripped version **" + line.strip() +  "**")
                     exit(1)
             else: 
                 if len(current_text) != 0: # end of sentence
@@ -69,6 +80,10 @@ def read_file_labelled_data(file_path, data_file_extension, minority_classes, ou
     #print(len(text_vector))
     #print(len(label_vector))
     #print(class_dict)
+    #for ts, ls in zip(text_vector, label_vector):
+    #    print("*******")
+    #    for t, l in zip(ts, ls):
+    #        print(t,l)
     return text_vector, label_vector, class_dict
 
 
@@ -111,7 +126,7 @@ class Word2vecWrapper:
             word = word[0] # To cover for a bug in scikit learn, one char tokens have been transformed to longer. These are here transformed back
         default_vector = [0] * 300
 
-        print("word", word)
+        #print("word", word)
         try:
             if self.word2vec_model == None:
                 print("Loading word2vec model, this might take a while ....")
@@ -137,7 +152,7 @@ def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data,
     assert(text_concatenated[word_count] == word)
     resulting_vector = None
     vectorized_long_format = vectorized_data[word_count].toarray()[0]
-    print("vectorized_long_format", vectorized_long_format)
+    #print("vectorized_long_format", vectorized_long_format)
     len_2_occ = len(vectorized_long_format)
 
     #print("vectorized_long_format", len(vectorized_long_format))
@@ -160,7 +175,7 @@ def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data,
     if use_word2vec:
         word2vecvector = word2vecwrapper.get_vector(word)
 
-        print(word2vecvector)
+        #print(word2vecvector)
         if previous_word:
             previous_vector = word2vecwrapper.get_vector(previous_word)
         else:

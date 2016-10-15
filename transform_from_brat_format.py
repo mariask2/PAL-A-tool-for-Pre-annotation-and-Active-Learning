@@ -9,10 +9,12 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
     new_annotated_file_name = os.path.basename(annotation_file_name).replace(".ann", "") + properties.data_file_extension
     new_annotated_file_path = os.path.join(labelled_data_dir_for_project, new_annotated_file_name)
 
+    
     if os.path.exists(new_annotated_file_path):
-        print("The file that is meant to be generated already exists. Did you run this script before, using this file? Or do you have several annotated files with the same name")
+        print("The file that is meant to be generated already exists. Did you run this script before, using this file? Or do you have several annotated files with the same name? No output will be generated.")
         exit(1)
-
+    
+    
     new_annotated_file = open(new_annotated_file_path, "w")
     
     outside_tag = properties.outside_class
@@ -21,6 +23,8 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
 
     text_file = open(text_file_name)
     text = text_file.read()
+    text = text.rstrip()
+    text = text + "\n"
     text_file.close()
     #print(text)
     print("Text of length " + str(len(text)) + " read")
@@ -39,7 +43,9 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
     print("Annotated words: ")
     print(annotated_words)
 
-    #print(annotated_char_list)
+    
+    #for i, value in enumerate(annotated_char_list):
+    #    print(i, value)
 
     start_index = 0
     annotation_last_word = None
@@ -48,8 +54,8 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
             annotation_current_word = None
             annotation_to_write = outside_tag
             annotated_tag_set = set() # should be a set of one
-            end_index = index - 1
-            #sys.stdout.write(" " + str(start_index) + " " + str(index - 1))
+            end_index = index #end_index, in the same format as standard python, with the index after the string
+            #print(text[start_index:end_index])
             for i in range(start_index, end_index):
                 if annotated_char_list[i]:
                      annotated_tag_set.add(annotated_char_list[i])
