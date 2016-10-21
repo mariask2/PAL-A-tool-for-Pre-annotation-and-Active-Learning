@@ -26,7 +26,7 @@ def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_in
     indeces_to_use = []
     indeces_not_to_use = []
     predicted_words = set()
-    for (score, index, predicted, sentence) in sorted_score_index[:50]:
+    for (score, index, predicted, sentence) in sorted_score_index:
         sentence_has_already_used_word = False
         for i, el in enumerate(predicted):
             if el != majority_category:
@@ -44,8 +44,13 @@ def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_in
     print("predicted_words", predicted_words)
     
     if len(indeces_to_use) < step_size: #if there weren't enough uncertain with large word spread, take those that have been filtered out
+        print("Can't return samples with the requested word spread")
+        print("Filtered out indeces, that will be used anyway, therefore:")
+        print(step_size - len(indeces_to_use))
+        print(indeces_not_to_use[:step_size - len(indeces_to_use)])
         indeces_to_use = indeces_to_use + indeces_not_to_use[:step_size - len(indeces_to_use)]
-    first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
+    #first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
+
     print("indeces_to_use", indeces_to_use)
     return indeces_to_use
 
@@ -99,9 +104,10 @@ def get_permutations(yi, previous_model_wrapper):
                     #print(previous_model_wrapper.inv_label_dict[category])
                     if previous_model_wrapper.inv_label_dict[category].startswith(previous_model_wrapper.inside_prefix):
                         for el in yi_alternatives:
-                            if previous_model_wrapper.inv_label_dict[el[-1]].startswith(previous_model_wrapper.inside_prefix) or previous_model_wrapper.inv_label_dict[el[-1]].startswith(previous_model_wrapper.beginning_prefix):
+                            if len(el) > 0 and (previous_model_wrapper.inv_label_dict[el[-1]].startswith(previous_model_wrapper.inside_prefix) or previous_model_wrapper.inv_label_dict[el[-1]].startswith(previous_model_wrapper.beginning_prefix)):
                                 if previous_model_wrapper.inv_label_dict[el[-1]][len(previous_model_wrapper.inside_prefix):] == previous_model_wrapper.inv_label_dict[category][len(previous_model_wrapper.inside_prefix):]:
-                                    # only allow an inside permutation for and inside class following a similar begin or inside class
+                                    # only allow an inside permutation for an inside class following a similar begin or inside class
+                                    # an inside permutation can also not be the start of a sentence
                                     new_el = el[:]
                                     new_el.append(category)
                                     new_yi_alternatives.append(new_el)
@@ -148,7 +154,7 @@ def get_smallest_diff_alternative(previous_model, previous_learner, previous_mod
     return min_difference
 
 
-def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among):
+def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning):
     if step_size == 0:
         print("You have chosen to select 0 new samples to pre-annotated. The variable 'nr_of_samples' in 'settings.py' should be at least 1")
         exit(1)
@@ -184,16 +190,22 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
 
     # if too few with minority categoies, return fewer
     if len(scores_with_index) < step_size:
-        print("Not enough with minority category predicted. Will only select " + str(len(scores_with_index)) + " samples.")
         step_size = len(scores_with_index)
+        print("Not enough with minority category predicted. Will only select " + str(step_size) + " samples.")
     else:
         print("Will search for the best ones among the " + str(len(scores_with_index)) + " samples that contained a minority category prediction.")
 
     if step_size == 0:
         print("No named entities were found in the unlabelled data. This could either be caused by that you have a too small seed set, or by that the set of unlabelled data is too small")
         
-    # Get the step_size samples with lowest score
-    sorted_score_index = sorted(scores_with_index)
+    if inactive_learning:
+        print("Running in reversed mode, selecting the samples for which the learning is most certain. This mode is only sensible in the case when pre-annotation is used only, and all data in the pool available is to be used")
+        sorted_score_index = sorted(scores_with_index, reverse=True)
+    else:
+        # This is the the option that is typically used. The one in which active learning is achieved.
+        # Get the step_size samples with lowest score    
+        sorted_score_index = sorted(scores_with_index)
+
     index_to_select_among_checked = get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, step_size, previous_model_wrapper.majority_class)
 
     # Only for printing out information. This info is not used in the selection process
@@ -224,8 +236,40 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
 #####
 # Public method
 ######
+def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples):
 
-def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix):
+    try:
+        nr_of_samples_int = int(nr_of_samples)
+
+        if isinstance(maximum_samples_to_search_among, str) and maximum_samples_to_search_among.lower() == "all":
+            print("Will search for samples to select among all " + str(len(X_unlabelled_np)) + " unlabelled samples.") 
+            return len(X_unlabelled_np)
+
+
+        #if nr_of_samples_int > maximum_samples_to_search_among:
+            #print("The property nr_of_samples is larger than the samples for which a request to search among was made, i.e., maximum_samples_to_search_among ")
+            #exit(1)
+    
+        try:
+            maximum_samples_to_search_among_int = int(maximum_samples_to_search_among)
+
+
+            if maximum_samples_to_search_among_int > len(X_unlabelled_np):
+                print("There are " + str(len(X_unlabelled_np)) + " unlabelled samples left. Will search for samples to select among those.") 
+                return len(X_unlabelled_np)
+            else:
+                print("Will search for samples to select among " + str(maximum_samples_to_search_among_int) + " randomly selected unlabelled samples.")
+                return maximum_samples_to_search_among_int
+        except ValueError:
+            print("The property maximum_samples_to_search_among can only take a numerical value or the string 'all', " + maximum_samples_to_search_among + " is not valid.")
+            exit(1)
+    except ValueError:
+        print("The property nr_of_samples can only take a numerical value, " + str(nr_of_samples) + " is not valid.")
+        exit(1)
+def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning):
+
+    maximum_samples_to_search_among = get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)
+    
     model = StructuredModel(label_dict, minority_categories, outside_class, beginning_prefix, inside_prefix)
     print("Started to train the model on the labelled data")
     model.fit(X_labelled_np, y_labelled_np)
@@ -234,7 +278,7 @@ def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labe
     predicted_y = model.predict(X_unlabelled_np)
     print("Predicted results on the unlabelled data")
 
-    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = get_uncertainty_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, model, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among)
+    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = get_uncertainty_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, model, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning)
     return(to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected)
 
 
@@ -263,9 +307,9 @@ class StructuredModel:
     def fit(self, X, Y):
         best_c = 1
         self.model = ChainCRF() # make a new model each time
-        #self.ssvm = OneSlackSSVM(model=self.model, max_iter=100, C=best_c)
+        #self.ssvm = OneSlackSSVM(model=self.model, max_iter=1000, n_jobs = -1, check_constraints=False)
         #self.ssvm = NSlackSSVM(model=self.model, max_iter=100, C=best_c, check_constraints=False)
-        self.ssvm = FrankWolfeSSVM(model=self.model, max_iter=10)
+        self.ssvm = FrankWolfeSSVM(model=self.model, max_iter=1000)
         ret = self.ssvm.fit(X, Y)
         return ret
 

@@ -18,14 +18,19 @@ nr_of_samples = 20
 # The larger value that is given, the more data will be scanned for useful examples
 # however, it will also take more time
 
-maximum_samples_to_search_among = 1000
+maximum_samples_to_search_among = "all"
 
 
 # The path to the semantic space that is read by Gensim
 
-model_path = '/word2vec/GoogleNews-vectors-negative300.bin'
+model_path = '/myword2vecpath/GoogleNews-vectors-negative300.bin'
 
-
+# This is to be set to False when active learning is to be applied                                                                                                           
+# If it is true, it instead does the reverse, return the samples for which the learner is most certain                                                                       
+# This is to be used in early stages, when the classifier is too bad for doing a good pre-annotation.                                                                        
+# Ensure to use as at least 50 samples with this option, so there will be a spread in what kinds of samples that are                                                         
+# extracted.                                                                                                                                                                  
+inactive_learning = False
 
 # Settings, typically not changed
 #################################

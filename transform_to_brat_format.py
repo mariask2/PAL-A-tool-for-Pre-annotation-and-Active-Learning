@@ -21,7 +21,10 @@ def transform(taggedFileName, outputdir, interestingTags, outside_class, beginni
             word = sp[0]
             pos = sp[1]
             label = sp[-1].strip()
-            
+
+            if len(word) == 3 and word[1] == "_":
+                word = word[0] # To cover for a bug in scikit learn, one char tokens have been transformed to longer. These are here transformed back
+ 
             if insideATag and (label == outside_class or label.startswith(beginning_prefix)): # determine if the last token was the last for its span
                     #outputAnnFile.write((str(tokenCounter) + u'\t' + currentEntity + u'\n').encode('utf8'))
                 outputAnnFile.write(str(tokenCounter) + u'\t' + currentEntity + u'\n')
@@ -42,8 +45,6 @@ def transform(taggedFileName, outputdir, interestingTags, outside_class, beginni
             if insideATag:   
                 currentEntity = currentEntity + word + u' '        
 
-            if len(word) == 3 and word[1] == "_":
-                word = word[0] # To cover for a bug in scikit learn, one char tokens have been transformed to longer. These are here transformed back
             for l in word:
                 #outputTextFile.write(l.encode('utf8'))
                 outputTextFile.write(l)
@@ -61,6 +62,6 @@ def transform(taggedFileName, outputdir, interestingTags, outside_class, beginni
     print(tokenCounter)
 
 
-#taggedFileName = "runModel/abbrWithMoreTermsPriorityRulesLevensteinMesh_model1/testText_automaticallyTagged_toTest.txt"
-#transform("test1.txt", "output", ["Finding", "Disorder", "First_Name"])
+if __name__ == "__main__":
+    transform("data/example_project/tolabel/tolabel_20161018_125530.csv", "temp", ["speculation", "contrast"], "O", "B-")
 

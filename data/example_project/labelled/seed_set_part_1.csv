@@ -113,8 +113,16 @@ t	I-speculation
 be	I-speculation
 very	I-speculation
 certain	I-speculation
+.	O
 
-
+K	O
+I	B-speculation
+don	I-speculation
+'	I-speculation
+t	I-speculation
+believe	I-speculation
+you	O
+.	O
 
 
 

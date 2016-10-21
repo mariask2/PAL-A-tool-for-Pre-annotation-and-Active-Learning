@@ -5,6 +5,7 @@ from sklearn import preprocessing
 import gensim
 import glob
 import os
+import gc
 
 #from settings import model_path
 
@@ -135,6 +136,10 @@ class Word2vecWrapper:
             return raw_vec
         except KeyError:
             return default_vector
+
+    def end(self):
+        self.word2vec_model = None
+        gc.collect()
 
 def get_resulting_x_vector(word, word_count, text_concatenated, vectorized_data, index_in_sentence, sentence_length, use_word2vec, word2vecwrapper):
 
@@ -278,7 +283,8 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
     text_vector_labelled_np = np.array([np.array(ti) for ti in text_vector_labelled])
     text_vector_unlabelled_np = np.array([np.array(ti) for ti in text_vector_unlabelled])
 
-    
+    word2vecwrapper.end()
+
     return result_X_labelled_np, result_X_unlabelled_np, result_y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np
 
 

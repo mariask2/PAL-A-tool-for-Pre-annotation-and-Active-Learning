@@ -63,6 +63,8 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
             # if a word is annotated with several categories, it is incorrectly annotated and the program will terminate
             if len(annotated_tag_set) > 1:
                 print("The word ending at index " + str(end_index) + " is annotated with several categories. Change this annotation before running this script")
+                print("The annotated tags are: " + str(annotated_tag_set))
+                print("The word is " + str(text[start_index:end_index]))
                 exit(1)
             if len(annotated_tag_set) == 1:
                 annotation_current_word = annotated_tag_set.pop()
