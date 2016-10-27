@@ -34,6 +34,11 @@ model_path = '/myword2vecpath/GoogleNews-vectors-negative300.bin'
 inactive_learning = False
 
 
+############
+# With this option set to True, the active learning prefers unlabelled samples in which chunks are predicted
+# regardless of if they are more of less uncertain than the ones in which no chunks are predicted
+prefer_predicted_chunks = True
+
 # The number of iterations to use by the learning. See the pystruct documentation for 
 # a suitable number (e.g. 1000). The larger, the longer things will take, so if the pre-annnotation take too much time
 # reduce this nuber (which will also reduce the quality).

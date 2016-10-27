@@ -22,14 +22,29 @@ def is_minority_classes_in_vector(predicted, minority_classes):
             return True
     return False
 
-def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category):
-    print("sorted_score_index", sorted_score_index)
-    print("sorted_indeces_no_predicted_chunks", sorted_indeces_no_predicted_chunks)
+def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category, inactive_learning, prefer_predicted_chunks):
+    #print("sorted_score_index", sorted_score_index)
+    #print("sorted_indeces_no_predicted_chunks", sorted_indeces_no_predicted_chunks)
+
+    if not prefer_predicted_chunks:
+        sorted_score_index = sorted_score_index + sorted_indeces_no_predicted_chunks
+        if inactive_learning:
+            print("Running in reversed mode, selecting the samples for which the learning is most certain.")
+            sorted_score_index = sorted(sorted_score_index, reverse=True)
+        else:
+        # This is the the option that is typically used. The one in which active learning is achieved.
+            sorted_score_index = sorted(sorted_score_index)
+
+    print("The best candidates before word spread is taken into account")        
+    for el in sorted_score_index[:10]:
+        print(el)
 
     indeces_to_use = []
     indeces_not_to_use = []
     predicted_words = set()
     for (score, index, predicted, sentence) in sorted_score_index:
+        print("len(indeces_to_use)", len(indeces_to_use))
+        print("step_size", step_size)
         sentence_has_already_used_word = False
         for i, el in enumerate(predicted):
             if el != majority_category:
@@ -54,9 +69,15 @@ def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_in
         indeces_to_use = indeces_to_use + indeces_not_to_use[:step_size - len(indeces_to_use)]
     #first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
 
-    print("indeces_to_use with chunks", indeces_to_use)
-    indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
-    print("indeces_to_use with chunks all", indeces_to_use)
+    print("indeces_to_use", indeces_to_use)
+
+    if prefer_predicted_chunks:
+        indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
+        print("The best candidates without a predicted chunk")        
+        for el in sorted_indeces_no_predicted_chunks:
+            print(el)
+        print("indeces_to_use with chunks all", indeces_to_use)
+
     return indeces_to_use
 
 
@@ -198,7 +219,7 @@ def get_unlabelled_no_predicted_chunks(number_of_unlabelled_to_select, index_in_
     # Return indeces in the 'number_of_unlabelled_to_select' best, among the ones without predicted chunks    
     #return [el[1] for el in sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]]
 
-def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning):
+def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks):
     if step_size == 0:
         print("You have chosen to select 0 new samples to pre-annotated. The variable 'nr_of_samples' in 'settings.py' should be at least 1")
         exit(1)
@@ -235,14 +256,18 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
         if searched_among % 100 == 0: # only to print information
             print("Searched among " + str(searched_among) + " so far.")
 
-    # if too few with minority categoies, return without minority categories
-    if len(scores_with_index) < step_size:
-        number_of_unlabelled_to_select = step_size - len(scores_with_index)
-        step_size = len(scores_with_index)
-        print("Not enough with minority category predicted. Will only select " + str(step_size) + " samples with labelled chunks.")
-        print("Will select " + str(number_of_unlabelled_to_select) + " without labelled chunks.")
+    # if there are too few samples among the unlabelled in which minority categoies are predict, also return unlabelled samples without minority categories
+    # or if the setting is chosen to don't prefer samples in which minority categores are predicted, compute certainty score for all those unlabelled
+    if len(scores_with_index) < step_size or not prefer_predicted_chunks:
+        if len(scores_with_index) < step_size:
+            number_of_unlabelled_to_select = step_size - len(scores_with_index)
+        else: # i.e. not prefer_predicted_chunks 
+            number_of_unlabelled_to_select = len(index_in_which_no_minority_categories_are_predicted) # include all of them, and filter out later
+        #step_size = len(scores_with_index)
+        #print("Will select " + str(step_size) + " samples with labelled chunks.")
+        print("Will search among " + str(number_of_unlabelled_to_select) + " without labelled chunks.")
         sorted_indeces_no_predicted_chunks = get_unlabelled_no_predicted_chunks(number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, previous_model, previous_learner, previous_model_wrapper, inactive_learning)
-        print("Selected indeces where no chunks are predicted", sorted_indeces_no_predicted_chunks)
+        #print("Selected indeces where no chunks are predicted", sorted_indeces_no_predicted_chunks)
     else:
         print("Will search for the best ones among the " + str(len(scores_with_index)) + " samples that contained a minority category prediction.")
         sorted_indeces_no_predicted_chunks = [] # nothing without predicted chunks included
@@ -258,9 +283,11 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
         # Get the step_size samples with lowest score    
         sorted_score_index = sorted(scores_with_index)
 
-    index_to_select_among_checked = get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, previous_model_wrapper.majority_class)
+    index_to_select_among_checked = get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, previous_model_wrapper.majority_class, inactive_learning, prefer_predicted_chunks)
 
     # Only for printing out information. This info is not used in the selection process
+
+    """
     most_certain_index = [index for (score, index, predicted, sentence) in sorted_score_index[len(sorted_score_index) - 2:]]
     #print("sorted_score_index", sorted_score_index[:step_size])
     print("__________________________")
@@ -273,6 +300,7 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
     print("Selected without predicted labelled chunks")
     for i in [el[1] for el in sorted_indeces_no_predicted_chunks]:
         print("i", i, sentences_unlabelled[i], "predicted:", previous_learner.predict([unlabelled_x[i]]))
+    """    
 
     to_select_X = []
     to_select_text = []
@@ -323,7 +351,7 @@ def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlab
         exit(1)
 
 
-def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning, max_iterations):
+def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning, max_iterations, prefer_predicted_chunks):
 
     maximum_samples_to_search_among = get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)
     
@@ -335,7 +363,7 @@ def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labe
     predicted_y = model.predict(X_unlabelled_np)
     print("Predicted results on the unlabelled data")
 
-    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = get_uncertainty_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, model, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning)
+    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = get_uncertainty_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, model, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)
     return(to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected)
 
 
