@@ -22,7 +22,10 @@ def is_minority_classes_in_vector(predicted, minority_classes):
             return True
     return False
 
-def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, step_size, majority_category):
+def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category):
+    print("sorted_score_index", sorted_score_index)
+    print("sorted_indeces_no_predicted_chunks", sorted_indeces_no_predicted_chunks)
+
     indeces_to_use = []
     indeces_not_to_use = []
     predicted_words = set()
@@ -51,7 +54,9 @@ def get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_in
         indeces_to_use = indeces_to_use + indeces_not_to_use[:step_size - len(indeces_to_use)]
     #first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
 
-    print("indeces_to_use", indeces_to_use)
+    print("indeces_to_use with chunks", indeces_to_use)
+    indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
+    print("indeces_to_use with chunks all", indeces_to_use)
     return indeces_to_use
 
 
@@ -162,14 +167,15 @@ def get_smallest_diff_alternative(previous_model, previous_learner, previous_mod
     # min_difference is the score difference between the predicted classification and the second best classification
 
     min_difference = 10000
-    yi_alternatives = get_permutations(yi, previous_model_wrapper)
-
+    yi_alternatives = permutation_method(yi, previous_model_wrapper)
+    
     for yi_alternative in yi_alternatives:
         joint_alternative = previous_model.joint_feature(xi, yi_alternative)
         score_alternative = np.dot(previous_learner.w, joint_alternative)
-        #print("yi_alternative", yi_alternative)
-        #print("score_predicted", score)
-        #print("score_alternative", score_alternative)
+        #if True:
+            #print("yi_alternative", yi_alternative)
+            #print("score_predicted", score)
+            #print("score_alternative", score_alternative)
         difference_between_predicted_and_alternative = score - score_alternative
         if difference_between_predicted_and_alternative < min_difference:
             min_difference = difference_between_predicted_and_alternative
@@ -187,8 +193,10 @@ def get_unlabelled_no_predicted_chunks(number_of_unlabelled_to_select, index_in_
     else:
         # This is the the option that is typically used. The one in which active learning is achieved.
         sorted_score_index_no_predicted_chunks = sorted(scores_with_index_no_predicted_chunks)
+    return sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]
+
     # Return indeces in the 'number_of_unlabelled_to_select' best, among the ones without predicted chunks    
-    return [el[1] for el in sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]]
+    #return [el[1] for el in sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]]
 
 def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning):
     if step_size == 0:
@@ -227,7 +235,7 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
         if searched_among % 100 == 0: # only to print information
             print("Searched among " + str(searched_among) + " so far.")
 
-    # if too few with minority categoies, return fewer
+    # if too few with minority categoies, return without minority categories
     if len(scores_with_index) < step_size:
         number_of_unlabelled_to_select = step_size - len(scores_with_index)
         step_size = len(scores_with_index)
@@ -243,13 +251,14 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
         
     if inactive_learning:
         print("Running in reversed mode, selecting the samples for which the learning is most certain. This mode is only sensible in the case when pre-annotation is used only, and all data in the pool available is to be used")
+        # in this mode, still prefer samples in which chunks have been predicted
         sorted_score_index = sorted(scores_with_index, reverse=True)
     else:
         # This is the the option that is typically used. The one in which active learning is achieved.
         # Get the step_size samples with lowest score    
         sorted_score_index = sorted(scores_with_index)
 
-    index_to_select_among_checked = get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, step_size, previous_model_wrapper.majority_class)
+    index_to_select_among_checked = get_uncertainty_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, previous_model_wrapper.majority_class)
 
     # Only for printing out information. This info is not used in the selection process
     most_certain_index = [index for (score, index, predicted, sentence) in sorted_score_index[len(sorted_score_index) - 2:]]
@@ -262,21 +271,21 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
     for i in most_certain_index:
         print("i", i, sentences_unlabelled[i])
     print("Selected without predicted labelled chunks")
-    for i in sorted_indeces_no_predicted_chunks:
+    for i in [el[1] for el in sorted_indeces_no_predicted_chunks]:
         print("i", i, sentences_unlabelled[i], "predicted:", previous_learner.predict([unlabelled_x[i]]))
 
     to_select_X = []
     to_select_text = []
     predicted_for_selected = []
-    final_selected_indeces = index_to_select_among_checked + sorted_indeces_no_predicted_chunks
-    for its in final_selected_indeces:
+    #final_selected_indeces = index_to_select_among_checked + sorted_indeces_no_predicted_chunks
+    for its in index_to_select_among_checked:
         to_select_X.append(unlabelled_x[its])
         to_select_text.append(sentences_unlabelled[its])
         predicted_for_selected.append(previous_learner.predict(unlabelled_x[its:its+1])[0]) # must submit an numpy array to predict
     print("__________________________")
 
-    unlabelled_x = np.delete(unlabelled_x, final_selected_indeces, 0)
-    sentences_unlabelled = np.delete(sentences_unlabelled, final_selected_indeces, 0)
+    unlabelled_x = np.delete(unlabelled_x, index_to_select_among_checked, 0)
+    sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
 
     return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
 

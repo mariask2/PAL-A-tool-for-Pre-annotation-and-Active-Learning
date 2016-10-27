@@ -18,7 +18,8 @@ nr_of_samples = 5
 # The larger value that is given, the more data will be scanned for useful examples
 # however, it will also take more time
 
-maximum_samples_to_search_among = "all"
+#maximum_samples_to_search_among = "all"
+maximum_samples_to_search_among = 10
 
 
 # The path to the semantic space that is read by Gensim
