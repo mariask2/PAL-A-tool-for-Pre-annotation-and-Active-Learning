@@ -131,8 +131,31 @@ def get_permutations(yi, previous_model_wrapper):
     
     return yi_alternatives_np
 
+def get_permutations_no_predicted_chunks(yi, previous_model_wrapper):
 
-def get_smallest_diff_alternative(previous_model, previous_learner, previous_model_wrapper, xi, yi):
+    #print("\n******")
+    #print("\noriginal: ", [previous_model_wrapper.inv_label_dict[el] for el in yi])
+    #print("\noriginal: ", yi)
+    yi_alternatives = []
+    
+    for category in range(0, len(previous_model_wrapper.minority_classes_index)):
+        if previous_model_wrapper.inv_label_dict[category].startswith(previous_model_wrapper.beginning_prefix): # only include the permutations with beginning-prefix
+            for index, el in enumerate(yi):
+                yi_copy = [yi[0]] * len(yi)
+                yi_copy[index] = category
+                yi_alternatives.append(yi_copy)
+
+    # Print created permutations
+    #for alt in yi_alternatives:
+    #    print(alt)
+            
+    yi_alternatives_np = np.array(yi_alternatives)
+    
+    return yi_alternatives_np
+
+# for alternatives to annotated chunks 'get_permutations' is the permutation_method
+# for alternatives when there are no annotated chunks 'get_permutations_no_predicted_chunks' is the permutation_method
+def get_smallest_diff_alternative(previous_model, previous_learner, previous_model_wrapper, xi, yi, permutation_method):
     joint = previous_model.joint_feature(xi, yi)
     score = np.dot(previous_learner.w, joint)
 
@@ -153,13 +176,26 @@ def get_smallest_diff_alternative(previous_model, previous_learner, previous_mod
     #print("min_difference ", min_difference)
     return min_difference
 
+def get_unlabelled_no_predicted_chunks(number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, previous_model, previous_learner, previous_model_wrapper, inactive_learning):
+    scores_with_index_no_predicted_chunks = []
+    for xi, yi, index in index_in_which_no_minority_categories_are_predicted:
+        difference_between_predicted_and_second_best_no_predicted_chunks = get_smallest_diff_alternative(previous_model, previous_learner, previous_model_wrapper, xi, yi, get_permutations_no_predicted_chunks)
+        scores_with_index_no_predicted_chunks.append((difference_between_predicted_and_second_best_no_predicted_chunks, index, yi, sentences_unlabelled[index]))
+    if inactive_learning:
+        print("Running in reversed mode, selecting the samples for which the learning is most certain.")
+        sorted_score_index_no_predicted_chunks = sorted(scores_with_index_no_predicted_chunks, reverse=True)
+    else:
+        # This is the the option that is typically used. The one in which active learning is achieved.
+        sorted_score_index_no_predicted_chunks = sorted(scores_with_index_no_predicted_chunks)
+    # Return indeces in the 'number_of_unlabelled_to_select' best, among the ones without predicted chunks    
+    return [el[1] for el in sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]]
 
 def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning):
     if step_size == 0:
         print("You have chosen to select 0 new samples to pre-annotated. The variable 'nr_of_samples' in 'settings.py' should be at least 1")
         exit(1)
     if step_size > len(unlabelled_x):
-        print("More samples have been asked for than exist among unlabelled exist. A maximum of " + str(len(unlabelled_x)) + " nr of samples can be returned")
+        print("More samples have been asked for than exist among unlabelled. A maximum of " + str(len(unlabelled_x)) + " nr of samples can be returned")
         step_size = len(unlabelled_x)
     previous_model = previous_model_wrapper.model
     previous_learner = previous_model_wrapper.ssvm
@@ -177,26 +213,33 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
 
     print("Requested a search among a maximum of " + str(maximum_samples_to_search_among) + " samples")
     scores_with_index = []
+    index_in_which_no_minority_categories_are_predicted = []
     searched_among = 0 # Only to print information 
     for xi, yi, index in zip(to_search_among_x, ys, selected_indeces):
         #print("search for index " + str(index))
         #print(sentences_unlabelled[index])
         if is_minority_classes_in_vector(yi, minority_classes): # search among those in which minority category has been predicted
-            difference_between_predicted_and_second_best = get_smallest_diff_alternative(previous_model, previous_learner, previous_model_wrapper, xi, yi)
+            difference_between_predicted_and_second_best = get_smallest_diff_alternative(previous_model, previous_learner, previous_model_wrapper, xi, yi, get_permutations)
             scores_with_index.append((difference_between_predicted_and_second_best, index, yi, sentences_unlabelled[index])) 
+        else:
+            index_in_which_no_minority_categories_are_predicted.append((xi, yi, index))
         searched_among = searched_among + 1
         if searched_among % 100 == 0: # only to print information
             print("Searched among " + str(searched_among) + " so far.")
 
     # if too few with minority categoies, return fewer
     if len(scores_with_index) < step_size:
+        number_of_unlabelled_to_select = step_size - len(scores_with_index)
         step_size = len(scores_with_index)
-        print("Not enough with minority category predicted. Will only select " + str(step_size) + " samples.")
+        print("Not enough with minority category predicted. Will only select " + str(step_size) + " samples with labelled chunks.")
+        print("Will select " + str(number_of_unlabelled_to_select) + " without labelled chunks.")
+        sorted_indeces_no_predicted_chunks = get_unlabelled_no_predicted_chunks(number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, previous_model, previous_learner, previous_model_wrapper, inactive_learning)
+        print("Selected indeces where no chunks are predicted", sorted_indeces_no_predicted_chunks)
     else:
         print("Will search for the best ones among the " + str(len(scores_with_index)) + " samples that contained a minority category prediction.")
-
-    if step_size == 0:
-        print("No named entities were found in the unlabelled data. This could either be caused by that you have a too small seed set, or by that the set of unlabelled data is too small")
+        sorted_indeces_no_predicted_chunks = [] # nothing without predicted chunks included
+    #if step_size == 0:
+    #    print("No named entities were found in the unlabelled data. This could either be caused by that you have a too small seed set, or by that the set of unlabelled data is too small")
         
     if inactive_learning:
         print("Running in reversed mode, selecting the samples for which the learning is most certain. This mode is only sensible in the case when pre-annotation is used only, and all data in the pool available is to be used")
@@ -212,24 +255,28 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
     most_certain_index = [index for (score, index, predicted, sentence) in sorted_score_index[len(sorted_score_index) - 2:]]
     #print("sorted_score_index", sorted_score_index[:step_size])
     print("__________________________")
-    print("Most uncertain")
+    print("Selected with predicted labelled chunks")
     for i in index_to_select_among_checked:
         print("i", i, sentences_unlabelled[i], "predicted:", previous_learner.predict([unlabelled_x[i]]))
-    print("Most certain")
+    print("Least likely to be selected among the ones with predicted labelled chunks")
     for i in most_certain_index:
         print("i", i, sentences_unlabelled[i])
+    print("Selected without predicted labelled chunks")
+    for i in sorted_indeces_no_predicted_chunks:
+        print("i", i, sentences_unlabelled[i], "predicted:", previous_learner.predict([unlabelled_x[i]]))
 
     to_select_X = []
     to_select_text = []
     predicted_for_selected = []
-    for its in index_to_select_among_checked:
+    final_selected_indeces = index_to_select_among_checked + sorted_indeces_no_predicted_chunks
+    for its in final_selected_indeces:
         to_select_X.append(unlabelled_x[its])
         to_select_text.append(sentences_unlabelled[its])
         predicted_for_selected.append(previous_learner.predict(unlabelled_x[its:its+1])[0]) # must submit an numpy array to predict
     print("__________________________")
 
-    unlabelled_x = np.delete(unlabelled_x, index_to_select_among_checked, 0)
-    sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
+    unlabelled_x = np.delete(unlabelled_x, final_selected_indeces, 0)
+    sentences_unlabelled = np.delete(sentences_unlabelled, final_selected_indeces, 0)
 
     return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
 
@@ -237,7 +284,6 @@ def get_uncertainty_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, 
 # Public method
 ######
 def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples):
-
     try:
         nr_of_samples_int = int(nr_of_samples)
 
@@ -266,11 +312,13 @@ def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlab
     except ValueError:
         print("The property nr_of_samples can only take a numerical value, " + str(nr_of_samples) + " is not valid.")
         exit(1)
-def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning):
+
+
+def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning, max_iterations):
 
     maximum_samples_to_search_among = get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)
     
-    model = StructuredModel(label_dict, minority_categories, outside_class, beginning_prefix, inside_prefix)
+    model = StructuredModel(label_dict, minority_categories, outside_class, beginning_prefix, inside_prefix, max_iterations)
     print("Started to train the model on the labelled data")
     model.fit(X_labelled_np, y_labelled_np)
     print("Training on labelled data finished")
@@ -283,13 +331,15 @@ def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labe
 
 
 class StructuredModel:
-    def __init__(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix):
+    def __init__(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations):
         self.model = ChainCRF()
         self.__name__ = "StructuredModel"
 
         self.outside_class = outside_class
         self.beginning_prefix = beginning_prefix
         self.inside_prefix = inside_prefix
+
+        self.max_iterations = max_iterations
 
         self.label_dict = label_dict
         self.minority_classes = minority_classes
@@ -305,11 +355,10 @@ class StructuredModel:
         print("self.majority_class", self.majority_class)
         
     def fit(self, X, Y):
-        best_c = 1
         self.model = ChainCRF() # make a new model each time
         #self.ssvm = OneSlackSSVM(model=self.model, max_iter=1000, n_jobs = -1, check_constraints=False)
         #self.ssvm = NSlackSSVM(model=self.model, max_iter=100, C=best_c, check_constraints=False)
-        self.ssvm = FrankWolfeSSVM(model=self.model, max_iter=1000)
+        self.ssvm = FrankWolfeSSVM(model=self.model, max_iter=self.max_iterations)
         ret = self.ssvm.fit(X, Y)
         return ret
 

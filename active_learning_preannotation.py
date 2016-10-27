@@ -67,7 +67,7 @@ def select_new_data(properties, project_path):
     
     X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np = vectorize_data.vectorize_data(labelled_text_vector, unlabelled_text_vector, labelled_label_vector, label_dict, classes, use_word2vec = properties.whether_to_use_word2vec, model_path = properties.model_path)    
 
-    to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, properties.minority_classes, properties.nr_of_samples, properties.maximum_samples_to_search_among, properties.outside_class, properties.beginning_prefix, properties.inside_prefix, properties.inactive_learning)
+    to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, properties.minority_classes, properties.nr_of_samples, properties.maximum_samples_to_search_among, properties.outside_class, properties.beginning_prefix, properties.inside_prefix, properties.inactive_learning, properties.max_iterations)
 
     tolabel_data_dir_for_project = os.path.join(project_path, properties.tolabel_data_dir)
     if not os.path.exists(tolabel_data_dir_for_project):

@@ -10,7 +10,7 @@ minority_classes = ["B-speculation", "I-speculation", "B-contrast", "I-contrast"
 
 # Number of sentences to be actively seleected and pre-annotated in each round
 
-nr_of_samples = 20
+nr_of_samples = 5
 
 
 # The maxium number of sentences to search among when actively selecting useful 
@@ -31,6 +31,12 @@ model_path = '/myword2vecpath/GoogleNews-vectors-negative300.bin'
 # Ensure to use as at least 50 samples with this option, so there will be a spread in what kinds of samples that are                                                         
 # extracted.                                                                                                                                                                  
 inactive_learning = False
+
+
+# The number of iterations to use by the learning. See the pystruct documentation for 
+# a suitable number (e.g. 1000). The larger, the longer things will take, so if the pre-annnotation take too much time
+# reduce this nuber (which will also reduce the quality).
+max_iterations = 10
 
 # Settings, typically not changed
 #################################
