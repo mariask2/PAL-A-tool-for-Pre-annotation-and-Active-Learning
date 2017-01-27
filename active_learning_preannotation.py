@@ -262,6 +262,10 @@ class PropertiesContainer:
         except AttributeError:    
             self.context_word_vocabulary = default_settings.context_word_vocabulary 
 
+        if (self.context_word_vocabulary != False and  not isinstance(self.context_word_vocabulary, str)) \
+                or (self.current_word_vocabulary != False and  not isinstance(self.current_word_vocabulary, str)):
+            raise ValueError("'context_word_vocabulary' and 'context_word_vocabulary' " + \
+                                 "should either be False or a string indicating search path")
         try:    
             self.use_cross_validation = properties.use_cross_validation
         except AttributeError:
