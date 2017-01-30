@@ -18,8 +18,6 @@ from sklearn.cross_validation import StratifiedKFold
 
 import math
 
-import train_and_evaluate_model
-
 # For uncertainty selection
 def is_minority_classes_in_vector(predicted, minority_classes):
     for m in minority_classes:
