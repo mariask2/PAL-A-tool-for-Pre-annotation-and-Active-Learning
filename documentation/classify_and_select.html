@@ -1,0 +1,926 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module classify_and_select</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>classify_and_select</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/maria/stavicta/StaViCTA/Maria/pre_annotation/classify_and_select.py">/home/maria/stavicta/StaViCTA/Maria/pre_annotation/classify_and_select.py</a></font></td></tr></table>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="classify_and_select.html#ModelWrapperBase">ModelWrapperBase</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="classify_and_select.html#NonStructuredLogisticRegression">NonStructuredLogisticRegression</a>
+</font></dt><dt><font face="helvetica, arial"><a href="classify_and_select.html#StructuredModelFrankWolfeSSVM">StructuredModelFrankWolfeSSVM</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ModelWrapperBase">class <strong>ModelWrapperBase</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#ModelWrapperBase">ModelWrapperBase</a>&nbsp;is&nbsp;an&nbsp;abstract&nbsp;class&nbsp;that&nbsp;all&nbsp;models&nbsp;to&nbsp;be&nbsp;used&nbsp;in&nbsp;the&nbsp;active&nbsp;learning&nbsp;and&nbsp;pre-annotation&nbsp;framework<br>
+are&nbsp;to&nbsp;be&nbsp;subclasses&nbsp;of&nbsp;(it's&nbsp;not&nbsp;enforced,&nbsp;but&nbsp;it's&nbsp;recommended).<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ModelWrapperBase-fit"><strong>fit</strong></a>(self, X, Y)</dt><dd><tt>Fits&nbsp;the&nbsp;model&nbsp;on&nbsp;the&nbsp;training&nbsp;data<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+params:&nbsp;Y:&nbsp;The&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;in&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;a&nbsp;numerical&nbsp;representing&nbsp;for&nbsp;each&nbsp;token.<br>
+Ex:<br>
+&nbsp;<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;1,&nbsp;1,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+...<br>
+&nbsp;<br>
+raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-get_params"><strong>get_params</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ModelWrapperBase-get_scores_unlabelled_sorted_no_predicted_chunks"><strong>get_scores_unlabelled_sorted_no_predicted_chunks</strong></a>(self, number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning)</dt><dd><tt>&nbsp;&nbsp;Is&nbsp;to&nbsp;return&nbsp;the&nbsp;score&nbsp;for&nbsp;those&nbsp;with&nbsp;no&nbsp;predicted&nbsp;chunks&nbsp;in&nbsp;sorted&nbsp;order,&nbsp;and&nbsp;only&nbsp;to&nbsp;return&nbsp;the&nbsp;number_of_unlabelled_to_select&nbsp;best&nbsp;of&nbsp;them<br>
+&nbsp;&nbsp;(where&nbsp;number_of_unlabelled_to_select&nbsp;is&nbsp;equal&nbsp;to&nbsp;all&nbsp;of&nbsp;them&nbsp;if&nbsp;the&nbsp;setting&nbsp;to&nbsp;NOT&nbsp;prioritize&nbsp;samples&nbsp;with&nbsp;predicted&nbsp;chunks&nbsp;is&nbsp;chosen)<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;returns:&nbsp;a&nbsp;sorted&nbsp;list&nbsp;of&nbsp;tuples&nbsp;of&nbsp;(certainty-score,&nbsp;index,&nbsp;classification,&nbsp;tokens)<br>
+&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;[(0.96155715070017145,&nbsp;8,&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array(['13',&nbsp;'quite',&nbsp;'hard',&nbsp;'to',&nbsp;'believe',&nbsp;'._.'],&nbsp;<br>
+dtype='&lt;U7')),&nbsp;(1.0611824917072603,&nbsp;0,&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+dtype='&lt;U7')),&nbsp;(1.0611824917072612,&nbsp;3,&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array(['4_4',&nbsp;'it',&nbsp;'is',&nbsp;'clearly',&nbsp;'wrong',&nbsp;'._.'],&nbsp;<br>
+dtype='&lt;U7')),<br>
+...<br>
+&nbsp;&nbsp;raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-get_scores_unlabelled_with_predicted_chunks"><strong>get_scores_unlabelled_with_predicted_chunks</strong></a>(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled)</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;get_scores_unlabelled_with_predicted_chunks&nbsp;is&nbsp;to&nbsp;return&nbsp;the&nbsp;certainty&nbsp;scores&nbsp;for&nbsp;the&nbsp;classifications&nbsp;for&nbsp;the&nbsp;unlabelled&nbsp;data&nbsp;with<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selected_indeces.&nbsp;(Where&nbsp;selected_indeces&nbsp;are&nbsp;randomly&nbsp;selected&nbsp;indeces&nbsp;from&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data&nbsp;to&nbsp;be&nbsp;used&nbsp;in&nbsp;the&nbsp;data&nbsp;selection.&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;len&nbsp;of&nbsp;is&nbsp;decided&nbsp;by&nbsp;the&nbsp;settings&nbsp;parameter&nbsp;maximum_samples_to_search_among,&nbsp;and&nbsp;if&nbsp;this&nbsp;paramter&nbsp;is&nbsp;set&nbsp;to&nbsp;"all",&nbsp;is&nbsp;is&nbsp;all&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;samples&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params:&nbsp;to_search_among_x:&nbsp;An&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample&nbsp;corresponding&nbsp;to&nbsp;the&nbsp;index&nbsp;in&nbsp;the&nbsp;randomly&nbsp;selected<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;indeces&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data,&nbsp;which&nbsp;in&nbsp;turn&nbsp;has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]]),&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]]),&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params:&nbsp;ys:&nbsp;The&nbsp;classification&nbsp;made&nbsp;by&nbsp;the&nbsp;current&nbsp;model&nbsp;for&nbsp;these&nbsp;randomly&nbsp;selected&nbsp;unlabelled&nbsp;samples<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params:&nbsp;selected_indeces:&nbsp;The&nbsp;indeces&nbsp;of&nbsp;the&nbsp;randomly&nbsp;selected&nbsp;samples&nbsp;from&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[11,&nbsp;15,&nbsp;4,&nbsp;0,&nbsp;3,&nbsp;8,&nbsp;12,&nbsp;14,&nbsp;13,&nbsp;16,&nbsp;10,&nbsp;9,&nbsp;7,&nbsp;6,&nbsp;19,&nbsp;2,&nbsp;5,&nbsp;1,&nbsp;17,&nbsp;18,&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params:&nbsp;sentences_unlabelled:&nbsp;The&nbsp;tokens&nbsp;in&nbsp;the&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dtype='&lt;U7')<br>
+array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;..<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returns:&nbsp;scores_with_index:&nbsp;a&nbsp;list&nbsp;of&nbsp;tuples&nbsp;of&nbsp;(certainty-score,&nbsp;index,&nbsp;classification,&nbsp;tokens)&nbsp;for&nbsp;the&nbsp;samples<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;that&nbsp;contain&nbsp;predicted&nbsp;chunks<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[(1.3228231538976338,&nbsp;19,&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;1,&nbsp;1,&nbsp;1,&nbsp;2,&nbsp;2]),&nbsp;array(['19',&nbsp;'i_i',&nbsp;'couln',&nbsp;"'_'",&nbsp;'t_t',&nbsp;'believe',&nbsp;'you',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dtype='&lt;U7')),&nbsp;(1.2375469333946558,&nbsp;1,&nbsp;array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dtype='&lt;U10')),&nbsp;(0.63244446618097783,&nbsp;6,&nbsp;array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array(['7_7',&nbsp;'perhaps',&nbsp;'there',&nbsp;'is',&nbsp;'a_a',&nbsp;'better',&nbsp;'way',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'doing',&nbsp;'it',&nbsp;'._.'],&nbsp;<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returns:&nbsp;index_in_which_no_minority_categories_are_predicted:&nbsp;a&nbsp;list&nbsp;of&nbsp;tuples&nbsp;for&nbsp;the&nbsp;samples&nbsp;that&nbsp;do&nbsp;not&nbsp;contain&nbsp;predicted&nbsp;chunks,&nbsp;with<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(xi,&nbsp;yi,&nbsp;index)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ex:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[(array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;13)]<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-get_selected_unlabelled"><strong>get_selected_unlabelled</strong></a>(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;get_new_data&nbsp;is&nbsp;the&nbsp;main&nbsp;function&nbsp;of&nbsp;this&nbsp;module.&nbsp;It&nbsp;is&nbsp;the&nbsp;function&nbsp;to&nbsp;call&nbsp;to&nbsp;get&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;method&nbsp;should&nbsp;only&nbsp;be&nbsp;called&nbsp;after&nbsp;the&nbsp;fit&nbsp;method&nbsp;has&nbsp;been&nbsp;called.&nbsp;Otherwise,&nbsp;and&nbsp;sklearn.utils.validation.NotFittedError&nbsp;will&nbsp;be&nbsp;raised<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;method&nbsp;is&nbsp;called&nbsp;to&nbsp;retrieve&nbsp;the&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;main&nbsp;code&nbsp;for&nbsp;sorting&nbsp;and&nbsp;selecting&nbsp;is&nbsp;carried&nbsp;out&nbsp;in&nbsp;this&nbsp;method,&nbsp;but&nbsp;the&nbsp;code&nbsp;for&nbsp;determining&nbsp;a&nbsp;score&nbsp;for&nbsp;the&nbsp;certainty&nbsp;of&nbsp;the&nbsp;unlabelled&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;left&nbsp;for&nbsp;the&nbsp;subclasses&nbsp;(since&nbsp;this&nbsp;score&nbsp;is&nbsp;computed&nbsp;differently&nbsp;for&nbsp;different&nbsp;models&nbsp;and&nbsp;active&nbsp;learning&nbsp;methods).&nbsp;For&nbsp;determining&nbsp;these&nbsp;scores,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;method&nbsp;invokes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;get_scores_unlabelled_with_predicted_chunks&nbsp;and&nbsp;get_scores_unlabelled_sorted_no_predicted_chunks&nbsp;that&nbsp;is&nbsp;implemented&nbsp;in&nbsp;the&nbsp;non-abstract&nbsp;subclasses.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;insuring&nbsp;there&nbsp;is&nbsp;a&nbsp;lexical&nbsp;spread&nbsp;within&nbsp;the&nbsp;selected&nbsp;samples,&nbsp;the&nbsp;help&nbsp;function&nbsp;get_selected_sentences_with_different_vocabulary&nbsp;is&nbsp;called.<br>
+&nbsp;<br>
+:param&nbsp;labelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+:param&nbsp;y_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;classes&nbsp;of&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+&nbsp;<br>
+:param&nbsp;X_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;nr_of_samples:&nbsp;Nr&nbsp;of&nbsp;samples&nbsp;to&nbsp;return<br>
+&nbsp;<br>
+:param&nbsp;text_vector_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U10')<br>
+&nbsp;&nbsp;array(['5_5',&nbsp;'it',&nbsp;"'_'",&nbsp;'s_s',&nbsp;'certainly',&nbsp;'something',&nbsp;'to',<br>
+&nbsp;&nbsp;&nbsp;'consider',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9')<br>
+&nbsp;&nbsp;array(['7_7',&nbsp;'perhaps',&nbsp;'there',&nbsp;'is',&nbsp;'a_a',&nbsp;'better',&nbsp;'way',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'doing',&nbsp;'it',&nbsp;'._.'],&nbsp;<br>
+...<br>
+&nbsp;<br>
+:param&nbsp;text_vector_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;&nbsp;<br>
+...&nbsp;&nbsp;&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;maximum_samples_to_search_among:&nbsp;The&nbsp;maxium&nbsp;number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;search&nbsp;among&nbsp;when&nbsp;actively&nbsp;selecting&nbsp;useful&nbsp;(integer&nbsp;or&nbsp;the&nbsp;string&nbsp;"all")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+:param&nbsp;inactive_learning:&nbsp;If&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;reverse&nbsp;of&nbsp;active&nbsp;learning&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)<br>
+&nbsp;<br>
+:param&nbsp;prefer_predicted_chunks:&nbsp;&nbsp;With&nbsp;this&nbsp;option&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;active&nbsp;learning&nbsp;prefers&nbsp;unlabelled&nbsp;samples&nbsp;in&nbsp;which&nbsp;chunks&nbsp;are&nbsp;predicted&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_X:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;selected&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;unlabelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;still&nbsp;unlabelled&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_text:&nbsp;A&nbsp;list&nbsp;containing&nbsp;numpy.ndarray&nbsp;with&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;selected&nbsp;for&nbsp;annotation&nbsp;and&nbsp;pre-labelling<br>
+Ex:<br>
+[array(['14',&nbsp;'try',&nbsp;'to',&nbsp;'see',&nbsp;'it',&nbsp;'my',&nbsp;'way',&nbsp;'!_!'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U3'),&nbsp;array(['9_9',&nbsp;'the',&nbsp;'certainty',&nbsp;'is',&nbsp;'quite',&nbsp;'low',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9'),&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7'),&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')]<br>
+&nbsp;:return:&nbsp;sentences_unlabelled:&nbsp;A&nbsp;numpy.ndarray&nbsp;with&nbsp;samples&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;not&nbsp;selected,&nbsp;and&nbsp;which&nbsp;is&nbsp;<br>
+&nbsp;&nbsp;therefore&nbsp;to&nbsp;remain&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data<br>
+&nbsp;[array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')<br>
+&nbsp;&nbsp;array(['4_4',&nbsp;'it',&nbsp;'is',&nbsp;'clearly',&nbsp;'wrong',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;:return:&nbsp;predicted_for_selected:&nbsp;A&nbsp;list&nbsp;of&nbsp;predictions&nbsp;made&nbsp;by&nbsp;the&nbsp;currently&nbsp;trained&nbsp;model&nbsp;on&nbsp;the&nbsp;selected&nbsp;data<br>
+&nbsp;Ex:<br>
+&nbsp;[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+&nbsp;array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])]</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-init_params"><strong>init_params</strong></a>(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt><dd><tt>Method&nbsp;for&nbsp;setting&nbsp;all&nbsp;the&nbsp;parameters&nbsp;of&nbsp;the&nbsp;modelwrapper&nbsp;(as&nbsp;specified&nbsp;by&nbsp;the&nbsp;properties).</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-predict"><strong>predict</strong></a>(self, X)</dt><dd><tt>Predics&nbsp;the&nbsp;classes&nbsp;given&nbsp;the&nbsp;observations&nbsp;in&nbsp;X<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+is&nbsp;to&nbsp;returns&nbsp;the&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;resulting&nbsp;from&nbsp;the&nbsp;predictions&nbsp;in&nbsp;form&nbsp;of&nbsp;a&nbsp;list<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;1,&nbsp;1,&nbsp;1,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),<br>
+...<br>
+&nbsp;<br>
+raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-predict_nonstructured"><strong>predict_nonstructured</strong></a>(self, X)</dt><dd><tt>Help&nbsp;method&nbsp;for&nbsp;non&nbsp;structured&nbsp;models.&nbsp;Turns&nbsp;the&nbsp;observations&nbsp;in&nbsp;X&nbsp;from&nbsp;a&nbsp;structured&nbsp;format&nbsp;to&nbsp;a&nbsp;nonstructured&nbsp;format,<br>
+predicts&nbsp;with&nbsp;the&nbsp;internal&nbsp;model,&nbsp;and&nbsp;transforms&nbsp;back&nbsp;to&nbsp;a&nbsp;structured&nbsp;format.<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+is&nbsp;to&nbsp;returns&nbsp;the&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;resulting&nbsp;from&nbsp;the&nbsp;predictions&nbsp;in&nbsp;form&nbsp;of&nbsp;a&nbsp;list<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;1,&nbsp;1,&nbsp;1,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),<br>
+...</tt></dd></dl>
+
+<dl><dt><a name="ModelWrapperBase-score"><strong>score</strong></a>(self, X, Y)</dt><dd><tt>Is&nbsp;to&nbsp;return&nbsp;a&nbsp;goodness-score&nbsp;for&nbsp;the&nbsp;classification&nbsp;Y,&nbsp;given&nbsp;the&nbsp;feature&nbsp;representation&nbsp;X<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+params:&nbsp;Y:&nbsp;The&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;in&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;a&nbsp;numerical&nbsp;representing&nbsp;for&nbsp;each&nbsp;token.<br>
+Ex:<br>
+&nbsp;<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;1,&nbsp;1,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+...<br>
+&nbsp;<br>
+raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="NonStructuredLogisticRegression">class <strong>NonStructuredLogisticRegression</strong></a>(<a href="classify_and_select.html#ModelWrapperBase">ModelWrapperBase</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="NonStructuredLogisticRegression-__init__"><strong>__init__</strong></a>(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-fit"><strong>fit</strong></a>(self, X, Y)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-get_probabilities"><strong>get_probabilities</strong></a>(self, to_search_among_x)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-get_scores_unlabelled_sorted_no_predicted_chunks"><strong>get_scores_unlabelled_sorted_no_predicted_chunks</strong></a>(self, number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning)</dt><dd><tt>#&nbsp;Returns&nbsp;the&nbsp;score&nbsp;for&nbsp;those&nbsp;with&nbsp;no&nbsp;predicted&nbsp;chunks&nbsp;in&nbsp;sorted&nbsp;order,&nbsp;and&nbsp;the&nbsp;number_of_unlabelled_to_select&nbsp;best<br>
+#&nbsp;(where&nbsp;number_of_unlabelled_to_select&nbsp;is&nbsp;equal&nbsp;to&nbsp;len(index_in_which_no_minority_categories_are_predicted)&nbsp;if&nbsp;the&nbsp;setting&nbsp;to&nbsp;not&nbsp;prioritize&nbsp;chunks&nbsp;is&nbsp;chosen.)</tt></dd></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-get_scores_unlabelled_with_predicted_chunks"><strong>get_scores_unlabelled_with_predicted_chunks</strong></a>(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-predict"><strong>predict</strong></a>(self, X)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-predict_proba"><strong>predict_proba</strong></a>(self, X)</dt></dl>
+
+<hr>
+Methods inherited from <a href="classify_and_select.html#ModelWrapperBase">ModelWrapperBase</a>:<br>
+<dl><dt><a name="NonStructuredLogisticRegression-get_params"><strong>get_params</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-get_selected_unlabelled"><strong>get_selected_unlabelled</strong></a>(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;get_new_data&nbsp;is&nbsp;the&nbsp;main&nbsp;function&nbsp;of&nbsp;this&nbsp;module.&nbsp;It&nbsp;is&nbsp;the&nbsp;function&nbsp;to&nbsp;call&nbsp;to&nbsp;get&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;method&nbsp;should&nbsp;only&nbsp;be&nbsp;called&nbsp;after&nbsp;the&nbsp;fit&nbsp;method&nbsp;has&nbsp;been&nbsp;called.&nbsp;Otherwise,&nbsp;and&nbsp;sklearn.utils.validation.NotFittedError&nbsp;will&nbsp;be&nbsp;raised<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;method&nbsp;is&nbsp;called&nbsp;to&nbsp;retrieve&nbsp;the&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;main&nbsp;code&nbsp;for&nbsp;sorting&nbsp;and&nbsp;selecting&nbsp;is&nbsp;carried&nbsp;out&nbsp;in&nbsp;this&nbsp;method,&nbsp;but&nbsp;the&nbsp;code&nbsp;for&nbsp;determining&nbsp;a&nbsp;score&nbsp;for&nbsp;the&nbsp;certainty&nbsp;of&nbsp;the&nbsp;unlabelled&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;left&nbsp;for&nbsp;the&nbsp;subclasses&nbsp;(since&nbsp;this&nbsp;score&nbsp;is&nbsp;computed&nbsp;differently&nbsp;for&nbsp;different&nbsp;models&nbsp;and&nbsp;active&nbsp;learning&nbsp;methods).&nbsp;For&nbsp;determining&nbsp;these&nbsp;scores,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;method&nbsp;invokes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;get_scores_unlabelled_with_predicted_chunks&nbsp;and&nbsp;get_scores_unlabelled_sorted_no_predicted_chunks&nbsp;that&nbsp;is&nbsp;implemented&nbsp;in&nbsp;the&nbsp;non-abstract&nbsp;subclasses.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;insuring&nbsp;there&nbsp;is&nbsp;a&nbsp;lexical&nbsp;spread&nbsp;within&nbsp;the&nbsp;selected&nbsp;samples,&nbsp;the&nbsp;help&nbsp;function&nbsp;get_selected_sentences_with_different_vocabulary&nbsp;is&nbsp;called.<br>
+&nbsp;<br>
+:param&nbsp;labelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+:param&nbsp;y_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;classes&nbsp;of&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+&nbsp;<br>
+:param&nbsp;X_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;nr_of_samples:&nbsp;Nr&nbsp;of&nbsp;samples&nbsp;to&nbsp;return<br>
+&nbsp;<br>
+:param&nbsp;text_vector_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U10')<br>
+&nbsp;&nbsp;array(['5_5',&nbsp;'it',&nbsp;"'_'",&nbsp;'s_s',&nbsp;'certainly',&nbsp;'something',&nbsp;'to',<br>
+&nbsp;&nbsp;&nbsp;'consider',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9')<br>
+&nbsp;&nbsp;array(['7_7',&nbsp;'perhaps',&nbsp;'there',&nbsp;'is',&nbsp;'a_a',&nbsp;'better',&nbsp;'way',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'doing',&nbsp;'it',&nbsp;'._.'],&nbsp;<br>
+...<br>
+&nbsp;<br>
+:param&nbsp;text_vector_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;&nbsp;<br>
+...&nbsp;&nbsp;&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;maximum_samples_to_search_among:&nbsp;The&nbsp;maxium&nbsp;number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;search&nbsp;among&nbsp;when&nbsp;actively&nbsp;selecting&nbsp;useful&nbsp;(integer&nbsp;or&nbsp;the&nbsp;string&nbsp;"all")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+:param&nbsp;inactive_learning:&nbsp;If&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;reverse&nbsp;of&nbsp;active&nbsp;learning&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)<br>
+&nbsp;<br>
+:param&nbsp;prefer_predicted_chunks:&nbsp;&nbsp;With&nbsp;this&nbsp;option&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;active&nbsp;learning&nbsp;prefers&nbsp;unlabelled&nbsp;samples&nbsp;in&nbsp;which&nbsp;chunks&nbsp;are&nbsp;predicted&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_X:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;selected&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;unlabelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;still&nbsp;unlabelled&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_text:&nbsp;A&nbsp;list&nbsp;containing&nbsp;numpy.ndarray&nbsp;with&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;selected&nbsp;for&nbsp;annotation&nbsp;and&nbsp;pre-labelling<br>
+Ex:<br>
+[array(['14',&nbsp;'try',&nbsp;'to',&nbsp;'see',&nbsp;'it',&nbsp;'my',&nbsp;'way',&nbsp;'!_!'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U3'),&nbsp;array(['9_9',&nbsp;'the',&nbsp;'certainty',&nbsp;'is',&nbsp;'quite',&nbsp;'low',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9'),&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7'),&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')]<br>
+&nbsp;:return:&nbsp;sentences_unlabelled:&nbsp;A&nbsp;numpy.ndarray&nbsp;with&nbsp;samples&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;not&nbsp;selected,&nbsp;and&nbsp;which&nbsp;is&nbsp;<br>
+&nbsp;&nbsp;therefore&nbsp;to&nbsp;remain&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data<br>
+&nbsp;[array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')<br>
+&nbsp;&nbsp;array(['4_4',&nbsp;'it',&nbsp;'is',&nbsp;'clearly',&nbsp;'wrong',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;:return:&nbsp;predicted_for_selected:&nbsp;A&nbsp;list&nbsp;of&nbsp;predictions&nbsp;made&nbsp;by&nbsp;the&nbsp;currently&nbsp;trained&nbsp;model&nbsp;on&nbsp;the&nbsp;selected&nbsp;data<br>
+&nbsp;Ex:<br>
+&nbsp;[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+&nbsp;array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])]</tt></dd></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-init_params"><strong>init_params</strong></a>(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt><dd><tt>Method&nbsp;for&nbsp;setting&nbsp;all&nbsp;the&nbsp;parameters&nbsp;of&nbsp;the&nbsp;modelwrapper&nbsp;(as&nbsp;specified&nbsp;by&nbsp;the&nbsp;properties).</tt></dd></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-predict_nonstructured"><strong>predict_nonstructured</strong></a>(self, X)</dt><dd><tt>Help&nbsp;method&nbsp;for&nbsp;non&nbsp;structured&nbsp;models.&nbsp;Turns&nbsp;the&nbsp;observations&nbsp;in&nbsp;X&nbsp;from&nbsp;a&nbsp;structured&nbsp;format&nbsp;to&nbsp;a&nbsp;nonstructured&nbsp;format,<br>
+predicts&nbsp;with&nbsp;the&nbsp;internal&nbsp;model,&nbsp;and&nbsp;transforms&nbsp;back&nbsp;to&nbsp;a&nbsp;structured&nbsp;format.<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+is&nbsp;to&nbsp;returns&nbsp;the&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;resulting&nbsp;from&nbsp;the&nbsp;predictions&nbsp;in&nbsp;form&nbsp;of&nbsp;a&nbsp;list<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;1,&nbsp;1,&nbsp;1,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),<br>
+...</tt></dd></dl>
+
+<dl><dt><a name="NonStructuredLogisticRegression-score"><strong>score</strong></a>(self, X, Y)</dt><dd><tt>Is&nbsp;to&nbsp;return&nbsp;a&nbsp;goodness-score&nbsp;for&nbsp;the&nbsp;classification&nbsp;Y,&nbsp;given&nbsp;the&nbsp;feature&nbsp;representation&nbsp;X<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+params:&nbsp;Y:&nbsp;The&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;in&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;a&nbsp;numerical&nbsp;representing&nbsp;for&nbsp;each&nbsp;token.<br>
+Ex:<br>
+&nbsp;<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;1,&nbsp;1,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+...<br>
+&nbsp;<br>
+raises&nbsp;a&nbsp;NotImplementedError&nbsp;in&nbsp;<a href="#ModelWrapperBase">ModelWrapperBase</a>,&nbsp;and&nbsp;is&nbsp;to&nbsp;be&nbsp;implemented&nbsp;in&nbsp;the&nbsp;subclasses</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="StructuredModelFrankWolfeSSVM">class <strong>StructuredModelFrankWolfeSSVM</strong></a>(<a href="classify_and_select.html#ModelWrapperBase">ModelWrapperBase</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-__init__"><strong>__init__</strong></a>(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-fit"><strong>fit</strong></a>(self, X, Y)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-get_scores_unlabelled_sorted_no_predicted_chunks"><strong>get_scores_unlabelled_sorted_no_predicted_chunks</strong></a>(self, number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning)</dt><dd><tt>#&nbsp;Returns&nbsp;the&nbsp;score&nbsp;for&nbsp;those&nbsp;with&nbsp;no&nbsp;predicted&nbsp;chunks&nbsp;in&nbsp;sorted&nbsp;order,&nbsp;and&nbsp;the&nbsp;number_of_unlabelled_to_select&nbsp;best<br>
+#&nbsp;(where&nbsp;number_of_unlabelled_to_select&nbsp;is&nbsp;equal&nbsp;to&nbsp;len(index_in_which_no_minority_categories_are_predicted)&nbsp;if&nbsp;the&nbsp;setting&nbsp;to&nbsp;not&nbsp;prioritize&nbsp;chunks&nbsp;is&nbsp;chosen.)</tt></dd></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-get_scores_unlabelled_with_predicted_chunks"><strong>get_scores_unlabelled_with_predicted_chunks</strong></a>(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-get_smallest_diff_alternative"><strong>get_smallest_diff_alternative</strong></a>(self, xi, yi, permutation_method)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-predict"><strong>predict</strong></a>(self, X)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-score"><strong>score</strong></a>(self, X, Y)</dt></dl>
+
+<hr>
+Methods inherited from <a href="classify_and_select.html#ModelWrapperBase">ModelWrapperBase</a>:<br>
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-get_params"><strong>get_params</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-get_selected_unlabelled"><strong>get_selected_unlabelled</strong></a>(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)</dt><dd><tt>&nbsp;&nbsp;&nbsp;&nbsp;get_new_data&nbsp;is&nbsp;the&nbsp;main&nbsp;function&nbsp;of&nbsp;this&nbsp;module.&nbsp;It&nbsp;is&nbsp;the&nbsp;function&nbsp;to&nbsp;call&nbsp;to&nbsp;get&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;method&nbsp;should&nbsp;only&nbsp;be&nbsp;called&nbsp;after&nbsp;the&nbsp;fit&nbsp;method&nbsp;has&nbsp;been&nbsp;called.&nbsp;Otherwise,&nbsp;and&nbsp;sklearn.utils.validation.NotFittedError&nbsp;will&nbsp;be&nbsp;raised<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;method&nbsp;is&nbsp;called&nbsp;to&nbsp;retrieve&nbsp;the&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;main&nbsp;code&nbsp;for&nbsp;sorting&nbsp;and&nbsp;selecting&nbsp;is&nbsp;carried&nbsp;out&nbsp;in&nbsp;this&nbsp;method,&nbsp;but&nbsp;the&nbsp;code&nbsp;for&nbsp;determining&nbsp;a&nbsp;score&nbsp;for&nbsp;the&nbsp;certainty&nbsp;of&nbsp;the&nbsp;unlabelled&nbsp;data<br>
+&nbsp;&nbsp;&nbsp;&nbsp;is&nbsp;left&nbsp;for&nbsp;the&nbsp;subclasses&nbsp;(since&nbsp;this&nbsp;score&nbsp;is&nbsp;computed&nbsp;differently&nbsp;for&nbsp;different&nbsp;models&nbsp;and&nbsp;active&nbsp;learning&nbsp;methods).&nbsp;For&nbsp;determining&nbsp;these&nbsp;scores,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;method&nbsp;invokes:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;get_scores_unlabelled_with_predicted_chunks&nbsp;and&nbsp;get_scores_unlabelled_sorted_no_predicted_chunks&nbsp;that&nbsp;is&nbsp;implemented&nbsp;in&nbsp;the&nbsp;non-abstract&nbsp;subclasses.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;insuring&nbsp;there&nbsp;is&nbsp;a&nbsp;lexical&nbsp;spread&nbsp;within&nbsp;the&nbsp;selected&nbsp;samples,&nbsp;the&nbsp;help&nbsp;function&nbsp;get_selected_sentences_with_different_vocabulary&nbsp;is&nbsp;called.<br>
+&nbsp;<br>
+:param&nbsp;labelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+:param&nbsp;y_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;classes&nbsp;of&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+&nbsp;<br>
+:param&nbsp;X_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;nr_of_samples:&nbsp;Nr&nbsp;of&nbsp;samples&nbsp;to&nbsp;return<br>
+&nbsp;<br>
+:param&nbsp;text_vector_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U10')<br>
+&nbsp;&nbsp;array(['5_5',&nbsp;'it',&nbsp;"'_'",&nbsp;'s_s',&nbsp;'certainly',&nbsp;'something',&nbsp;'to',<br>
+&nbsp;&nbsp;&nbsp;'consider',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9')<br>
+&nbsp;&nbsp;array(['7_7',&nbsp;'perhaps',&nbsp;'there',&nbsp;'is',&nbsp;'a_a',&nbsp;'better',&nbsp;'way',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'doing',&nbsp;'it',&nbsp;'._.'],&nbsp;<br>
+...<br>
+&nbsp;<br>
+:param&nbsp;text_vector_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;&nbsp;<br>
+...&nbsp;&nbsp;&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;maximum_samples_to_search_among:&nbsp;The&nbsp;maxium&nbsp;number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;search&nbsp;among&nbsp;when&nbsp;actively&nbsp;selecting&nbsp;useful&nbsp;(integer&nbsp;or&nbsp;the&nbsp;string&nbsp;"all")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+:param&nbsp;inactive_learning:&nbsp;If&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;reverse&nbsp;of&nbsp;active&nbsp;learning&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)<br>
+&nbsp;<br>
+:param&nbsp;prefer_predicted_chunks:&nbsp;&nbsp;With&nbsp;this&nbsp;option&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;active&nbsp;learning&nbsp;prefers&nbsp;unlabelled&nbsp;samples&nbsp;in&nbsp;which&nbsp;chunks&nbsp;are&nbsp;predicted&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_X:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;selected&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;unlabelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;still&nbsp;unlabelled&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_text:&nbsp;A&nbsp;list&nbsp;containing&nbsp;numpy.ndarray&nbsp;with&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;selected&nbsp;for&nbsp;annotation&nbsp;and&nbsp;pre-labelling<br>
+Ex:<br>
+[array(['14',&nbsp;'try',&nbsp;'to',&nbsp;'see',&nbsp;'it',&nbsp;'my',&nbsp;'way',&nbsp;'!_!'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U3'),&nbsp;array(['9_9',&nbsp;'the',&nbsp;'certainty',&nbsp;'is',&nbsp;'quite',&nbsp;'low',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9'),&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7'),&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')]<br>
+&nbsp;:return:&nbsp;sentences_unlabelled:&nbsp;A&nbsp;numpy.ndarray&nbsp;with&nbsp;samples&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;not&nbsp;selected,&nbsp;and&nbsp;which&nbsp;is&nbsp;<br>
+&nbsp;&nbsp;therefore&nbsp;to&nbsp;remain&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data<br>
+&nbsp;[array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')<br>
+&nbsp;&nbsp;array(['4_4',&nbsp;'it',&nbsp;'is',&nbsp;'clearly',&nbsp;'wrong',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;:return:&nbsp;predicted_for_selected:&nbsp;A&nbsp;list&nbsp;of&nbsp;predictions&nbsp;made&nbsp;by&nbsp;the&nbsp;currently&nbsp;trained&nbsp;model&nbsp;on&nbsp;the&nbsp;selected&nbsp;data<br>
+&nbsp;Ex:<br>
+&nbsp;[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+&nbsp;array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])]</tt></dd></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-init_params"><strong>init_params</strong></a>(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt><dd><tt>Method&nbsp;for&nbsp;setting&nbsp;all&nbsp;the&nbsp;parameters&nbsp;of&nbsp;the&nbsp;modelwrapper&nbsp;(as&nbsp;specified&nbsp;by&nbsp;the&nbsp;properties).</tt></dd></dl>
+
+<dl><dt><a name="StructuredModelFrankWolfeSSVM-predict_nonstructured"><strong>predict_nonstructured</strong></a>(self, X)</dt><dd><tt>Help&nbsp;method&nbsp;for&nbsp;non&nbsp;structured&nbsp;models.&nbsp;Turns&nbsp;the&nbsp;observations&nbsp;in&nbsp;X&nbsp;from&nbsp;a&nbsp;structured&nbsp;format&nbsp;to&nbsp;a&nbsp;nonstructured&nbsp;format,<br>
+predicts&nbsp;with&nbsp;the&nbsp;internal&nbsp;model,&nbsp;and&nbsp;transforms&nbsp;back&nbsp;to&nbsp;a&nbsp;structured&nbsp;format.<br>
+&nbsp;<br>
+params:&nbsp;X:&nbsp;The&nbsp;feature&nbsp;representation&nbsp;of&nbsp;the&nbsp;training&nbsp;data.&nbsp;ndarray,&nbsp;with&nbsp;each&nbsp;element&nbsp;representing&nbsp;a&nbsp;sample,&nbsp;which&nbsp;in&nbsp;turn<br>
+has&nbsp;an&nbsp;array&nbsp;representing&nbsp;each&nbsp;token.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+is&nbsp;to&nbsp;returns&nbsp;the&nbsp;numerical&nbsp;representation&nbsp;of&nbsp;the&nbsp;classifications&nbsp;resulting&nbsp;from&nbsp;the&nbsp;predictions&nbsp;in&nbsp;form&nbsp;of&nbsp;a&nbsp;list<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;1,&nbsp;1,&nbsp;1,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),<br>
+...</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-get_maximum_samples_to_search_among"><strong>get_maximum_samples_to_search_among</strong></a>(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)</dt><dd><tt>get_maximum_samples_to_search_among&nbsp;internal&nbsp;function&nbsp;used&nbsp;by&nbsp;the&nbsp;module<br>
+&nbsp;<br>
+Returns&nbsp;the&nbsp;number&nbsp;of&nbsp;samples&nbsp;that&nbsp;should&nbsp;be&nbsp;searched&nbsp;among.&nbsp;<br>
+If&nbsp;maximum_samples_to_search_among.lower()&nbsp;==&nbsp;"all",&nbsp;it&nbsp;returns&nbsp;the&nbsp;number&nbsp;of&nbsp;unlabelled&nbsp;samples&nbsp;that&nbsp;are&nbsp;available.<br>
+If&nbsp;maximum_samples_to_search_among&nbsp;is&nbsp;a&nbsp;number&nbsp;it&nbsp;returns&nbsp;the&nbsp;the&nbsp;mininum&nbsp;of&nbsp;this&nbsp;number&nbsp;and&nbsp;the&nbsp;the&nbsp;number&nbsp;of&nbsp;unlabelled&nbsp;samples&nbsp;that&nbsp;are&nbsp;available.</tt></dd></dl>
+ <dl><dt><a name="-get_new_data"><strong>get_new_data</strong></a>(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, label_dict, minority_categories, nr_of_samples, maximum_samples_to_search_among, outside_class, beginning_prefix, inside_prefix, inactive_learning, max_iterations, prefer_predicted_chunks, model_type, use_cross_validation, nr_of_cross_validation_splits, c_value)</dt><dd><tt>get_new_data&nbsp;is&nbsp;the&nbsp;main&nbsp;function&nbsp;of&nbsp;this&nbsp;module.&nbsp;It&nbsp;is&nbsp;the&nbsp;function&nbsp;to&nbsp;call&nbsp;to&nbsp;get&nbsp;actively&nbsp;selected&nbsp;and&nbsp;pre-annotated&nbsp;data<br>
+&nbsp;<br>
+:param&nbsp;X_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,<br>
+&nbsp;<br>
+:param&nbsp;X_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;1,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0]])<br>
+array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+...,&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;y_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;classes&nbsp;of&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[array([2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])&nbsp;<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])<br>
+&nbsp;<br>
+:param&nbsp;text_vector_labelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['2_2',&nbsp;'you',&nbsp;'could',&nbsp;'see',&nbsp;'someone',&nbsp;'moving,',&nbsp;'regardless',<br>
+&nbsp;&nbsp;&nbsp;'of',&nbsp;'the',&nbsp;'darkness'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U10')<br>
+&nbsp;&nbsp;array(['5_5',&nbsp;'it',&nbsp;"'_'",&nbsp;'s_s',&nbsp;'certainly',&nbsp;'something',&nbsp;'to',<br>
+&nbsp;&nbsp;&nbsp;'consider',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9')<br>
+&nbsp;&nbsp;array(['7_7',&nbsp;'perhaps',&nbsp;'there',&nbsp;'is',&nbsp;'a_a',&nbsp;'better',&nbsp;'way',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'doing',&nbsp;'it',&nbsp;'._.'],&nbsp;<br>
+...<br>
+&nbsp;<br>
+:param&nbsp;text_vector_unlabelled_np:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;samples&nbsp;in&nbsp;the&nbsp;unlabelled&nbsp;data.<br>
+Ex:<br>
+[&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;&nbsp;<br>
+...&nbsp;&nbsp;&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;label_dict:&nbsp;A&nbsp;dictionary&nbsp;where&nbsp;the&nbsp;keys&nbsp;are&nbsp;the&nbsp;numerical&nbsp;representations&nbsp;of&nbsp;the&nbsp;classes,&nbsp;and&nbsp;the&nbsp;items&nbsp;are<br>
+the&nbsp;classes&nbsp;in&nbsp;the&nbsp;form&nbsp;they&nbsp;appear&nbsp;in&nbsp;the&nbsp;annotated&nbsp;data<br>
+Ex:<br>
+{'O':&nbsp;2,&nbsp;'I-speculation':&nbsp;1,&nbsp;'B-speculation':&nbsp;0}<br>
+&nbsp;<br>
+:param&nbsp;minority_categories:&nbsp;List&nbsp;of&nbsp;minority&nbsp;classes&nbsp;with&nbsp;their&nbsp;prefix.&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;nr_of_samples:&nbsp;Number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;be&nbsp;actively&nbsp;seleected&nbsp;and&nbsp;pre-annotated&nbsp;in&nbsp;each&nbsp;round.<br>
+&nbsp;<br>
+:param&nbsp;maximum_samples_to_search_among:&nbsp;The&nbsp;maxium&nbsp;number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;search&nbsp;among&nbsp;when&nbsp;actively&nbsp;selecting&nbsp;useful&nbsp;(integer&nbsp;or&nbsp;the&nbsp;string&nbsp;"all")<br>
+&nbsp;<br>
+:param&nbsp;outside_class:&nbsp;The&nbsp;name&nbsp;of&nbsp;the&nbsp;outside&nbsp;class,&nbsp;i.e.,&nbsp;the&nbsp;one&nbsp;not&nbsp;among&nbsp;the&nbsp;mindory&nbsp;classes&nbsp;(typically&nbsp;"O")<br>
+&nbsp;<br>
+:param&nbsp;beginning_prefix:&nbsp;The&nbsp;prefix&nbsp;to&nbsp;use&nbsp;on&nbsp;a&nbsp;minority&nbsp;class&nbsp;to&nbsp;indicate&nbsp;beginning&nbsp;of&nbsp;class&nbsp;(typically&nbsp;"B-)<br>
+&nbsp;<br>
+:param&nbsp;inside_prefix:&nbsp;The&nbsp;prefix&nbsp;to&nbsp;use&nbsp;on&nbsp;a&nbsp;minority&nbsp;class&nbsp;to&nbsp;indicate&nbsp;inside&nbsp;of&nbsp;class&nbsp;(typically&nbsp;"I-)<br>
+&nbsp;<br>
+:param&nbsp;inactive_learning:&nbsp;If&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;reverse&nbsp;of&nbsp;active&nbsp;learning&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)<br>
+&nbsp;<br>
+:param&nbsp;max_iterations:&nbsp;The&nbsp;number&nbsp;of&nbsp;iterations&nbsp;to&nbsp;use&nbsp;by&nbsp;the&nbsp;learning&nbsp;(not&nbsp;applicable&nbsp;to&nbsp;all&nbsp;classes)<br>
+&nbsp;<br>
+:param&nbsp;prefer_predicted_chunks:&nbsp;&nbsp;With&nbsp;this&nbsp;option&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;active&nbsp;learning&nbsp;prefers&nbsp;unlabelled&nbsp;samples&nbsp;in&nbsp;which&nbsp;chunks&nbsp;are&nbsp;predicted&nbsp;(typically&nbsp;this&nbsp;is&nbsp;set&nbsp;to&nbsp;False,&nbsp;therefore)&nbsp;<br>
+&nbsp;<br>
+:param&nbsp;model_type:&nbsp;Type&nbsp;of&nbsp;model&nbsp;to&nbsp;use,&nbsp;e.g.&nbsp;<a href="#StructuredModelFrankWolfeSSVM">StructuredModelFrankWolfeSSVM</a>&nbsp;or&nbsp;<a href="#NonStructuredLogisticRegression">NonStructuredLogisticRegression</a><br>
+&nbsp;<br>
+:param&nbsp;use_cross_validation:&nbsp;If&nbsp;cross&nbsp;validation&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;to&nbsp;decide&nbsp;to&nbsp;decide&nbsp;c-value&nbsp;(True&nbsp;or&nbsp;False)<br>
+&nbsp;<br>
+:param&nbsp;nr_of_cross_validation_splits:&nbsp;Nr&nbsp;of&nbsp;splits&nbsp;in&nbsp;cross&nbsp;validation&nbsp;(only&nbsp;relevant&nbsp;if&nbsp;use_cross_validation&nbsp;is&nbsp;True)<br>
+&nbsp;<br>
+:param&nbsp;c_value:&nbsp;c_value&nbsp;to&nbsp;use&nbsp;(only&nbsp;relevant&nbsp;if&nbsp;use_cross_validation&nbsp;is&nbsp;False)<br>
+&nbsp;<br>
+:return:&nbsp;to_select_X:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;selected&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;1,&nbsp;0,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;unlabelled_x:&nbsp;A&nbsp;numpy.ndarray&nbsp;containing&nbsp;the&nbsp;features&nbsp;representing&nbsp;the&nbsp;still&nbsp;unlabelled&nbsp;data<br>
+Ex:<br>
+[&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;1,&nbsp;0]])<br>
+&nbsp;&nbsp;&nbsp;array([[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;1],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;[0,&nbsp;0,&nbsp;0,&nbsp;...,&nbsp;0,&nbsp;0,&nbsp;0],<br>
+&nbsp;&nbsp;&nbsp;...,&nbsp;<br>
+&nbsp;<br>
+:return:&nbsp;to_select_text:&nbsp;A&nbsp;list&nbsp;containing&nbsp;numpy.ndarray&nbsp;with&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;selected&nbsp;for&nbsp;annotation&nbsp;and&nbsp;pre-labelling<br>
+Ex:<br>
+[array(['14',&nbsp;'try',&nbsp;'to',&nbsp;'see',&nbsp;'it',&nbsp;'my',&nbsp;'way',&nbsp;'!_!'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U3'),&nbsp;array(['9_9',&nbsp;'the',&nbsp;'certainty',&nbsp;'is',&nbsp;'quite',&nbsp;'low',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U9'),&nbsp;array(['1_1',&nbsp;'it',&nbsp;'rained',&nbsp;'today',&nbsp;'despite',&nbsp;'what',&nbsp;'was',&nbsp;'said',<br>
+&nbsp;&nbsp;&nbsp;'on',&nbsp;'the',&nbsp;'news',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7'),&nbsp;array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')]<br>
+&nbsp;:return:&nbsp;sentences_unlabelled:&nbsp;A&nbsp;numpy.ndarray&nbsp;with&nbsp;samples&nbsp;containing&nbsp;the&nbsp;tokens&nbsp;in&nbsp;the&nbsp;text&nbsp;that&nbsp;is&nbsp;not&nbsp;selected,&nbsp;and&nbsp;which&nbsp;is&nbsp;<br>
+&nbsp;&nbsp;therefore&nbsp;to&nbsp;remain&nbsp;in&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data<br>
+&nbsp;[array(['3_3',&nbsp;'they',&nbsp;'decided',&nbsp;'to',&nbsp;'follow',&nbsp;'it',&nbsp;'in',&nbsp;'spite',&nbsp;'of',<br>
+&nbsp;&nbsp;&nbsp;'the',&nbsp;'warnings',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U8')<br>
+&nbsp;&nbsp;array(['4_4',&nbsp;'it',&nbsp;'is',&nbsp;'clearly',&nbsp;'wrong',&nbsp;'._.'],&nbsp;<br>
+&nbsp;&nbsp;dtype='&lt;U7')<br>
+&nbsp;&nbsp;...<br>
+&nbsp;<br>
+&nbsp;:return:&nbsp;predicted_for_selected:&nbsp;A&nbsp;list&nbsp;of&nbsp;predictions&nbsp;made&nbsp;by&nbsp;the&nbsp;currently&nbsp;trained&nbsp;model&nbsp;on&nbsp;the&nbsp;selected&nbsp;data<br>
+&nbsp;Ex:<br>
+&nbsp;[array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;<br>
+&nbsp;array([2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2]),&nbsp;array([2,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;0,&nbsp;2,&nbsp;2,&nbsp;2,&nbsp;2])]</tt></dd></dl>
+ <dl><dt><a name="-get_permutations_no_predicted_chunks"><strong>get_permutations_no_predicted_chunks</strong></a>(yi, previous_model_wrapper)</dt><dd><tt>Help&nbsp;function&nbsp;for&nbsp;creating&nbsp;permutations&nbsp;for&nbsp;uncertainty&nbsp;sampling</tt></dd></dl>
+ <dl><dt><a name="-get_permutations_with_predicted_chunks"><strong>get_permutations_with_predicted_chunks</strong></a>(yi, previous_model_wrapper)</dt><dd><tt>Help&nbsp;function&nbsp;for&nbsp;creating&nbsp;permutations&nbsp;for&nbsp;uncertainty&nbsp;sampling</tt></dd></dl>
+ <dl><dt><a name="-get_selected_sentences_with_different_vocabulary"><strong>get_selected_sentences_with_different_vocabulary</strong></a>(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category, inactive_learning, prefer_predicted_chunks)</dt><dd><tt>Help&nbsp;function&nbsp;to&nbsp;do&nbsp;the&nbsp;final&nbsp;selection&nbsp;of&nbsp;samples.</tt></dd></dl>
+ <dl><dt><a name="-is_minority_classes_in_vector"><strong>is_minority_classes_in_vector</strong></a>(predicted, minority_classes)</dt><dd><tt>Small&nbsp;help&nbsp;function&nbsp;that&nbsp;checks&nbsp;if&nbsp;a&nbsp;vector&nbsp;contains&nbsp;minority&nbsp;classes&nbsp;(only&nbsp;there&nbsp;to&nbsp;make&nbsp;the&nbsp;code&nbsp;more&nbsp;self-explaining).</tt></dd></dl>
+</td></tr></table>
+</body></html>

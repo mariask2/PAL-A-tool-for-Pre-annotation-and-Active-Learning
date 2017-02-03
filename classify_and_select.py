@@ -1,144 +1,188 @@
 import numpy as np
-import os
-import sys
 from pystruct.models import ChainCRF
-from pystruct.learners import OneSlackSSVM
-from pystruct.learners import NSlackSSVM
 from pystruct.learners import FrankWolfeSSVM
 from sklearn.linear_model import LogisticRegression
-from sklearn.linear_model import LogisticRegressionCV
 from sklearn.utils import shuffle
-from joblib import Parallel, delayed
-from sklearn.svm import LinearSVC
-from sklearn.svm import SVC
-from sklearn.metrics import  make_scorer
+from sklearn.metrics import make_scorer
 from sklearn.metrics import f1_score
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import StratifiedKFold
 
-import math
+def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
+                     label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, \
+                     beginning_prefix, inside_prefix, inactive_learning, max_iterations, prefer_predicted_chunks, \
+                     model_type, use_cross_validation, nr_of_cross_validation_splits, c_value):
 
-# For uncertainty selection
-def is_minority_classes_in_vector(predicted, minority_classes):
-    for m in minority_classes:
-        if m in predicted:
-            return True
-    return False
+    """
 
-def get_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category, inactive_learning, prefer_predicted_chunks):
-    #print("sorted_score_index", sorted_score_index)
-    #print("sorted_indeces_no_predicted_chunks", sorted_indeces_no_predicted_chunks)
+    get_new_data is the main function of this module. It is the function to call to get actively selected and pre-annotated data
 
-    if not prefer_predicted_chunks:
-        sorted_score_index = sorted_score_index + sorted_indeces_no_predicted_chunks
-    if inactive_learning:
-        print("Running in reversed mode, selecting the samples for which the learning is most certain.")
-        sorted_score_index = sorted(sorted_score_index, reverse=True)
-    else:
-        # This is the the option that is typically used. The one in which active learning is achieved.
-        sorted_score_index = sorted(sorted_score_index)
-    #print("sorted_score_index", sorted_score_index)
+    :param X_labelled_np: A numpy.ndarray containing the features representing the labelled data.
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 1],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+    [0, 1, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0]])
+    array([[0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ...,
 
-
-    print("The best candidates before word spread is taken into account")        
-    for el in sorted_score_index[:10]:
-        print(el)
-
-    indeces_to_use = []
-    indeces_not_to_use = []
-    predicted_words = set()
-    for (score, index, predicted, sentence) in sorted_score_index:
-        sentence_has_already_used_word = False
-        for i, el in enumerate(predicted):
-            if el != majority_category:
-                predicted_word = sentence[i]
-                if predicted_word in predicted_words:
-                    sentence_has_already_used_word = True
-                predicted_words.add(predicted_word)
-        if not sentence_has_already_used_word:
-            indeces_to_use.append(index)
-        else:
-            indeces_not_to_use.append(index)
-        if len(indeces_to_use) >= step_size:
-            break
-
-    print("predicted_words", predicted_words)
+    :param X_unlabelled_np: A numpy.ndarray containing the features representing the unlabelled data.
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 1, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0]])
+    array([[0, 0, 0, ..., 0, 0, 1],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+   
+    :param y_labelled_np: A numpy.ndarray containing the classes of the labelled data.
+    Ex:
+    [array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]) 
+    array([2, 2, 2, 2, 0, 2, 2, 2, 2])
+    array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+    array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+    array([2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
     
-    if len(indeces_to_use) < step_size: #if there weren't enough uncertain with large word spread, take those that have been filtered out
-        print("Can't return samples with the requested word spread")
-        print("Filtered out indeces, that will be used anyway, therefore:")
-        print(step_size - len(indeces_to_use))
-        print(indeces_not_to_use[:step_size - len(indeces_to_use)])
-        indeces_to_use = indeces_to_use + indeces_not_to_use[:step_size - len(indeces_to_use)]
-    #first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
+    :param text_vector_labelled_np: A numpy.ndarray containing the tokens in the samples in the labelled data.
+    Ex:
+    [ array(['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless',
+       'of', 'the', 'darkness'], 
+      dtype='<U10')
+      array(['5_5', 'it', "'_'", 's_s', 'certainly', 'something', 'to',
+       'consider', '._.'], 
+      dtype='<U9')
+      array(['7_7', 'perhaps', 'there', 'is', 'a_a', 'better', 'way', 'of',
+       'doing', 'it', '._.'], 
+    ...
+    
+    :param text_vector_unlabelled_np: A numpy.ndarray containing the tokens in the samples in the unlabelled data.
+    Ex:
+    [ array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7')
+      array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'],  
+    ...   
+    
+    :param label_dict: A dictionary where the keys are the numerical representations of the classes, and the items are
+    the classes in the form they appear in the annotated data
+    Ex:
+    {'O': 2, 'I-speculation': 1, 'B-speculation': 0}
+    
+    :param minority_categories: List of minority classes with their prefix. 
+    
+    :param nr_of_samples: Number of sentences to be actively seleected and pre-annotated in each round.
+    
+    :param maximum_samples_to_search_among: The maxium number of sentences to search among when actively selecting useful (integer or the string "all")
+    
+    :param outside_class: The name of the outside class, i.e., the one not among the mindory classes (typically "O")
+    
+    :param beginning_prefix: The prefix to use on a minority class to indicate beginning of class (typically "B-)
+    
+    :param inside_prefix: The prefix to use on a minority class to indicate inside of class (typically "I-)
+    
+    :param inactive_learning: If this is set to True, the reverse of active learning is to be used (typically this is set to False, therefore)
+    
+    :param max_iterations: The number of iterations to use by the learning (not applicable to all classes)
+    
+    :param prefer_predicted_chunks:  With this option set to True, the active learning prefers unlabelled samples in which chunks are predicted (typically this is set to False, therefore) 
+    
+    :param model_type: Type of model to use, e.g. StructuredModelFrankWolfeSSVM or NonStructuredLogisticRegression
+    
+    :param use_cross_validation: If cross validation is to be used to decide to decide c-value (True or False)
+    
+    :param nr_of_cross_validation_splits: Nr of splits in cross validation (only relevant if use_cross_validation is True)
+    
+    :param c_value: c_value to use (only relevant if use_cross_validation is False)
+ 
+    :return: to_select_X: A numpy.ndarray containing the features representing the selected data
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 1, 0, 0]])
+       array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+    
+    :return: unlabelled_x: A numpy.ndarray containing the features representing the still unlabelled data
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 1, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 1, 0]])
+       array([[0, 0, 0, ..., 0, 0, 1],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+    
+    :return: to_select_text: A list containing numpy.ndarray with the tokens in the text that is selected for annotation and pre-labelling
+    Ex:
+    [array(['14', 'try', 'to', 'see', 'it', 'my', 'way', '!_!'], 
+      dtype='<U3'), array(['9_9', 'the', 'certainty', 'is', 'quite', 'low', '._.'], 
+      dtype='<U9'), array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7'), array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'], 
+      dtype='<U8')]
+     :return: sentences_unlabelled: A numpy.ndarray with samples containing the tokens in the text that is not selected, and which is 
+      therefore to remain in the pool of unlabelled data
+     [array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'], 
+      dtype='<U8')
+      array(['4_4', 'it', 'is', 'clearly', 'wrong', '._.'], 
+      dtype='<U7')
+      ...
+    
+     :return: predicted_for_selected: A list of predictions made by the currently trained model on the selected data
+     Ex:
+     [array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2]), 
+     array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 0, 2, 2, 2, 2])]
+    """
 
-    print("indeces_to_use", indeces_to_use)
+    maximum_samples_to_search_among = get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)
+    
+    model = model_type(label_dict, minority_categories, outside_class, beginning_prefix, inside_prefix, max_iterations, \
+                           use_cross_validation, nr_of_cross_validation_splits, c_value)
+    print("Started to train the model on the labelled data")
+    model.fit(X_labelled_np, y_labelled_np)
+    print("Training on labelled data finished")
 
-    # Only for printing information
-    if prefer_predicted_chunks:
-        indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
-        print("The best candidates without a predicted chunk")        
-        for el in sorted_indeces_no_predicted_chunks:
-            print(el)
-        print("indeces_to_use with chunks all", indeces_to_use)
+    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = \
+        model.get_selected_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, text_vector_labelled_np, \
+                               text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)
 
-    return indeces_to_use
+    #print(predicted_for_selected)
+    #print(predicted_for_selected.__class__.__name__)
 
-
-def get_selected_unlabelled(labelled_x, labelled_y, unlabelled_x, step_size, previous_model_wrapper, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks):
-
-    # Check the number of samples to select
-    if step_size == 0:
-        print("You have chosen to select 0 new samples to pre-annotated. The variable 'nr_of_samples' in 'settings.py' should be at least 1")
-        exit(1)
-    if step_size > len(unlabelled_x):
-        print("More samples have been asked for than exist among unlabelled. A maximum of " + str(len(unlabelled_x)) + " nr of samples can be returned")
-        step_size = len(unlabelled_x)
-
-
-    # Randomly select samples among which to search for to search for the most informative training instance
-    selected_indeces = shuffle(range(0, len(unlabelled_x)))[:maximum_samples_to_search_among]
-    to_search_among_x = []
-    for selected_index in selected_indeces:
-        to_search_among_x.append(unlabelled_x[selected_index])
-    ys = previous_model_wrapper.predict(to_search_among_x)
-    print("Requested a search among a maximum of " + str(maximum_samples_to_search_among) + " samples")
-
-    # Get scores for the unlabelled samples for which a minority category has been predicted
-    scores_with_index, index_in_which_no_minority_categories_are_predicted = previous_model_wrapper.get_scores_unlabelled_with_predicted_chunks(to_search_among_x, ys, selected_indeces, sentences_unlabelled)
-
-    # if there are too few samples among the unlabelled in which minority categoies are predict, also return unlabelled samples without minority categories
-    # or if the setting is chosen to don't prefer samples in which minority categores are predicted, compute certainty score for all those unlabelled
-    if len(scores_with_index) < step_size or not prefer_predicted_chunks and len(index_in_which_no_minority_categories_are_predicted) > 0:
-        if len(scores_with_index) < step_size:
-            number_of_unlabelled_to_select = step_size - len(scores_with_index)
-        else: # i.e. not prefer_predicted_chunks 
-            number_of_unlabelled_to_select = len(index_in_which_no_minority_categories_are_predicted) # include all of them, and filter out later
-        print("Will search among " + str(number_of_unlabelled_to_select) + " without labelled chunks.")
-        sorted_indeces_no_predicted_chunks = previous_model_wrapper.get_scores_unlabelled_sorted_no_predicted_chunks(number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning)
-    else:
-        print("Will search for the best ones among the " + str(len(scores_with_index)) + " samples that contained a minority category prediction.")
-        sorted_indeces_no_predicted_chunks = [] # nothing without predicted chunks included
-
-
-    index_to_select_among_checked = get_selected_sentences_with_different_vocabulary(scores_with_index, sorted_indeces_no_predicted_chunks, step_size, previous_model_wrapper.majority_class, inactive_learning, prefer_predicted_chunks)
-
-    to_select_X = []
-    to_select_text = []
-    predicted_for_selected = []
-    for its in index_to_select_among_checked:
-        to_select_X.append(unlabelled_x[its])
-        to_select_text.append(sentences_unlabelled[its])
-        predicted_for_selected.append(previous_model_wrapper.predict(unlabelled_x[its:its+1])[0]) # must submit an numpy array to predict
-    print("__________________________")
-
-    unlabelled_x = np.delete(unlabelled_x, index_to_select_among_checked, 0)
-    sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
-
-    return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
+    return(to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected)
 
 
 def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples):
+    """
+    get_maximum_samples_to_search_among internal function used by the module
+
+    Returns the number of samples that should be searched among. 
+    If maximum_samples_to_search_among.lower() == "all", it returns the number of unlabelled samples that are available.
+    If maximum_samples_to_search_among is a number it returns the the mininum of this number and the the number of unlabelled samples that are available.
+    """
     try:
         nr_of_samples_int = int(nr_of_samples)
 
@@ -163,26 +207,7 @@ def get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlab
         print("The property nr_of_samples can only take a numerical value, " + str(nr_of_samples) + " is not valid.")
         exit(1)
 
-#####
-# Public method
-######
-def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
-                     label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, \
-                     beginning_prefix, inside_prefix, inactive_learning, max_iterations, prefer_predicted_chunks, \
-                     model_type, use_cross_validation, nr_of_cross_validation_splits, c_value):
 
-    maximum_samples_to_search_among = get_maximum_samples_to_search_among(maximum_samples_to_search_among, X_unlabelled_np, nr_of_samples)
-    
-    model = model_type(label_dict, minority_categories, outside_class, beginning_prefix, inside_prefix, max_iterations, \
-                           use_cross_validation, nr_of_cross_validation_splits, c_value)
-    print("Started to train the model on the labelled data")
-    model.fit(X_labelled_np, y_labelled_np)
-    print("Training on labelled data finished")
-
-    to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = \
-        model.get_new_data(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, text_vector_labelled_np, \
-                               text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)
-    return(to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected)
 
 
 #####
@@ -191,19 +216,132 @@ def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labe
 
 #Abstract class
 class ModelWrapperBase:
+    """
+    ModelWrapperBase is an abstract class that all models to be used in the active learning and pre-annotation framework
+    are to be subclasses of (it's not enforced, but it's recommended).
 
+    """
     # Abstract methods, to show what needs to be implemented
     def fit(self, X, Y):
+        """
+        Fits the model on the training data
+
+        params: X: The feature representation of the training data. ndarray, with each element representing a sample, which in turn
+        has an array representing each token.
+        Ex:
+        [ array([[0, 0, 0, ..., 0, 0, 1],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ..., 
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 1, 0]])
+        array([[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+
+        params: Y: The numerical representation of the classifications in the training data. ndarray, with each element representing a sample, which in turn
+        has a numerical representing for each token.
+        Ex:
+
+        [array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]) array([2, 2, 2, 2, 0, 2, 2, 2, 2])
+        array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 0, 1, 1, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 0, 2, 2, 2, 2, 2, 0, 2]) array([2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]) array([2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2])
+        ...
+
+        raises a NotImplementedError in ModelWrapperBase, and is to be implemented in the subclasses
+        """
         raise NotImplementedError
 
     def predict(self, X):
+        """
+        Predics the classes given the observations in X
+
+        params: X: The feature representation of the training data. ndarray, with each element representing a sample, which in turn
+        has an array representing each token.
+        Ex:
+        [ array([[0, 0, 0, ..., 0, 0, 1],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ..., 
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 1, 0]])
+        array([[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+
+        is to returns the numerical representation of the classifications resulting from the predictions in form of a list
+        Ex:
+        [array([2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2]), 
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), 
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 1, 1, 1, 2, 2]), array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]),
+        ...
+
+        raises a NotImplementedError in ModelWrapperBase, and is to be implemented in the subclasses
+        """
         raise NotImplementedError
 
     def score(self, X, Y):
+        """
+        Is to return a goodness-score for the classification Y, given the feature representation X
+
+        params: X: The feature representation of the training data. ndarray, with each element representing a sample, which in turn
+        has an array representing each token.
+        Ex:
+        [ array([[0, 0, 0, ..., 0, 0, 1],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ..., 
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 1, 0]])
+        array([[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+
+        params: Y: The numerical representation of the classifications in the training data. ndarray, with each element representing a sample, which in turn
+        has a numerical representing for each token.
+        Ex:
+
+        [array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]) array([2, 2, 2, 2, 0, 2, 2, 2, 2])
+        array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 0, 1, 1, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 0, 2, 2, 2, 2, 2, 0, 2]) array([2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]) array([2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+        array([2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2])
+        ...
+
+        raises a NotImplementedError in ModelWrapperBase, and is to be implemented in the subclasses                                                                               
+        """
         raise NotImplementedError
+        
 
     def init_params(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, \
                         use_cross_validation, nr_of_cross_validation_splits, c_value):
+        """
+        Method for setting all the parameters of the modelwrapper (as specified by the properties).
+        """
         self.outside_class = outside_class
         self.beginning_prefix = beginning_prefix
         self.inside_prefix = inside_prefix
@@ -232,10 +370,35 @@ class ModelWrapperBase:
         self.beginning_category = None
         self.inside_category = None
 
-    def get_new_data(self, X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks):
-        return get_selected_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, self, text_vector_labelled_np, text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)
 
     def predict_nonstructured(self, X):
+        """
+        Help method for non structured models. Turns the observations in X from a structured format to a nonstructured format,
+        predicts with the internal model, and transforms back to a structured format.
+
+        params: X: The feature representation of the training data. ndarray, with each element representing a sample, which in turn
+        has an array representing each token.
+        Ex:
+        [ array([[0, 0, 0, ..., 0, 0, 1],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ..., 
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 1, 0]])
+        array([[0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        [0, 0, 0, ..., 0, 0, 0],
+        ...,
+
+        is to returns the numerical representation of the classifications resulting from the predictions in form of a list
+        Ex:
+        [array([2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2]), 
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), 
+        array([2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 1, 1, 1, 2, 2]), array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]),
+        ...
+
+        """
         X_flat = np.concatenate(X)
         predicted =  self.model.predict(X_flat)
         X_flat_counter = 0
@@ -249,10 +412,280 @@ class ModelWrapperBase:
         return predicted_in_sentences
 
     def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled):
+        """
+        get_scores_unlabelled_with_predicted_chunks is to return the certainty scores for the classifications for the unlabelled data with
+        selected_indeces. (Where selected_indeces are randomly selected indeces from the pool of unlabelled data to be used in the data selection. 
+        The len of is decided by the settings parameter maximum_samples_to_search_among, and if this paramter is set to "all", is is all the
+        samples in the pool of unlabelled data.
+     
+        params: to_search_among_x: An ndarray, with each element representing a sample corresponding to the index in the randomly selected
+        indeces in the pool of unlabelled data, which in turn has an array representing each token.
+        Ex:
+        [array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 1, 0, 0]]), array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 1, 0, 0]]), array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ...
+
+        params: ys: The classification made by the current model for these randomly selected unlabelled samples
+        Ex:
+        [array([2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 0, 2, 2, 2, 2]),
+        ...
+
+        params: selected_indeces: The indeces of the randomly selected samples from the pool of unlabelled data.
+        Ex:
+        [11, 15, 4, 0, 3, 8, 12, 14, 13, 16, 10, 9, 7, 6, 19, 2, 5, 1, 17, 18, ...
+        params: sentences_unlabelled: The tokens in the 
+        Ex:
+        [ array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7')
+ array(['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless',
+       'of', 'the', 'darkness'],
+       ..
+
+       returns: scores_with_index: a list of tuples of (certainty-score, index, classification, tokens) for the samples
+       that contain predicted chunks
+        Ex:
+        [(1.3228231538976338, 19, array([2, 2, 2, 1, 1, 1, 2, 2]), array(['19', 'i_i', 'couln', "'_'", 't_t', 'believe', 'you', '._.'], 
+      dtype='<U7')), (1.2375469333946558, 1, array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]), array(['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless',
+       'of', 'the', 'darkness'], 
+      dtype='<U10')), (0.63244446618097783, 6, array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array(['7_7', 'perhaps', 'there', 'is', 'a_a', 'better', 'way', 'of',
+       'doing', 'it', '._.'], 
+
+        returns: index_in_which_no_minority_categories_are_predicted: a list of tuples for the samples that do not contain predicted chunks, with
+        (xi, yi, index)
+        Ex:
+        [(array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 1, 0]]), array([2, 2, 2, 2, 2, 2, 2, 2]), 13)]
+
+        raises a NotImplementedError in ModelWrapperBase, and is to be implemented in the subclasses                                                                              
+        """
         raise NotImplementedError
 
-    def get_scores_unlabelled_sorted_no_predicted_chunks(self, number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning):
+    def get_scores_unlabelled_sorted_no_predicted_chunks(self, number_of_unlabelled_to_select, index_in_which_no_minority_categories_are_predicted,\
+                                                             sentences_unlabelled, inactive_learning):
+        """
+        Is to return the score for those with no predicted chunks in sorted order, and only to return the number_of_unlabelled_to_select best of them
+        (where number_of_unlabelled_to_select is equal to all of them if the setting to NOT prioritize samples with predicted chunks is chosen)
+        
+        returns: a sorted list of tuples of (certainty-score, index, classification, tokens)
+        Ex:
+        [(0.96155715070017145, 8, array([2, 2, 2, 2, 2, 2]), array(['13', 'quite', 'hard', 'to', 'believe', '._.'], 
+      dtype='<U7')), (1.0611824917072603, 0, array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7')), (1.0611824917072612, 3, array([2, 2, 2, 2, 2, 2]), array(['4_4', 'it', 'is', 'clearly', 'wrong', '._.'], 
+      dtype='<U7')),
+      ...
+        raises a NotImplementedError in ModelWrapperBase, and is to be implemented in the subclasses                                                                               
+        """
         raise NotImplementedError
+
+    def get_selected_unlabelled(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among,\
+                                    inactive_learning, prefer_predicted_chunks):
+        """
+        get_new_data is the main function of this module. It is the function to call to get actively selected and pre-annotated data
+        This method should only be called after the fit method has been called. Otherwise, and sklearn.utils.validation.NotFittedError will be raised
+        The method is called to retrieve the actively selected and pre-annotated data.
+        
+        The main code for sorting and selecting is carried out in this method, but the code for determining a score for the certainty of the unlabelled data
+        is left for the subclasses (since this score is computed differently for different models and active learning methods). For determining these scores,
+        the method invokes:
+        get_scores_unlabelled_with_predicted_chunks and get_scores_unlabelled_sorted_no_predicted_chunks that is implemented in the non-abstract subclasses.
+        For insuring there is a lexical spread within the selected samples, the help function get_selected_sentences_with_different_vocabulary is called.
+
+    :param labelled_x: A numpy.ndarray containing the features representing the labelled data.
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 1],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+    [0, 1, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0]])
+    array([[0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ...,
+
+    :param y_labelled_np: A numpy.ndarray containing the classes of the labelled data.
+    Ex:
+    [array([2, 2, 0, 2, 2, 2, 2, 2, 2, 2]) 
+    array([2, 2, 2, 2, 0, 2, 2, 2, 2])
+    array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+    array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+    array([2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2])
+
+    :param X_unlabelled_np: A numpy.ndarray containing the features representing the unlabelled data.
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 1, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0]])
+    array([[0, 0, 0, ..., 0, 0, 1],
+    [0, 0, 0, ..., 0, 0, 0],
+    [0, 0, 0, ..., 0, 0, 0],
+    ..., 
+   
+    :param nr_of_samples: Nr of samples to return
+
+    :param text_vector_labelled_np: A numpy.ndarray containing the tokens in the samples in the labelled data.
+    Ex:
+    [ array(['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless',
+       'of', 'the', 'darkness'], 
+      dtype='<U10')
+      array(['5_5', 'it', "'_'", 's_s', 'certainly', 'something', 'to',
+       'consider', '._.'], 
+      dtype='<U9')
+      array(['7_7', 'perhaps', 'there', 'is', 'a_a', 'better', 'way', 'of',
+       'doing', 'it', '._.'], 
+    ...
+    
+    :param text_vector_unlabelled_np: A numpy.ndarray containing the tokens in the samples in the unlabelled data.
+    Ex:
+    [ array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7')
+      array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'],  
+    ...   
+    
+    :param maximum_samples_to_search_among: The maxium number of sentences to search among when actively selecting useful (integer or the string "all")
+        
+    :param inactive_learning: If this is set to True, the reverse of active learning is to be used (typically this is set to False, therefore)
+    
+    :param prefer_predicted_chunks:  With this option set to True, the active learning prefers unlabelled samples in which chunks are predicted (typically this is set to False, therefore) 
+     
+    :return: to_select_X: A numpy.ndarray containing the features representing the selected data
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 1, 0, 0]])
+       array([[0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+    
+    :return: unlabelled_x: A numpy.ndarray containing the features representing the still unlabelled data
+    Ex:
+    [ array([[0, 0, 0, ..., 0, 1, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 1, 0]])
+       array([[0, 0, 0, ..., 0, 0, 1],
+       [0, 0, 0, ..., 0, 0, 0],
+       [0, 0, 0, ..., 0, 0, 0],
+       ..., 
+    
+    :return: to_select_text: A list containing numpy.ndarray with the tokens in the text that is selected for annotation and pre-labelling
+    Ex:
+    [array(['14', 'try', 'to', 'see', 'it', 'my', 'way', '!_!'], 
+      dtype='<U3'), array(['9_9', 'the', 'certainty', 'is', 'quite', 'low', '._.'], 
+      dtype='<U9'), array(['1_1', 'it', 'rained', 'today', 'despite', 'what', 'was', 'said',
+       'on', 'the', 'news', '._.'], 
+      dtype='<U7'), array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'], 
+      dtype='<U8')]
+     :return: sentences_unlabelled: A numpy.ndarray with samples containing the tokens in the text that is not selected, and which is 
+      therefore to remain in the pool of unlabelled data
+     [array(['3_3', 'they', 'decided', 'to', 'follow', 'it', 'in', 'spite', 'of',
+       'the', 'warnings', '._.'], 
+      dtype='<U8')
+      array(['4_4', 'it', 'is', 'clearly', 'wrong', '._.'], 
+      dtype='<U7')
+      ...
+    
+     :return: predicted_for_selected: A list of predictions made by the currently trained model on the selected data
+     Ex:
+     [array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2]), 
+     array([2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 2, 2, 2]), array([2, 2, 2, 2, 0, 2, 2, 2, 2])]
+     """
+
+
+
+        # Check the number of samples to select
+        if step_size == 0:
+            print("You have chosen to select 0 new samples to pre-annotated. The variable 'nr_of_samples' in 'settings.py' should be at least 1")
+            exit(1)
+        if step_size > len(unlabelled_x):
+            print("More samples have been asked for than exist among unlabelled. A maximum of " + str(len(unlabelled_x)) + " nr of samples can be returned")
+            step_size = len(unlabelled_x)
+
+
+        # Randomly select samples among which to search for to search for the most informative training instance
+        selected_indeces = shuffle(range(0, len(unlabelled_x)))[:maximum_samples_to_search_among]
+        to_search_among_x = []
+        for selected_index in selected_indeces:
+            to_search_among_x.append(unlabelled_x[selected_index])
+        ys = self.predict(to_search_among_x)
+        print("Requested a search among a maximum of " + str(maximum_samples_to_search_among) + " samples")
+
+        # Get scores for the unlabelled samples for which a minority category has been predicted
+        scores_with_index, index_in_which_no_minority_categories_are_predicted = \
+            self.get_scores_unlabelled_with_predicted_chunks(to_search_among_x, ys, selected_indeces, sentences_unlabelled)
+
+        # if there are too few samples among the unlabelled in which minority categoies are predict, also return unlabelled samples without minority categories
+        # or if the setting is chosen to don't prefer samples in which minority categores are predicted, compute certainty score for all those unlabelled
+        if len(scores_with_index) < step_size or not prefer_predicted_chunks and len(index_in_which_no_minority_categories_are_predicted) > 0:
+            if len(scores_with_index) < step_size:
+                number_of_unlabelled_to_select = step_size - len(scores_with_index)
+            else: # i.e. not prefer_predicted_chunks 
+                number_of_unlabelled_to_select = len(index_in_which_no_minority_categories_are_predicted) # include all of them, and filter out later
+            print("Will search among " + str(number_of_unlabelled_to_select) + " without labelled chunks.")
+            sorted_indeces_no_predicted_chunks = \
+                self.get_scores_unlabelled_sorted_no_predicted_chunks(number_of_unlabelled_to_select,\
+                                                                          index_in_which_no_minority_categories_are_predicted, sentences_unlabelled, inactive_learning)
+        else:
+            print("Will search for the best ones among the " + str(len(scores_with_index)) + " samples that contained a minority category prediction.")
+            sorted_indeces_no_predicted_chunks = [] # nothing without predicted chunks included
+
+
+        index_to_select_among_checked = \
+            get_selected_sentences_with_different_vocabulary(scores_with_index, sorted_indeces_no_predicted_chunks,\
+                                                                 step_size, self.majority_class, inactive_learning, prefer_predicted_chunks)
+
+        to_select_X = []
+        to_select_text = []
+        predicted_for_selected = []
+        for its in index_to_select_among_checked:
+            to_select_X.append(unlabelled_x[its])
+            to_select_text.append(sentences_unlabelled[its])
+            predicted_for_selected.append(self.predict(unlabelled_x[its:its+1])[0]) # must submit an numpy array to predict
+        print("__________________________")
+
+        unlabelled_x = np.delete(unlabelled_x, index_to_select_among_checked, 0)
+        sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
+        to_select_X = np.array(to_select_X)
+
+        return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
+
+    def get_params(self):
+        return self.model.get_params()
+
 
 
 class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
@@ -317,8 +750,6 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
         index_in_which_no_minority_categories_are_predicted = []
         searched_among = 0 # Only to print information 
         for xi, yi, index in zip(to_search_among_x, ys, selected_indeces):
-        #print("search for index " + str(index))
-        #print(sentences_unlabelled[index])
             if is_minority_classes_in_vector(yi, self.minority_classes_index): # search among those in which minority category has been predicted
                 difference_between_predicted_and_second_best = self.get_smallest_diff_alternative(xi, yi, get_permutations_with_predicted_chunks)
                 scores_with_index.append((difference_between_predicted_and_second_best, index, yi, sentences_unlabelled[index])) 
@@ -327,9 +758,6 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
             searched_among = searched_among + 1
             if searched_among % 100 == 0: # only to print information
                 print("Searched among " + str(searched_among) + " so far.")
-        #if len(scores_with_index) > 0:
-        #    print("scores_with_index[0]", scores_with_index[0])
-        #print("index_in_which_no_minority_categories_are_predicted[0]", index_in_which_no_minority_categories_are_predicted[0])
         return scores_with_index, index_in_which_no_minority_categories_are_predicted
 
     
@@ -347,7 +775,6 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
         else:
             # This is the the option that is typically used. The one in which active learning is achieved.
             sorted_score_index_no_predicted_chunks = sorted(scores_with_index_no_predicted_chunks)
-        #print("sorted_score_index_no_predicted_chunks[0]", sorted_score_index_no_predicted_chunks[0])
         return sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]
 
 
@@ -473,57 +900,94 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
         #print("sorted_score_index_no_predicted_chunks[0]", sorted_score_index_no_predicted_chunks[0])
         return sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]
 
+
+
+
+
+
+
+def is_minority_classes_in_vector(predicted, minority_classes):
     """
-    # if a minority category has been predicted, return the most certain of these
-    # if not, return the most uncertain of the majority category predictions
-    def get_smallest_diff_alternative(self, xi, yi, permutation_method = None):
-        # Don't use permutation method
-        probabilities = self.predict_proba([xi])
-        probabilities_for_sentence = probabilities[0] # Only call it for one sentence
 
-        #print("------")
-        #print("yi", yi)
-        only_majority = True
-        for el in yi:
-            if el != self.majority_class:
-                only_majority = False
-            
-        if only_majority:
-            min_score = float("inf")
-            # everything is predicted to belong to the majority category
-            # return the score, where this prediction is least certain
-            for word_prob in probabilities_for_sentence:
-                #print("word_prob only majority", word_prob)
-                #print("word_prob[self.majority_class]", word_prob[self.majority_class])
-                if word_prob[self.majority_class] < min_score: 
-                    min_score = word_prob[self.majority_class]
-            return min_score
+    Small help function that checks if a vector contains minority classes (only there to make the code more self-explaining).
+    """
+
+    for m in minority_classes:
+        if m in predicted:
+            return True
+    return False
+
+def get_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_indeces_no_predicted_chunks, step_size, majority_category, inactive_learning, prefer_predicted_chunks):
+    """
+    Help function to do the final selection of samples. 
+    """
+    #print("sorted_score_index", sorted_score_index)
+    #print("sorted_indeces_no_predicted_chunks", sorted_indeces_no_predicted_chunks)
+
+    if not prefer_predicted_chunks:
+        sorted_score_index = sorted_score_index + sorted_indeces_no_predicted_chunks
+    if inactive_learning:
+        print("Running in reversed mode, selecting the samples for which the learning is most certain.")
+        sorted_score_index = sorted(sorted_score_index, reverse=True)
+    else:
+        # This is the the option that is typically used. The one in which active learning is achieved.
+        sorted_score_index = sorted(sorted_score_index)
+    #print("sorted_score_index", sorted_score_index)
+
+
+    print("The best candidates before word spread is taken into account")        
+    for el in sorted_score_index[:10]:
+        print(el)
+
+    indeces_to_use = []
+    indeces_not_to_use = []
+    predicted_words = set()
+    for (score, index, predicted, sentence) in sorted_score_index:
+        sentence_has_already_used_word = False
+        for i, el in enumerate(predicted):
+            if el != majority_category:
+                predicted_word = sentence[i]
+                if predicted_word in predicted_words:
+                    sentence_has_already_used_word = True
+                predicted_words.add(predicted_word)
+        if not sentence_has_already_used_word:
+            indeces_to_use.append(index)
         else:
-            max_score = float("-inf")
-            # there is a minority category prediction been made
-            # return the score, where the classifier is most certain of this category
-            for word_prob, prediction in zip(probabilities_for_sentence, yi):
-                #print("word_prob minority", word_prob)
-                if prediction != self.majority_class:
-                    # i.e. the same as probability for the beginning category + probability for the inside category
-                    prob_not_majority = 1 - word_prob[self.majority_class] 
-                    #print("prob_not_majority", prob_not_majority)
-                    if prob_not_majority > max_score:
-                        max_score = prob_not_majority
-            return max_score             
-    """        
-    def get_cs(self):
-        return self.C
+            indeces_not_to_use.append(index)
+        if len(indeces_to_use) >= step_size:
+            break
 
-    def get_params(self):
-        return self.model.get_params()
+    print("predicted_words", predicted_words)
+    
+    if len(indeces_to_use) < step_size: #if there weren't enough uncertain with large word spread, take those that have been filtered out
+        print("Can't return samples with the requested word spread")
+        print("Filtered out indeces, that will be used anyway, therefore:")
+        print(step_size - len(indeces_to_use))
+        print(indeces_not_to_use[:step_size - len(indeces_to_use)])
+        indeces_to_use = indeces_to_use + indeces_not_to_use[:step_size - len(indeces_to_use)]
+    #first_indeces = [index for (score, index, predicted, sentence) in sorted_score_index[:step_size]]
 
+    print("indeces_to_use", indeces_to_use)
+
+    # Only for printing information
+    if prefer_predicted_chunks:
+        indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
+        print("The best candidates without a predicted chunk")        
+        for el in sorted_indeces_no_predicted_chunks:
+            print(el)
+        print("indeces_to_use with chunks all", indeces_to_use)
+
+    return indeces_to_use
 
 
 ###############
 #Help functions for creating permutations for uncertainty sampling
 ##############
+
 def get_permutations_with_predicted_chunks(yi, previous_model_wrapper):
+    """
+    Help function for creating permutations for uncertainty sampling
+    """
 
     #print("\n******")
     #print("\noriginal: ", [previous_model_wrapper.inv_label_dict[el] for el in yi])
@@ -601,6 +1065,9 @@ def get_permutations_with_predicted_chunks(yi, previous_model_wrapper):
 
 
 def get_permutations_no_predicted_chunks(yi, previous_model_wrapper):
+    """
+    Help function for creating permutations for uncertainty sampling
+    """
 
     #print("\n******")
     #print("\noriginal: ", [previous_model_wrapper.inv_label_dict[el] for el in yi])

@@ -1,0 +1,116 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module settings</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>settings</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/maria/stavicta/StaViCTA/Maria/pre_annotation/data/example_project/settings.py">/home/maria/stavicta/StaViCTA/Maria/pre_annotation/data/example_project/settings.py</a></font></td></tr></table>
+    <p><tt>Documentation&nbsp;of&nbsp;settings:<br>
+##############<br>
+&nbsp;<br>
+minority_classes:<br>
+#&nbsp;Minority&nbsp;classes&nbsp;with&nbsp;their&nbsp;prefix.&nbsp;If&nbsp;the&nbsp;classes&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data<br>
+#&nbsp;are&nbsp;not&nbsp;present&nbsp;in&nbsp;this&nbsp;list,&nbsp;they&nbsp;will&nbsp;be&nbsp;ignored<br>
+#&nbsp;They&nbsp;should&nbsp;be&nbsp;prefixed&nbsp;with&nbsp;"B"&nbsp;or&nbsp;"I"&nbsp;(matching&nbsp;beginning_prefix&nbsp;below)<br>
+minority_classes&nbsp;=&nbsp;["B-speculation",&nbsp;"I-speculation",&nbsp;"B-contrast",&nbsp;"I-contrast"]<br>
+&nbsp;<br>
+model_type:<br>
+#&nbsp;Type&nbsp;of&nbsp;model&nbsp;to&nbsp;use&nbsp;<br>
+#model_type&nbsp;=&nbsp;StructuredModelFrankWolfeSSVM<br>
+#model_type&nbsp;=&nbsp;NonStructuredLogisticRegression<br>
+&nbsp;<br>
+nr_of_samples:<br>
+#&nbsp;Number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;be&nbsp;actively&nbsp;seleected&nbsp;and&nbsp;pre-annotated&nbsp;in&nbsp;each&nbsp;round<br>
+#&nbsp;nr_of_samples&nbsp;=&nbsp;5<br>
+&nbsp;<br>
+number_of_previous_words&nbsp;and&nbsp;number_of_following_words:<br>
+#&nbsp;The&nbsp;context&nbsp;around&nbsp;the&nbsp;current&nbsp;word&nbsp;to&nbsp;include&nbsp;when&nbsp;training&nbsp;the&nbsp;classifiers<br>
+#number_of_previous_words&nbsp;=&nbsp;1<br>
+#number_of_following_words&nbsp;=&nbsp;1<br>
+&nbsp;<br>
+#&nbsp;A&nbsp;cut-off&nbsp;for&nbsp;the&nbsp;number&nbsp;of&nbsp;occurrences&nbsp;of&nbsp;a&nbsp;token&nbsp;in&nbsp;the&nbsp;data&nbsp;for&nbsp;it&nbsp;to&nbsp;be&nbsp;included&nbsp;as&nbsp;a&nbsp;feature<br>
+#min_df_current&nbsp;=&nbsp;2<br>
+#min_df_context&nbsp;=&nbsp;3<br>
+&nbsp;<br>
+use_current_word_as_feature:<br>
+#&nbsp;Whether&nbsp;to&nbsp;include&nbsp;the&nbsp;current&nbsp;token&nbsp;as&nbsp;feature<br>
+#use_current_word_as_feature&nbsp;=&nbsp;True<br>
+&nbsp;<br>
+model_path:<br>
+#&nbsp;The&nbsp;path&nbsp;to&nbsp;the&nbsp;semantic&nbsp;space&nbsp;that&nbsp;is&nbsp;read&nbsp;by&nbsp;Gensim<br>
+#model_path&nbsp;=&nbsp;'/mnt/data/maria/word2vec/GoogleNews-vectors-negative300.bin'<br>
+&nbsp;<br>
+semantic_vector_length:<br>
+#&nbsp;Vector&nbsp;length&nbsp;for&nbsp;the&nbsp;semantic&nbsp;vectors&nbsp;(300&nbsp;for&nbsp;GoogleNews-vectors-negative300.bin,&nbsp;for&nbsp;instance.)<br>
+#semantic_vector_length&nbsp;=&nbsp;300<br>
+&nbsp;<br>
+inactive_learning:<br>
+#&nbsp;This&nbsp;is&nbsp;to&nbsp;be&nbsp;set&nbsp;to&nbsp;False&nbsp;when&nbsp;active&nbsp;learning&nbsp;is&nbsp;to&nbsp;be&nbsp;applied&nbsp;<br>
+#&nbsp;If&nbsp;it&nbsp;is&nbsp;true,&nbsp;it&nbsp;instead&nbsp;does&nbsp;the&nbsp;reverse,&nbsp;return&nbsp;the&nbsp;samples&nbsp;for&nbsp;which&nbsp;the&nbsp;learner&nbsp;is&nbsp;most&nbsp;certain<br>
+#&nbsp;This&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;in&nbsp;early&nbsp;stages,&nbsp;when&nbsp;the&nbsp;classifier&nbsp;is&nbsp;too&nbsp;bad&nbsp;for&nbsp;doing&nbsp;a&nbsp;good&nbsp;pre-annotation.&nbsp;<br>
+#&nbsp;Ensure&nbsp;to&nbsp;use&nbsp;as&nbsp;at&nbsp;least&nbsp;50&nbsp;samples&nbsp;with&nbsp;this&nbsp;option,&nbsp;so&nbsp;there&nbsp;will&nbsp;be&nbsp;a&nbsp;spread&nbsp;in&nbsp;what&nbsp;kinds&nbsp;of&nbsp;samples&nbsp;that&nbsp;are&nbsp;<br>
+#&nbsp;extracted.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+#&nbsp;inactive_learning&nbsp;=&nbsp;True<br>
+&nbsp;<br>
+maximum_samples_to_search_among:<br>
+#&nbsp;The&nbsp;maxium&nbsp;number&nbsp;of&nbsp;sentences&nbsp;to&nbsp;search&nbsp;among&nbsp;when&nbsp;actively&nbsp;selecting&nbsp;useful&nbsp;<br>
+#&nbsp;training&nbsp;samples<br>
+#&nbsp;The&nbsp;larger&nbsp;value&nbsp;that&nbsp;is&nbsp;given,&nbsp;the&nbsp;more&nbsp;data&nbsp;will&nbsp;be&nbsp;scanned&nbsp;for&nbsp;useful&nbsp;examples<br>
+#&nbsp;however,&nbsp;it&nbsp;will&nbsp;also&nbsp;take&nbsp;more&nbsp;time<br>
+#&nbsp;"all"&nbsp;let's&nbsp;you&nbsp;search&nbsp;among&nbsp;all&nbsp;samples<br>
+#maximum_samples_to_search_among&nbsp;=&nbsp;"all"<br>
+#maximum_samples_to_search_among&nbsp;=&nbsp;100<br>
+&nbsp;<br>
+prefer_predicted_chunks:<br>
+#&nbsp;With&nbsp;this&nbsp;option&nbsp;set&nbsp;to&nbsp;True,&nbsp;the&nbsp;active&nbsp;learning&nbsp;prefers&nbsp;unlabelled&nbsp;samples&nbsp;in&nbsp;which&nbsp;chunks&nbsp;are&nbsp;predicted<br>
+#&nbsp;regardless&nbsp;of&nbsp;if&nbsp;they&nbsp;are&nbsp;more&nbsp;of&nbsp;less&nbsp;uncertain&nbsp;than&nbsp;the&nbsp;ones&nbsp;in&nbsp;which&nbsp;no&nbsp;chunks&nbsp;are&nbsp;predicted<br>
+#&nbsp;prefer_predicted_chunks&nbsp;=&nbsp;True<br>
+&nbsp;<br>
+max_iterations:<br>
+#&nbsp;The&nbsp;number&nbsp;of&nbsp;iterations&nbsp;to&nbsp;use&nbsp;by&nbsp;the&nbsp;learning.&nbsp;See&nbsp;the&nbsp;pystruct&nbsp;documentation&nbsp;for&nbsp;<br>
+#&nbsp;a&nbsp;suitable&nbsp;number&nbsp;(e.g.&nbsp;1000).&nbsp;The&nbsp;larger,&nbsp;the&nbsp;longer&nbsp;things&nbsp;will&nbsp;take,&nbsp;so&nbsp;if&nbsp;the&nbsp;pre-annnotation&nbsp;take&nbsp;too&nbsp;much&nbsp;time<br>
+#&nbsp;reduce&nbsp;this&nbsp;nuber&nbsp;(which&nbsp;will&nbsp;also&nbsp;reduce&nbsp;the&nbsp;quality).<br>
+#&nbsp;Not&nbsp;used&nbsp;by&nbsp;the&nbsp;NonStructuredLogisticRegression&nbsp;class<br>
+#max_iterations&nbsp;=&nbsp;10<br>
+&nbsp;<br>
+current_word_vocabulary&nbsp;and&nbsp;context_word_vocabulary<br>
+#&nbsp;Decide&nbsp;what&nbsp;vocabulary&nbsp;to&nbsp;include&nbsp;based&nbsp;on&nbsp;an&nbsp;external&nbsp;list&nbsp;of&nbsp;words<br>
+#&nbsp;False,&nbsp;if&nbsp;no&nbsp;external&nbsp;list&nbsp;is&nbsp;to&nbsp;be&nbsp;used&nbsp;<br>
+#current_word_vocabulary&nbsp;=&nbsp;False<br>
+#current_word_vocabulary&nbsp;=&nbsp;"/mnt/data/maria/stavicta_models/vocabulary/occurred_twice_or_more_in_pool.txt"<br>
+#context_word_vocabulary&nbsp;=&nbsp;"/mnt/data/maria/stavicta_models/vocabulary/occurred_twice_or_more_in_pool.txt"&nbsp;&nbsp;<br>
+#context_word_vocabulary&nbsp;=&nbsp;False<br>
+&nbsp;<br>
+use_cross_validation:<br>
+#&nbsp;If&nbsp;cross&nbsp;validation&nbsp;is&nbsp;to&nbsp;be&nbsp;used<br>
+#&nbsp;Only&nbsp;implemented&nbsp;for&nbsp;NonStructuredLogisticRegression<br>
+#use_cross_validation&nbsp;=&nbsp;True<br>
+&nbsp;<br>
+c_value<br>
+#&nbsp;If&nbsp;10-fold&nbsp;cross&nbsp;validation&nbsp;is&nbsp;chosen,&nbsp;this&nbsp;c_value&nbsp;is&nbsp;not&nbsp;used<br>
+#c_value&nbsp;=&nbsp;1<br>
+&nbsp;<br>
+#&nbsp;Settings,&nbsp;typically&nbsp;not&nbsp;changed,&nbsp;but&nbsp;that&nbsp;can&nbsp;be&nbsp;changed<br>
+#################################<br>
+&nbsp;<br>
+#labelled_data_dir&nbsp;=&nbsp;"labelled"<br>
+#data_file_extension&nbsp;=&nbsp;".csv"<br>
+#unlabelled_data_dir&nbsp;=&nbsp;"unlabelled"<br>
+#unlabelled_data_file&nbsp;=&nbsp;"unlabelled.csv"<br>
+#tolabel_data_dir&nbsp;=&nbsp;"tolabel"<br>
+#evaluation_output_dir&nbsp;=&nbsp;"evaluation"<br>
+#separate_evaluation_output_dir&nbsp;=&nbsp;"separate_evaluation"<br>
+#separate_evaluation_data_dir&nbsp;=&nbsp;"separate_evaluation_data"<br>
+#saved_model_dir&nbsp;=&nbsp;"saved_model"<br>
+#beginning_prefix&nbsp;=&nbsp;"B-"<br>
+#inside_prefix&nbsp;=&nbsp;"I-"<br>
+#outside_class&nbsp;=&nbsp;"O"<br>
+#negative_category&nbsp;=&nbsp;"no"<br>
+#whether_to_use_word2vec&nbsp;=&nbsp;True<br>
+#nr_of_cross_validation_splits&nbsp;=&nbsp;2</tt></p>
+<p>
+</body></html>

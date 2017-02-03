@@ -16,6 +16,26 @@ import active_learning_preannotation
 ######################################
 
 def read_file_labelled_data(file_path, data_file_extension, minority_classes, outside_class):
+    """
+    read_file_labelled_data reads all files in the folder given by file_path with the file extensions data_file_extension.
+    These files are to be in csv-format with one token per line and labelled in BIO-format (see the example project).
+    params: minority_classes: List of the minority_classes to use
+    params: outside_class: a string with the outside class (typically 'O')
+
+    returns text_vector:
+    Ex
+    [['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless', 'of', 'the', 'darkness'], ['5_5', 'it', "'_'", 's_s', 'certainly', 'something', 'to', 'consider', '._.'],
+
+    returns label_vector:
+    Ex:
+    [['O', 'O', 'B-speculation', 'O', 'O', 'O', 'O', 'O', 'O', 'O'], ['O', 'O', 'O', 'O', 'B-speculation', 'O', 'O', 'O', 'O'], 
+
+    return label_dict: A dictionary where the keys are the numerical representations of the classes, and the items are
+    the classes in the form they appear in the annotated data-
+    Ex:
+    {'O': 2, 'B-speculation': 0, 'I-speculation': 1}
+
+    """
     # First, read file, to get text and labels, grouped into sentences
     text_vector = []
     label_vector = []
@@ -26,7 +46,7 @@ def read_file_labelled_data(file_path, data_file_extension, minority_classes, ou
     files = glob.glob(glob_for_files)
 
     if len(files) == 0:
-        print("New labelled data with extension " + data_file_extension + " found in file_path " + str(file_path))
+        print("No labelled data with extension " + data_file_extension + " found in file_path " + str(file_path))
         exit(1)
     print("Reading labelled data from " + glob_for_files + ". Resulting in "+  str(len(files)) + " files.")
 
@@ -84,6 +104,15 @@ def read_file_labelled_data(file_path, data_file_extension, minority_classes, ou
 
 
 def read_file_unlabelled_data(file_name):
+    """
+    read_file_unlabelled_data reades from file_name
+    These files are to be in csv-format with one token per line (see the example project).
+
+    returns text_vector:
+    Ex:
+    [['7_7', 'perhaps', 'there', 'is', 'a_a', 'better', 'way', '._.'], ['2_2', 'Why', 'are', 'you, 'doing','doing', 'it', '._.']]
+
+    """
     # Read file, to get text, grouped into sentences
     text_vector = []
     current_text = []
@@ -112,12 +141,21 @@ def read_file_unlabelled_data(file_name):
 #########################
 
 class Word2vecWrapper:
+    """
+    Word2vecWrapper 
+
+    A class for storing the information regarding the distributional semantics space
+    """
+
     def __init__(self, model_path, semantic_vector_length):
         self.word2vec_model = None
         self.model_path = model_path
         self.semantic_vector_length = semantic_vector_length
 
     def load(self):
+        """
+        load the semantic space in the memory
+        """
         if self.word2vec_model == None:
             print("Loading word2vec model, this might take a while ....")
             self.word2vec_model = gensim.models.Word2Vec.load_word2vec_format(self.model_path, binary=True)
@@ -144,11 +182,19 @@ class Word2vecWrapper:
             return default_vector
 
     def end(self):
+        """
+        remove the semantic space from the memory
+        """
         self.word2vec_model = None
         gc.collect()
 
 
 def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, word, word_count, text_concatenated, vectorized_data, vectorized_data_context, index_in_sentence, sentence_length, use_word2vec, word2vecwrapper, number_of_previous_words, number_of_following_words, use_current_word_as_feature):
+    """
+    get_resulting_x_vector
+
+    internal function for the model constructing the feature vector
+    """
 
     assert(text_concatenated[word_count] == word)
 
@@ -246,6 +292,11 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
 
 def vectorize_unlabelled(text_vector_unlabelled, current_word_vectorizer, context_word_vectorizer, \
                              use_word2vec, number_of_previous_words, number_of_following_words, use_current_word_as_feature, word2vecwrapper):
+    """
+    vectorize_unlabelled
+    
+    internal function for the module for vectorizing unlabelled data
+    """
 
     #Unlabelled data
     text_concatenated_unlabelled = np.concatenate(text_vector_unlabelled)
@@ -285,9 +336,52 @@ def vectorize_unlabelled(text_vector_unlabelled, current_word_vectorizer, contex
 
 
 
-# Check that the unlabelled data is not empty
-def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_labelled, class_dict, classes, use_word2vec, number_of_previous_words, number_of_following_words, use_current_word_as_feature, min_df_current, min_df_context, word2vecwrapper, current_word_vocabulary, context_word_vocabulary):
-    
+def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_labelled, class_dict, use_word2vec,\
+                       number_of_previous_words, number_of_following_words, use_current_word_as_feature,\
+                       min_df_current, min_df_context, word2vecwrapper, current_word_vocabulary, context_word_vocabulary):
+
+    """
+    vectorize_data
+
+    params: text_vector_labelled: list of samples containing the tokens in the labelled data
+    Ex:
+    [['2_2', 'you', 'could', 'see', 'someone', 'moving,', 'regardless', 'of', 'the', 'darkness'], ['5_5', 'it', "'_'", 's_s', 'certainly', 'something', 'to', 'consider', '._.'],
+
+    params: text_vector_unlabelled: list of samples containing the tokens in the unlabelled data
+    Ex:
+    [['7_7', 'perhaps', 'there', 'is', 'a_a', 'better', 'way', '._.'], ['2_2', 'Why', 'are', 'you, 'doing','doing', 'it', '._.']]
+
+    params: label_vector_labelled: label_vector
+    Ex:
+    [['O', 'O', 'B-speculation', 'O', 'O', 'O', 'O', 'O', 'O', 'O'], ['O', 'O', 'O', 'O', 'B-speculation', 'O', 'O', 'O', 'O'], 
+
+    params: class_dict: A dictionary where the keys are the numerical representations of the classes, and the items are
+    the classes in the form they appear in the annotated data-
+    Ex:
+    {'O': 2, 'B-speculation': 0, 'I-speculation': 1}
+
+    params: use_word2vec: Whether to use word2vec
+
+    params: number_of_previous_words: The context in the form of the number of previous words before the current word to include when training the classifiers
+
+    params: number_of_following_words: The context in the form of the number of following words after the current word to include when training the classifiers
+
+    params: use_current_word_as_feature: Whether to include the current token as feature
+
+    params: min_df_current:  A cut-off for the number of occurrences of a token in the data for it to be included as a feature for the current word
+
+    params: min_df_context: A cut-off for the number of occurrences of a token in the data for it to be included as a feature for the context words
+
+    params: word2vecwrapper: An instance of the Word2vecWrapper, to be able to get semantic information
+
+    params: current_word_vocabulary: If there is an external list to use to be decide whether a token should be included in the current
+    vocabulary, this is a string with the search path to this vocabulary. Otherwise set to Fasle
+
+    params: context_word_vocabulary: If there is an external list to use to be decide whether a token should be included in the context
+    vocabulary, this is a string with the search path to this vocabulary. Otherwise set to Fasle
+
+    """
+
     if len(text_vector_unlabelled) <= 0:
         print("There is no more unlabelled data available. System will exit")
         exit(1)
@@ -336,7 +430,6 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
     vectorized_data_labelled_context = context_word_vectorizer.fit_transform(text_concatenated_labelled)
     
 
-    #print("Created vectorizer for unlabelled data")
     
     # Then, use the vectorizer to create vectorized data
     # Labelled

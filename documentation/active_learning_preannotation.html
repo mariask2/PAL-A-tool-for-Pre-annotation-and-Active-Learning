@@ -1,0 +1,67 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module active_learning_preannotation</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>active_learning_preannotation</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/maria/stavicta/StaViCTA/Maria/pre_annotation/active_learning_preannotation.py">/home/maria/stavicta/StaViCTA/Maria/pre_annotation/active_learning_preannotation.py</a></font></td></tr></table>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="active_learning_preannotation.html#PropertiesContainer">PropertiesContainer</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="PropertiesContainer">class <strong>PropertiesContainer</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#PropertiesContainer">PropertiesContainer</a><br>
+&nbsp;<br>
+A&nbsp;class&nbsp;containing&nbsp;the&nbsp;properties&nbsp;for&nbsp;running&nbsp;the&nbsp;pre-annotation&nbsp;and&nbsp;active&nbsp;learning,&nbsp;<br>
+and&nbsp;for&nbsp;checking&nbsp;the&nbsp;validity&nbsp;of&nbsp;the&nbsp;properties.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="PropertiesContainer-__init__"><strong>__init__</strong></a>(self, properties)</dt><dd><tt>:params&nbsp;properties:&nbsp;a&nbsp;python&nbsp;model&nbsp;including&nbsp;properties&nbsp;(retrieved&nbsp;by&nbsp;importlib.import_module(&lt;PATH&gt;))</tt></dd></dl>
+
+<dl><dt><a name="PropertiesContainer-check_properties"><strong>check_properties</strong></a>(self)</dt><dd><tt>check_properties&nbsp;<br>
+Checks&nbsp;that&nbsp;the&nbsp;names&nbsp;of&nbsp;the&nbsp;minority&nbsp;classes&nbsp;matches&nbsp;with&nbsp;the&nbsp;properties&nbsp;of&nbsp;the&nbsp;<br>
+prefixes&nbsp;to&nbsp;use&nbsp;and&nbsp;that&nbsp;the&nbsp;outside&nbsp;class&nbsp;is&nbsp;not&nbsp;a&nbsp;minority&nbsp;class</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-check_frequency_of_labels"><strong>check_frequency_of_labels</strong></a>(labelled_label_vector, classes)</dt><dd><tt>If&nbsp;the&nbsp;minority&nbsp;classes&nbsp;in&nbsp;the&nbsp;properties&nbsp;are&nbsp;not&nbsp;in&nbsp;the&nbsp;labelled&nbsp;data,&nbsp;the<br>
+pre-annotation&nbsp;and&nbsp;active&nbsp;learning&nbsp;doesn't&nbsp;work.&nbsp;This&nbsp;function&nbsp;checks&nbsp;that<br>
+they&nbsp;exist&nbsp;in&nbsp;the&nbsp;annotated&nbsp;data,&nbsp;and&nbsp;otherwise&nbsp;the&nbsp;program&nbsp;terminates.</tt></dd></dl>
+ <dl><dt><a name="-load_properties"><strong>load_properties</strong></a>(parser)</dt><dd><tt>load_properties&nbsp;reads&nbsp;the&nbsp;command&nbsp;line&nbsp;arguments<br>
+&nbsp;<br>
+param:&nbsp;parser:&nbsp;an&nbsp;instance&nbsp;of&nbsp;argparse.ArgumentParser<br>
+:returns&nbsp;properties:&nbsp;an&nbsp;instance&nbsp;of&nbsp;<a href="#PropertiesContainer">PropertiesContainer</a>&nbsp;which&nbsp;contains&nbsp;the&nbsp;settings&nbsp;for&nbsp;running&nbsp;the&nbsp;active&nbsp;learning&nbsp;and&nbsp;pre-annotation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+:returns&nbsp;path_slash_format:&nbsp;a&nbsp;string&nbsp;containing&nbsp;the&nbsp;path&nbsp;to&nbsp;the&nbsp;folder&nbsp;with&nbsp;the&nbsp;data</tt></dd></dl>
+ <dl><dt><a name="-select_new_data"><strong>select_new_data</strong></a>(properties, project_path, word2vecwrapper)</dt><dd><tt>select_new_data&nbsp;performs&nbsp;the&nbsp;active&nbsp;learning&nbsp;and&nbsp;pre-annotation.<br>
+&nbsp;<br>
+Uses&nbsp;the&nbsp;vectorize_data&nbsp;module&nbsp;to&nbsp;read&nbsp;and&nbsp;vectorize&nbsp;data<br>
+and&nbsp;the&nbsp;classify_and_select&nbsp;to&nbsp;select&nbsp;and&nbsp;pre-annotate&nbsp;data.<br>
+Thereafter,&nbsp;writes&nbsp;the&nbsp;pre-annotated&nbsp;and&nbsp;selected&nbsp;data&nbsp;in&nbsp;csv&nbsp;and&nbsp;brat&nbsp;format<br>
+and&nbsp;updates&nbsp;the&nbsp;pool&nbsp;of&nbsp;unlabelled&nbsp;data.<br>
+&nbsp;<br>
+:param&nbsp;properties:&nbsp;an&nbsp;instance&nbsp;of&nbsp;<a href="#PropertiesContainer">PropertiesContainer</a>&nbsp;which&nbsp;contains&nbsp;the&nbsp;settings&nbsp;for&nbsp;running&nbsp;the&nbsp;active&nbsp;learning&nbsp;and&nbsp;pre-annotation<br>
+:param&nbsp;path_slash_format:&nbsp;a&nbsp;string&nbsp;containing&nbsp;the&nbsp;path&nbsp;to&nbsp;the&nbsp;folder&nbsp;with&nbsp;the&nbsp;data<br>
+:param&nbsp;word2vecwrapper:&nbsp;an&nbsp;instance&nbsp;of&nbsp;the&nbsp;vectorize_data.Word2vecWrapper&nbsp;class&nbsp;(to&nbsp;use&nbsp;for&nbsp;incorporating&nbsp;additional&nbsp;features)</tt></dd></dl>
+</td></tr></table>
+</body></html>

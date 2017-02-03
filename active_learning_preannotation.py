@@ -1,5 +1,3 @@
-"""
-"""
 import sys
 import time
 import os
@@ -14,6 +12,11 @@ import default_settings
 
 
 def check_frequency_of_labels(labelled_label_vector, classes):
+    """
+    If the minority classes in the properties are not in the labelled data, the
+    pre-annotation and active learning doesn't work. This function checks that
+    they exist in the annotated data, and otherwise the program terminates.
+    """
     freq_dict = {}
     for cl in classes:
         freq_dict[cl] = 0
@@ -29,6 +32,19 @@ def check_frequency_of_labels(labelled_label_vector, classes):
             exit(1)
 
 def select_new_data(properties, project_path, word2vecwrapper):
+    """
+    select_new_data performs the active learning and pre-annotation.
+
+    Uses the vectorize_data module to read and vectorize data
+    and the classify_and_select to select and pre-annotate data.
+    Thereafter, writes the pre-annotated and selected data in csv and brat format
+    and updates the pool of unlabelled data.
+
+    :param properties: an instance of PropertiesContainer which contains the settings for running the active learning and pre-annotation
+    :param path_slash_format: a string containing the path to the folder with the data
+    :param word2vecwrapper: an instance of the vectorize_data.Word2vecWrapper class (to use for incorporating additional features)
+    """
+
     print()
     print("**************************************************************")
     print("* Start selection and pre-annotation of new training samples *")
@@ -55,7 +71,7 @@ def select_new_data(properties, project_path, word2vecwrapper):
     X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
         current_word_vectorizer, context_word_vectorizer = \
         vectorize_data.vectorize_data(labelled_text_vector, unlabelled_text_vector, labelled_label_vector, \
-                                          label_dict, classes, use_word2vec = properties.whether_to_use_word2vec, \
+                                          label_dict, use_word2vec = properties.whether_to_use_word2vec, \
                                           number_of_previous_words = properties.number_of_previous_words, \
                                           number_of_following_words = properties.number_of_following_words, \
                                           use_current_word_as_feature = properties.use_current_word_as_feature, \
@@ -121,7 +137,15 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                            properties.beginning_prefix)
 
 
-def load_properties(parser):    
+def load_properties(parser):
+    """
+    load_properties reads the command line arguments
+
+    param: parser: an instance of argparse.ArgumentParser
+    :returns properties: an instance of PropertiesContainer which contains the settings for running the active learning and pre-annotation                                                                                 
+    :returns path_slash_format: a string containing the path to the folder with the data          
+    """
+
     parser.add_argument('--project', action='store', dest='project_path', \
                             help='The path, separated by dots, to where the project i located. For instance: data.example_project')
     args = parser.parse_args()
@@ -150,8 +174,22 @@ def load_properties(parser):
     properties_container = PropertiesContainer(properties)
     return properties_container, path_slash_format
 
+
+
 class PropertiesContainer:
+    """
+    PropertiesContainer
+
+    A class containing the properties for running the pre-annotation and active learning, 
+    and for checking the validity of the properties.
+    """
+
     def check_properties(self): 
+        """
+        check_properties 
+        Checks that the names of the minority classes matches with the properties of the 
+        prefixes to use and that the outside class is not a minority class 
+        """
         if self.outside_class in self.minority_classes:
             print("Error in properties file (setup.py), outside_class " + self.outside_class + " should not be in the list of minority_classes")
             exit(1)
@@ -166,6 +204,10 @@ class PropertiesContainer:
                 exit(1)
 
     def __init__(self, properties):
+        """
+        :params properties: a python model including properties (retrieved by importlib.import_module(<PATH>))
+        """
+
         try:
             self.minority_classes = properties.minority_classes
         except AttributeError:
@@ -361,15 +403,12 @@ class PropertiesContainer:
         self.check_properties()
 
 
-def run_active_learning_preannotation(properties, word2vecwrapper):
-    select_new_data(properties, path_slash_format, word2vecwrapper)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    properties, path_slash_format = load_properties(parser)
-    word2vecwrapper = vectorize_data.Word2vecWrapper(properties.model_path, properties.semantic_vector_length)
+    properties_main, path_slash_format_main = load_properties(parser)
+    word2vecwrapper = vectorize_data.Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length)
 
-    run_active_learning_preannotation(properties, word2vecwrapper)
+    select_new_data(properties_main, path_slash_format_main, word2vecwrapper)
 
 
     
