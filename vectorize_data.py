@@ -226,6 +226,9 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
     #print("Feature vector length without context with word2vec", len(resulting_vector))
     # Before current word
 
+    not_start_end = [0, 0]
+    start = [1, 0]
+    end = [0, 1]
     for i in range(1, number_of_previous_words + 1):
         previous_word = None
 
@@ -234,9 +237,9 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
         #print("previous_word", previous_word)
     
         if previous_word:
-            previous_long_vector = vectorized_data_context[word_count-i].toarray()[0]
+            previous_long_vector = np.concatenate((vectorized_data_context[word_count-i].toarray()[0], not_start_end))
         else:
-            previous_long_vector = [2] * len_context
+            previous_long_vector = [0] * len_context + start
 
         resulting_vector = np.concatenate((resulting_vector, previous_long_vector))
         #print("Feature vector length with previous context", len(resulting_vector))
@@ -245,7 +248,7 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
             if previous_word:
                 previous_vector = word2vecwrapper.get_vector(previous_word)
             else:
-                previous_vector = [2] * word2vecwrapper.get_semantic_vector_length()
+                previous_vector = [2] * word2vecwrapper.get_semantic_vector_length() 
 
             resulting_vector = np.concatenate((resulting_vector, previous_vector))
             #print("Feature vector length with word2vec info, previous context", len(resulting_vector))
@@ -262,9 +265,9 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
         #print("next_word", next_word)
     
         if next_word:
-            next_long_vector = vectorized_data_context[word_count+i].toarray()[0] 
+            next_long_vector = np.concatenate((vectorized_data_context[word_count+i].toarray()[0], not_start_end)) 
         else:
-            next_long_vector = [2] * len_context
+            next_long_vector = [0] * len_context + end
 
         resulting_vector = np.concatenate((resulting_vector, next_long_vector))
         #print("Feature vector length also with context after", len(resulting_vector))
