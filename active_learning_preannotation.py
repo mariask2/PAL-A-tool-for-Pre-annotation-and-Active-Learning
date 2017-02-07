@@ -172,7 +172,7 @@ def load_properties(parser):
     properties = importlib.import_module(args.project_path + "." + SETTINGS)
 
     properties_container = PropertiesContainer(properties)
-    return properties_container, path_slash_format
+    return properties_container, path_slash_format, args.project_path
 
 
 
@@ -405,7 +405,7 @@ class PropertiesContainer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    properties_main, path_slash_format_main = load_properties(parser)
+    properties_main, path_slash_format_main, path_dot_format = load_properties(parser)
     word2vecwrapper = vectorize_data.Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length)
 
     select_new_data(properties_main, path_slash_format_main, word2vecwrapper)

@@ -246,9 +246,9 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
     
         if use_word2vec:
             if previous_word:
-                previous_vector = word2vecwrapper.get_vector(previous_word)
+                previous_vector = np.concatenate((word2vecwrapper.get_vector(previous_word), not_start_end))
             else:
-                previous_vector = [2] * word2vecwrapper.get_semantic_vector_length() 
+                previous_vector = [0] * word2vecwrapper.get_semantic_vector_length() + start
 
             resulting_vector = np.concatenate((resulting_vector, previous_vector))
             #print("Feature vector length with word2vec info, previous context", len(resulting_vector))
@@ -275,13 +275,12 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
 
         if use_word2vec:
             if next_word:
-                next_vector = word2vecwrapper.get_vector(next_word)
+                next_vector = np.concatenate((word2vecwrapper.get_vector(next_word), not_start_end))
             else:
-                next_vector = [2] * word2vecwrapper.get_semantic_vector_length()
+                next_vector = [0] * word2vecwrapper.get_semantic_vector_length() + end
 
-            #print("next_vector", next_vector[0], next_vector[1])
             resulting_vector = np.concatenate((resulting_vector, next_vector))
-            #print("Feature vector length also with word2vec for context after", len(resulting_vector))
+            
 
 
     ### 
