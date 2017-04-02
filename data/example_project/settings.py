@@ -92,10 +92,6 @@ c_value
 #unlabelled_data_dir = "unlabelled"
 #unlabelled_data_file = "unlabelled.csv"
 #tolabel_data_dir = "tolabel"
-#evaluation_output_dir = "evaluation"
-#separate_evaluation_output_dir = "separate_evaluation"
-#separate_evaluation_data_dir = "separate_evaluation_data"
-#saved_model_dir = "saved_model"
 #beginning_prefix = "B-"
 #inside_prefix = "I-"
 #outside_class = "O"
@@ -146,10 +142,10 @@ model_type = NonStructuredLogisticRegression
 #use_current_word_as_feature = True
 
 # The path to the semantic space that is read by Gensim
-#model_path = '/mnt/data/maria/word2vec/GoogleNews-vectors-negative300.bin'
+model_path = '/mnt/data/maria/word2vec/GoogleNews-vectors-negative300.bin'
 
 # Vector length for the semantic vectors (300 for GoogleNews-vectors-negative300.bin, for instance.)
-#semantic_vector_length = 300
+semantic_vector_length = 300
 
 #######
 # This is to be set to False when active learning is to be applied 
@@ -204,13 +200,10 @@ model_type = NonStructuredLogisticRegression
 #unlabelled_data_dir = "unlabelled"
 #unlabelled_data_file = "unlabelled.csv"
 #tolabel_data_dir = "tolabel"
-#evaluation_output_dir = "evaluation"
-#separate_evaluation_output_dir = "separate_evaluation"
-#separate_evaluation_data_dir = "separate_evaluation_data"
-#saved_model_dir = "saved_model"
 #beginning_prefix = "B-"
 #inside_prefix = "I-"
 #outside_class = "O"
 #negative_category = "no"
 #whether_to_use_word2vec = True
+whether_to_use_clustering = True
 #nr_of_cross_validation_splits = 2

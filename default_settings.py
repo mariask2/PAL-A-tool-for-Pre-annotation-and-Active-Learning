@@ -96,4 +96,5 @@ inside_prefix = "I-"
 outside_class = "O"
 negative_category = "no"
 whether_to_use_word2vec = False
+whether_to_use_clustering = False
 nr_of_cross_validation_splits = 10

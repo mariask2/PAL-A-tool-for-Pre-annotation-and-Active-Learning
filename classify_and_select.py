@@ -778,6 +778,9 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
         return sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]
 
 
+
+
+
 class NonStructuredLogisticRegression(ModelWrapperBase):
     def __init__(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations,  \
                      use_cross_validation, nr_of_cross_validation_splits, c_value):
@@ -809,12 +812,12 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
             Y_flat_remove_bi_dist = np.array(Y_flat_remove_bi_dist)
             
             print("Starting cross-validation")
-            parameters={'C': [0.5, 1, 2, 5]}
+            parameters={'C': [1, 5, 10]}
             skf = StratifiedKFold(Y_flat_remove_bi_dist, self.nr_of_cross_validation_splits)
 
             f1_scorer = make_scorer(f1_score, average='binary', pos_label=beginning_classes[0])
 
-            grid_search_clf = GridSearchCV(self.model, parameters, cv=skf, scoring = f1_scorer, n_jobs=-1)
+            grid_search_clf = GridSearchCV(self.model, parameters, cv=skf, scoring = f1_scorer)
             grid_search_clf.fit(X_flat, Y_flat_remove_bi_dist)
             self.model = grid_search_clf.best_estimator_
             self.C = self.model.C
@@ -900,9 +903,15 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
         #print("sorted_score_index_no_predicted_chunks[0]", sorted_score_index_no_predicted_chunks[0])
         return sorted_score_index_no_predicted_chunks[:number_of_unlabelled_to_select]
 
+    def get_params(self):
+        self.model.get_params()
 
-
-
+    def get_cs(self):
+        try:
+            c = self.C
+            return str(c)
+        except:
+            return str(self.c_value)
 
 
 

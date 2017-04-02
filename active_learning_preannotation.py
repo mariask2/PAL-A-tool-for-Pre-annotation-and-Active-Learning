@@ -79,7 +79,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                           min_df_context = properties.min_df_context, \
                                           word2vecwrapper = word2vecwrapper, \
                                           current_word_vocabulary = properties.current_word_vocabulary, \
-                                          context_word_vocabulary = properties.context_word_vocabulary)    
+                                          context_word_vocabulary = properties.context_word_vocabulary, \
+                                          use_clustering = properties.whether_to_use_clustering)    
 
     to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
         classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -143,7 +144,8 @@ def load_properties(parser):
 
     param: parser: an instance of argparse.ArgumentParser
     :returns properties: an instance of PropertiesContainer which contains the settings for running the active learning and pre-annotation                                                                                 
-    :returns path_slash_format: a string containing the path to the folder with the data          
+    :returns path_slash_format: a string containing the path (in unix slash format) to the folder with the data
+    :returns project_path: a string containing the path (in dot-format) to the folder with the data
     """
 
     parser.add_argument('--project', action='store', dest='project_path', \
@@ -154,25 +156,31 @@ def load_properties(parser):
         exit(1)
 
     print(args.project_path)
+    return load_properties_from_parameters(args.project_path)
 
+
+def load_properties_from_parameters(project_path, start_dir = "."):
     SETTINGS  = "settings"
     path_slash_format = ""
-    for path_part in args.project_path.split("."):
+    for path_part in project_path.split("."):
         path_slash_format = os.path.join(path_slash_format, path_part)
     
+    path_slash_format = os.path.join(start_dir, path_slash_format)
+
+    print("path_slash_format", path_slash_format)
     if not os.path.exists(path_slash_format):
         print("The directory '" + str(path_slash_format) + "' i.e., the directory matching the project path given '" + \
-                  str(args.project_path) + "', does not exist")
+                  str(project_path) + "', does not exist")
         exit(1)
 
     if not os.path.exists(os.path.join(path_slash_format, SETTINGS + ".py")):
         print("The directory '" + str(path_slash_format) + "' does not have a " + SETTINGS + ".py file.")
         exit(1)
 
-    properties = importlib.import_module(args.project_path + "." + SETTINGS)
+    properties = importlib.import_module(project_path + "." + SETTINGS)
 
     properties_container = PropertiesContainer(properties)
-    return properties_container, path_slash_format, args.project_path
+    return properties_container, path_slash_format, project_path
 
 
 
@@ -252,22 +260,31 @@ class PropertiesContainer:
         except AttributeError: 
             self.whether_to_use_word2vec = default_settings.whether_to_use_word2vec 
 
-        if self.whether_to_use_word2vec:    
+        try:  
+            self.whether_to_use_clustering = properties.whether_to_use_clustering
+        except AttributeError: 
+            self.whether_to_use_clustering = default_settings.whether_to_use_clustering 
+
+        if self.whether_to_use_word2vec or self.whether_to_use_clustering:    
             try:    
                 self.model_path = properties.model_path
             except AttributeError:    
-                print("The settings 'whether_to_use_word2vec' is set to True, but there is no 'model_path' showing where the model is")
+                print("The settings 'whether_to_use_word2vec' or 'whether_to_use_clustering' is set to True, but there is no 'model_path' showing where the model is")
                 exit(1)
             try:    
                 self.semantic_vector_length = properties.semantic_vector_length
             except AttributeError:
-                print("The settings 'whether_to_use_word2vec' is set to True, but there is no 'semantic_vector_length' showing how large the vector is")
+                print("The settings 'whether_to_use_word2vec'  or 'whether_to_use_clustering' is set to True, but there is no 'semantic_vector_length' showing how large the vector is")
                 exit(1)
         else:
-            if hasattr(properties, 'model_path') or hasattr(properties, 'semantic_vector_length'):
-                print("WARNING: You have given a 'model_path' or a 'semantic_vector_length', but 'whether_to_use_word2vec' is set to 'False'")
-            self.model_path = None
-            self.semantic_vector_length = None
+            try:    
+                self.model_path = properties.model_path
+            except AttributeError:
+                self.model_path = None
+            try:    
+                self.semantic_vector_length = properties.semantic_vector_length
+            except AttributeError:
+                self.semantic_vector_length = None
 
         try:    
             self.inactive_learning = properties.inactive_learning
