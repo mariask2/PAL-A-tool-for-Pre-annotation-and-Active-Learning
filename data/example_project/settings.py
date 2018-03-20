@@ -142,7 +142,7 @@ model_type = NonStructuredLogisticRegression
 #use_current_word_as_feature = True
 
 # The path to the semantic space that is read by Gensim
-model_path = '/mnt/data/maria/word2vec/GoogleNews-vectors-negative300.bin'
+model_path = '/Users/maria/mariaskeppstedtdsv/post-doc/gavagai/googlespace/GoogleNews-vectors-negative300.bin'
 
 # Vector length for the semantic vectors (300 for GoogleNews-vectors-negative300.bin, for instance.)
 semantic_vector_length = 300

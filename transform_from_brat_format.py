@@ -15,26 +15,34 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
         exit(1)
     
     
-    new_annotated_file = open(new_annotated_file_path, "w")
+    new_annotated_file = open(new_annotated_file_path, "w", encoding="utf-8")
     
     outside_tag = properties.outside_class
     beginning_prefix = properties.beginning_prefix
     inside_prefix = properties.inside_prefix 
 
-    text_file = open(text_file_name)
+    text_file = open(text_file_name, encoding="utf-8")
     text = text_file.read()
     text = text.rstrip()
     text = text + "\n"
     text_file.close()
     #print(text)
     print("Text of length " + str(len(text)) + " read")
-    annotated_char_list = [None for el in text]
-    
+
+    # brat uses an offset in utf16 length, this is code to account for this
+    # First just fix an array with position that correspond to that representation, filled with None
+    annotated_char_list = [] #[None for el in text]
+    for ch in text:
+        utf16_length = int(len(ch.encode("utf-16-be"))/2)
+        for el in range(0, utf16_length):
+            annotated_char_list.append(None)
+
+    print("Text, accounting for non-ascii means a brat representation of length " + str(len(annotated_char_list)) + ".")
+
     annotated_words = set()
-    annotation_file = open(annotation_file_name)
+    annotation_file = open(annotation_file_name, encoding="utf-8")
     for line in annotation_file:
         sp = line.strip().split()
-        #print(sp)
         for word in sp[4:]:
             annotated_words.add(word)
         for i in range(int(sp[2]), int(sp[3])+1):
@@ -43,13 +51,11 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
     print("Annotated words: ")
     print(annotated_words)
 
-    
-    #for i, value in enumerate(annotated_char_list):
-    #    print(i, value)
 
     start_index = 0
     annotation_last_word = None
-    for index, ch in enumerate(text):
+    index = 0
+    for ch in text:
         if ch == " " or ch == "\n": # a word has ended
             annotation_current_word = None
             annotation_to_write = outside_tag
@@ -84,6 +90,10 @@ def transform_from_brat_format(annotation_file_name, text_file_name, properties,
         else:
             new_annotated_file.write(ch)
 
+        # brat uses an offset in utf16 length
+        utf16_length = int(len(ch.encode("utf-16-be"))/2)
+        index = index + utf16_length
+
 def load_annotated_data_path(parser):
     args = parser.parse_args()
     if not args.annotated_path:
@@ -112,7 +122,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--annotated', action='store', dest='annotated_path', help='The path, in slash format, (including the file name without suffix) to where the manually annotated files')
 
-    properties, path_slash_format = active_learning_preannotation.load_properties(parser)
+    properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
 
     print(properties, path_slash_format)
 

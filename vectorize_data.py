@@ -170,7 +170,9 @@ class Word2vecWrapper:
         """
         if self.word2vec_model == None:
             print("Loading word2vec model, this might take a while ....")
-            self.word2vec_model = gensim.models.Word2Vec.load_word2vec_format(self.model_path, binary=True)
+            self.word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True)
+            #self.word2vec_model = gensim.models.Word2Vec.load_word2vec_format(self.model_path, binary=True)
+            #self.word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True)
             print("Loaded word2vec model")
 
     def get_semantic_vector_length(self):
@@ -215,7 +217,7 @@ class Word2vecWrapper:
                     self._vocabulary_list.append(el[0])
                 else:
                     self._vocabulary_list.append(el)
-            print(self._vocabulary_list)
+                #print(self._vocabulary_list)
             
     def load_clustering(self):
         print("Clustering vectors, this might take a while ....")
@@ -247,7 +249,7 @@ class Word2vecWrapper:
         clusters_no_outliers_X  = []
         for label, term, vector in zip(labels, cluster_words, X_vectors):
             self.cluster_word_dict[term] = label
-            print(label, term)
+            #print(label, term)
             if label != -1:
                 clusters_no_outliers_y.append(label)
                 clusters_no_outliers_terms.append(term)
@@ -260,7 +262,7 @@ class Word2vecWrapper:
                 if label not in self.cluster_vector_dict:
                     self.cluster_vector_dict[label] = []
                 self.cluster_vector_dict[label].append(vector)
-        print("labels", set(labels))
+        #print("labels", set(labels))
         #print("self.cluster_word_dict", self.cluster_word_dict)
 
         self.nr_of_clusters = len(set(labels)) 
@@ -279,26 +281,26 @@ class Word2vecWrapper:
 
         if word in self.cluster_word_dict:
             if self.cluster_word_dict[word] == -1:
-                print("Not found cluster for training data word", word)
+                #print("Not found cluster for training data word", word)
+                pass
             feature_vector = self.get_features(self.cluster_word_dict[word])
             #print("In training data", word, feature_vector)
             return feature_vector
 
         vector = self.get_vector(word)
         if not all([el1 == el2 for el1, el2 in zip(vector, self.default_vector)]):
-            norm_vector = preprocessing.normalize(np.reshape(vector, newshape = (1, self.semantic_vector_length)), norm='l2') # normalize the vector (l2 = eucledian)  
-            list_vector = norm_vector[0]
-            cluster = self.nearest_centroid_clf.predict(np.array(list_vector))
+            norm_vector = preprocessing.normalize(np.reshape(vector, newshape = (1, self.semantic_vector_length)), norm='l2') # normalize the vector (l2 = eucledian)
+            cluster = self.nearest_centroid_clf.predict(norm_vector)
             cluster_vectors = self.cluster_vector_dict[cluster[0]]
-            distances = euclidean_distances(cluster_vectors, [list_vector])    
+            distances = euclidean_distances(cluster_vectors, norm_vector)    
             #print("distances", distances)
             min_distance = min(distances)
             if min_distance <= 1.2:
                 #if word not in self.cluster_dict[cluster[0]]:
-                print(word + " " + str(self.cluster_dict[cluster[0]]))
+                #print(word + " " + str(self.cluster_dict[cluster[0]]))
                 return self.get_features(cluster[0])
             else:
-                print("Not found cluster for new word", word)
+                #print("Not found cluster for new word", word)
                 return self.empty_vector[:]
         else:
             return self.empty_vector[:]
@@ -695,6 +697,12 @@ if __name__ == "__main__":
 
     print("april")
     print(word2vecwrapper.get_cluster("april"))
+
+    print("coffee")
+    print(word2vecwrapper.get_cluster("coffee"))
+
+    print("tea")
+    print(word2vecwrapper.get_cluster("tea"))
 
     print("solkjer123")
     print(word2vecwrapper.get_cluster("solkjer123"))

@@ -1,4 +1,6 @@
 """
+Code for initializing and running evaluation against separate evaluation data
+This is also where a model is saved
 """
 import argparse
 import train_and_evaluate_model

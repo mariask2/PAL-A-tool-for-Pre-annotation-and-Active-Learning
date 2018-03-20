@@ -1,5 +1,12 @@
 """
+Functions for simulation and evaluation
+Not all functions are yet documented here.
+But the ones required for loading a saved model and
+classifying them are documented.
+Those are, do_load_model, classify_from_loaded_model and
+get_sentence_certainty_score
 """
+
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
@@ -12,7 +19,7 @@ import shutil
 import importlib
 import argparse
 import glob
-import joblib
+from sklearn.externals import joblib
 import numpy
 import random
 import math
@@ -129,7 +136,11 @@ def do_save_model(properties_eval, project_path, category, model, properties_fil
 
     return filename
 
+
 def do_load_model(properties, model_path, category):
+    """
+    Loads a saved model into memory
+    """
     #output_path = os.path.join(project_path, properties.saved_model_dir, category)
     filename = os.path.join(model_path, category + "_model")
     model = joblib.load(filename)
@@ -163,14 +174,34 @@ def get_category(properties):
     category = category_with_prefix.replace(properties.beginning_prefix, "") # Just want the category name, without the beginning prefix
     return category_with_prefix, category
 
+def get_category_inside(properties):
+    categories = [el for el in properties.minority_classes if el.startswith(properties.inside_prefix)]
+    if len(categories) > 1:
+        print("there is only support for one category")
+        print("Here, the following categories were given: " + str(categories))
+        raise ValueError("there is only support for one category. Here, the following categories were given: " + str(categories))
+    category_with_inside_prefix = categories[0]
+    return category_with_inside_prefix
+
 
 def classify_from_loaded_model(properties, project_path, text_vector, word2vecwrapper, model=None, result_X_unlabelled_np=None, text_vector_unlabelled_np = None):
+    """
+    Classifies from saved model
+    It is possible to submit pre-vectorized data to the function 
+    (in result_X_unlabelled_np and text_vector_unlabelled_np,
+    but if they are None, the data in text_vector is instead used
+    to vectorize the data
+
+    If the mode is None, a model is loaded from the data in properies
+    
+    """
     start_time = time.time()
     time_file = open("time_taken.txt", "w")
     time_file.write("len(text_vector) " + str(len(text_vector)))
 
 
     category_with_prefix, category = get_category(properties)
+    category_with_inside_prefix = get_category_inside(properties)
     if not model:
         model = do_load_model(properties, project_path, category)
 
@@ -193,8 +224,13 @@ def classify_from_loaded_model(properties, project_path, text_vector, word2vecwr
     probabilities = model.predict_proba(result_X_unlabelled_np)
     time_file.write(" ".join(["After predict probabilities", str(time.time() - start_time), '\n']))
 
+    #"probability" is the probability output from the classifier
+    # in "word_probabilities_expanded", these have been mapped to
+    # categories of the classifier
+    # tag_format is the output of the classifier with the tags, e.g. ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']
     to_return = []
-    for prediction, sentence, sentence_vectorized_np, probability, sentence_tokenized in zip(results, text_vector, result_X_unlabelled_np, probabilities, text_tokenized):
+    for prediction, sentence, sentence_vectorized_np, probability, sentence_tokenized in \
+            zip(results, text_vector, result_X_unlabelled_np, probabilities, text_tokenized):
         word_probabilities_expanded = []
         for word_probabilities in probability:
             class_prob_score_dict = {}
@@ -202,7 +238,9 @@ def classify_from_loaded_model(properties, project_path, text_vector, word2vecwr
                 class_prob_score_dict[model.inv_label_dict[i]] = class_prob_score
             word_probabilities_expanded.append(class_prob_score_dict)
         tag_format = [model.inv_label_dict[el] for el in prediction]
-        if category_with_prefix in tag_format: 
+        
+        # If there is one occurrence of the category
+        if category_with_prefix in tag_format or category_with_inside_prefix in tag_format: 
             binary_category = category
         else: 
             binary_category = properties.outside_class
@@ -214,11 +252,20 @@ def classify_from_loaded_model(properties, project_path, text_vector, word2vecwr
     time_file.write(" ".join(["After loop", str(time.time() - start_time), '\n']))    
     return to_return, result_X_unlabelled_np, text_vector_unlabelled_np
 
-# if a minority category has been predicted, return the most certain of these
-# if not, return the most uncertain of the majority category predictions
+
+
 def get_sentence_certainty_score(xi, yi, model):
+    """
+    Returns the sentence-level certainty score, 
+    which is based on the token-level certainty score.
+    The algorithm for this is as follows:
+    If a minority category has been predicted for at least one token, 
+    return the most certain of these
+    If not, return the score for the most UNcertain of the majority 
+    category predictions
+    """
     probabilities = model.predict_proba([xi])
-    probabilities_for_sentence = probabilities[0] # Only call it for one sentence
+    probabilities_for_sentence = probabilities[0] # Only called it for one sentence, that's why the index is needed
 
     only_majority = True
     for el in yi:
@@ -440,7 +487,7 @@ def train_and_evaluate_model_against_evaluation_data(properties, project_path, w
 
 def evaluate_category_different_data_sizes(category, test_sentences, test_results, expected_results, outside_class, project_path, \
                                                output_dir, inside_prefix, beginning_prefix, parameters, cs, model_type,\
-                                               whether_to_use_word2vec, data_size, selection_type, fold_nr):
+                                               whether_to_use_clustering, data_size, selection_type, fold_nr):
     test_results_binary = get_binary_list(test_results, category, outside_class, inside_prefix, beginning_prefix)
     expected_results_binary = get_binary_list(expected_results, category, outside_class, inside_prefix, beginning_prefix)
 
@@ -464,7 +511,7 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     
-    base_name = category + "_" + selection_type + "_" + model_type.__name__ + "_word2vec_" + str(whether_to_use_word2vec) + "_" + str(data_size)
+    base_name = category + "_" + selection_type + "_" + model_type.__name__ + "_clustering_" + str(whether_to_use_clustering) + "_" + str(data_size)
     output_file_res_path = os.path.join(output_path, base_name + "_res.txt") 
     #output_file_data_path = os.path.join(output_path, base_name + "_data.csv") 
     output_file_res = open(output_file_res_path, "w")
@@ -499,9 +546,9 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     
 
 def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, properties, word2vecwrapper, \
-                                      project_path, whether_to_use_word2vec, selection_type, fold_nr):
+                                      project_path, whether_to_use_clustering, selection_type, fold_nr):
     print("start train and evaluate method")
-    print("whether_to_use_word2vec", whether_to_use_word2vec)
+    print("whether_to_use_clustering", whether_to_use_clustering)
     nr_of_samples = len(x_train_sentences)
     active_learning_preannotation.check_frequency_of_labels(y_train, classes)
 
@@ -512,7 +559,7 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
                                               text_vector_unlabelled = x_test_sentences, \
                                               label_vector_labelled = y_train, \
                                               class_dict = label_dict, \
-                                              use_word2vec = whether_to_use_word2vec, \
+                                              use_word2vec = False, \
                                               number_of_previous_words = properties.number_of_previous_words,\
                                               number_of_following_words = properties.number_of_following_words, \
                                               use_current_word_as_feature = properties.use_current_word_as_feature, \
@@ -521,7 +568,7 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
                                               word2vecwrapper = word2vecwrapper, \
                                               current_word_vocabulary = properties.current_word_vocabulary, \
                                               context_word_vocabulary = properties.context_word_vocabulary, \
-                                              use_clustering = properties.whether_to_use_clustering)    
+                                              use_clustering = whether_to_use_clustering)    
 
     model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                           properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
@@ -543,21 +590,23 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
     for category in [el for el in label_dict.keys() if el.startswith(properties.beginning_prefix)]:
         evaluate_category_different_data_sizes(category, test_sentences, test_results, expected_results, properties.outside_class, project_path, 
                                                properties.evaluation_output_dir, properties.inside_prefix, properties.beginning_prefix, \
-                                                   model.get_params(), model.get_cs(), properties.model_type, whether_to_use_word2vec, nr_of_samples, \
+                                                   model.get_params(), model.get_cs(), properties.model_type, whether_to_use_clustering, nr_of_samples, \
                                                    selection_type, fold_nr)
 
 def run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
-                             properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, whether_to_use_word2vec, fold_nr):
+                             properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, whether_to_use_clustering, fold_nr):
 
+    print("")
     print("Active selection")
-    print("------")
     nr_of_samples = seed_set_size              
     x_train_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in train_index[:seed_set_size]]
     y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:seed_set_size]]
     used_indeces = [i for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:seed_set_size]]
               #print("used_indeces", used_indeces)
 
-    print("whether_to_use_word2vec", whether_to_use_word2vec)
+    print("whether_to_use_clustering", whether_to_use_clustering)
+    print("nr_of_samples + step_size", str(nr_of_samples + step_size))
+    print("len(train_index)", str(len(train_index)))
     seed_set_run = True
     while nr_of_samples + step_size < len(train_index) and nr_of_samples + step_size < max_size:
         if not seed_set_run:
@@ -568,7 +617,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                           vectorize_data.vectorize_data(\
                 text_vector_labelled = x_train_sentences, text_vector_unlabelled = x_pool_sentences,\
                     label_vector_labelled = y_train, \
-                                          class_dict = label_dict, use_word2vec = whether_to_use_word2vec, \
+                                          class_dict = label_dict, use_word2vec = False, \
                                           number_of_previous_words = properties.number_of_previous_words, \
                                           number_of_following_words = properties.number_of_following_words, \
                                           use_current_word_as_feature = properties.use_current_word_as_feature, \
@@ -577,7 +626,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                                           word2vecwrapper = word2vecwrapper, \
                                           current_word_vocabulary = properties.current_word_vocabulary, \
                                           context_word_vocabulary = properties.context_word_vocabulary, \
-                    use_clustering = properties.whether_to_use_clustering)  
+                    use_clustering = whether_to_use_clustering)  
 
             to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
                           classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -597,23 +646,41 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                 selected_set.add(st)
 
 
-            selected_indeces = [i for (i, vec) in enumerate(labelled_text_vector) if " ".join(vec) in selected_set]
+            selected_indeces_text = [(i, " ".join(vec)) for (i, vec) in enumerate(labelled_text_vector) if " ".join(vec) in selected_set\
+                                         and i in train_index[seed_set_size:] and i not in used_indeces]
+
+            found_text_set = set() # if there are duplicates in training data, only find this sentence once
+            selected_indeces = []
+
+            # To remove duplicates
+            how_much_too_long = len(selected_indeces_text) - step_size
+            for selected_index, found_text in selected_indeces_text:
+                if found_text not in found_text_set or how_much_too_long == 0:
+                    selected_indeces.append(selected_index)
+                    found_text_set.add(found_text)
+                else:
+                    how_much_too_long = how_much_too_long - 1
+                    
+
+            print("len(selected_indeces)", len(selected_indeces))
             if len(selected_indeces) != step_size:
                 print("selected_indeces", selected_indeces)
                 print("selected_set", selected_set)
                 print("not enough selected")
                 exit(1)
-
+                
             used_indeces.extend(selected_indeces)
                   
         x_train_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in used_indeces]
         y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in used_indeces]
 
-
+        print("used_indeces", used_indeces)
+        print("len(used_indeces)", len(used_indeces))
+        print("len(x_train_sentences)", len(x_train_sentences))
         assert(len(used_indeces) == len(x_train_sentences))
         nr_of_samples = len(used_indeces)
         train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                          properties, word2vecwrapper, project_path, whether_to_use_word2vec, \
+                                          properties, word2vecwrapper, project_path, whether_to_use_clustering, \
                                           selection_type = "active", fold_nr = fold_nr)
                   
         seed_set_run = False
@@ -655,7 +722,7 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
         print("--------")
 
         # one test_fold and one train_fold
-        skf = StratifiedKFold(n_folds=2, y = [0 for el in labelled_label_vector], shuffle = True) 
+        skf = StratifiedKFold(n_folds=2, y = [0 for el in labelled_label_vector], shuffle = True, random_state = fold_nr) 
         # need to input a vector of the same length as labelled_label_vector, so just constuct one only with zeros
 
         foldnr_skf = 0
@@ -671,6 +738,7 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
               y_test = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in test_index]
      
               # Random selection of data
+              
               print("Random selection")
               print("------")
               nr_of_samples = seed_set_size
@@ -680,22 +748,22 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
                   y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:nr_of_samples]]
 
                   train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                                    properties, word2vecwrapper, project_path, whether_to_use_word2vec = False, \
+                                                    properties, word2vecwrapper, project_path, whether_to_use_clustering = False, \
                                                     selection_type = "random", fold_nr = fold_nr)
                   train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                                    properties, word2vecwrapper, project_path, whether_to_use_word2vec = True, \
+                                                    properties, word2vecwrapper, project_path, whether_to_use_clustering = True, \
                                                     selection_type = "random", fold_nr = fold_nr)
 
                   nr_of_samples = nr_of_samples + step_size
               
-
+                
               # Active selection of data
               run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
-                                       whether_to_use_word2vec = False, fold_nr = fold_nr)
+                                       whether_to_use_clustering = False, fold_nr = fold_nr)
               run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
-                                       whether_to_use_word2vec = True, fold_nr = fold_nr)
+                                       whether_to_use_clustering = True, fold_nr = fold_nr)
 
               ###
     

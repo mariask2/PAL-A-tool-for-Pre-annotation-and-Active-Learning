@@ -98,7 +98,7 @@ def select_new_data(properties, project_path, word2vecwrapper):
         os.mkdir(tolabel_data_dir_for_project)
 
     to_annotate_file_path = os.path.join(tolabel_data_dir_for_project, time.strftime("tolabel_%Y%m%d_%H%M%S.csv"))
-    to_annotate_file = open(to_annotate_file_path, "w")
+    to_annotate_file = open(to_annotate_file_path, "w", encoding="utf-8")
 
     label_dict_inv = {v: k for k, v in label_dict.items()}
 
@@ -118,7 +118,7 @@ def select_new_data(properties, project_path, word2vecwrapper):
     old_unlabelled_data_path = os.path.join(unlabelled_data_dir_for_project, \
                                                 time.strftime("unlabelled_%Y%m%d_%H%M%S.csv"))
     shutil.move(unlabelled_data_path,  old_unlabelled_data_path)
-    unlabelled_data_path_file = open(unlabelled_data_path, "w")
+    unlabelled_data_path_file = open(unlabelled_data_path, "w", encoding="utf-8")
 
     # Create the file for annotation data
     for texts in new_sentences_unlabelled:
@@ -150,16 +150,39 @@ def load_properties(parser):
 
     parser.add_argument('--project', action='store', dest='project_path', \
                             help='The path, separated by dots, to where the project i located. For instance: data.example_project')
+    parser.add_argument('--data_directory', action='store', dest='data_directory', \
+                            help='The path, separated by slash, for the root of the data (where data/example_project) is located')
+
     args = parser.parse_args()
     if not args.project_path:
         print("The argument '--project' with the path to the data needs to be given")
         exit(1)
 
+    data_directory = "."
+    if not args.data_directory:
+        print("The argument '--data_directory' not given. Will use the current directory")
+    else:
+        data_directory = args.data_directory
+
     print(args.project_path)
-    return load_properties_from_parameters(args.project_path)
+    return load_properties_from_parameters(args.project_path, data_directory)
 
 
 def load_properties_from_parameters(project_path, start_dir = "."):
+    """
+    Reads the properties from the settings file
+
+    param: project_path: The path to the data in dot format
+    start_dir: The current working director, from where to look for the project path
+    (in slash format)
+    
+    :returns A PropertiesContainer loaded with the settings
+    :returns the relative project_path is slash format
+    :returns the full project in slash format
+    """
+
+    if start_dir != ".":
+        sys.path.append(start_dir)
     SETTINGS  = "settings"
     path_slash_format = ""
     for path_part in project_path.split("."):
@@ -169,13 +192,13 @@ def load_properties_from_parameters(project_path, start_dir = "."):
 
     print("path_slash_format", path_slash_format)
     if not os.path.exists(path_slash_format):
-        print("The directory '" + str(path_slash_format) + "' i.e., the directory matching the project path given '" + \
+        raise FileNotFoundError("The directory '" + str(path_slash_format) + "' i.e., the directory matching the project path given '" + \
                   str(project_path) + "', does not exist")
-        exit(1)
+        
 
     if not os.path.exists(os.path.join(path_slash_format, SETTINGS + ".py")):
-        print("The directory '" + str(path_slash_format) + "' does not have a " + SETTINGS + ".py file.")
-        exit(1)
+        raise FileNotFoundError("The directory '" + str(path_slash_format) + "' does not have a " + SETTINGS + ".py file.")
+        
 
     properties = importlib.import_module(project_path + "." + SETTINGS)
 

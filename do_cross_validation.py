@@ -1,5 +1,7 @@
 """
+Code for initialising and calling functionality for performing cross-validation
 """
+
 import argparse
 import train_and_evaluate_model
 import active_learning_preannotation

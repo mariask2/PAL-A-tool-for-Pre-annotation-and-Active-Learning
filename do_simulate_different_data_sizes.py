@@ -1,4 +1,6 @@
 """
+Functionality for initializing and running a simulation of different sizes and different data
+selectio methods
 """
 import argparse
 import train_and_evaluate_model
