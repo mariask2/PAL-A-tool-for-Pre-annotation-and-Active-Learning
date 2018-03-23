@@ -94,6 +94,11 @@ class SimulationProperties:
             print("Settings file lacks the property 'step_size'.")
             exit(1)
 
+        try:
+            self.max_test_data_size = properties.max_test_data_size
+        except AttributeError:
+            print("Settings file lacks the property 'max_test_data_size'.")
+            exit(1)
 
 
 if __name__ == "__main__":

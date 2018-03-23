@@ -296,7 +296,7 @@ def get_sentence_certainty_score(xi, yi, model):
                     max_score = prob_not_majority
         return max_score      
 
-# TODO: This is not tested, and also not properly updated
+
 def train_and_evaluate_model_cross_validation(properties, project_path, word2vecwrapper, cross_validation_properties):
     print()
     print("**************************************************************")
@@ -556,7 +556,6 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
     nr_of_samples = len(x_train_sentences)
     active_learning_preannotation.check_frequency_of_labels(y_train, classes)
 
-    print("Before vectorize")
     X_train_np, X_test_np, y_train_np, text_vector_train_np, text_vector_text_test_np, \
                       current_word_vectorizer, context_word_vectorizer = \
                       vectorize_data.vectorize_data(text_vector_labelled = x_train_sentences, \
@@ -732,47 +731,63 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
         empty_y = [0 for el in labelled_label_vector]
 
         foldnr_skf = 0
-        for train_index, test_index in skf.split(empty_y, empty_y):
-              if foldnr_skf > 0:
+        for train_index, test_index_all in skf.split(empty_y, empty_y):
+            if foldnr_skf > 0:
                   break # only use the first fold, that is created by the StratifiedKFold class
 
-              random.shuffle(train_index)
-              print("test_index", test_index)
-              print("train_index (pool index)", train_index)
-                       
-              x_test_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in test_index]
-              y_test = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in test_index]
-     
-              # Random selection of data
-              
-              print("Random selection")
-              print("------")
-              nr_of_samples = seed_set_size
-              while nr_of_samples < len(train_index) and nr_of_samples < max_size:
-                  print("Training with " + str(nr_of_samples) + " samples.")
-                  x_train_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in train_index[:nr_of_samples]]
-                  y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:nr_of_samples]]
+            random.Random(fold_nr).shuffle(train_index)
+            random.Random(fold_nr).shuffle(test_index_all)
+            
+            if len(test_index_all) <= simulation_properties.max_test_data_size:
+                test_index = test_index_all
+            else:
+                test_index = test_index_all[:simulation_properties.max_test_data_size]
 
-                  train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
+            # To save time when vectorizing (not to vectorize data that will not be searched among):
+            if properties.maximum_samples_to_search_among != "all":
+                if len(train_index) > properties.maximum_samples_to_search_among + simulation_properties.seed_set_size:
+                    train_index = train_index[:properties.maximum_samples_to_search_among + simulation_properties.seed_set_size]
+                    
+            print("test_index_all", test_index_all)
+            print("test_index", len(test_index))
+            print("train_index (pool index)", train_index)
+
+              
+                       
+            x_test_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in test_index]
+            y_test = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in test_index]
+     
+            # Random selection of data
+              
+            print("\nRandom selection")
+            print("------")
+            nr_of_samples = seed_set_size
+            while nr_of_samples < len(train_index) and nr_of_samples < max_size:
+                print("Training with " + str(nr_of_samples) + " samples.")
+                x_train_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in train_index[:nr_of_samples]]
+                y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:nr_of_samples]]
+
+                train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
                                                     properties, word2vecwrapper, project_path, whether_to_use_clustering = False, \
                                                     selection_type = "random", fold_nr = fold_nr)
-                  train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
+                train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
                                                     properties, word2vecwrapper, project_path, whether_to_use_clustering = True, \
                                                     selection_type = "random", fold_nr = fold_nr)
 
-                  nr_of_samples = nr_of_samples + step_size
+                nr_of_samples = nr_of_samples + step_size
               
-                
-              # Active selection of data
-              run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
+            print("\nActive selection")
+            print("------")
+            # Active selection of data
+            run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
                                        whether_to_use_clustering = False, fold_nr = fold_nr)
-              run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
+            run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
                                        whether_to_use_clustering = True, fold_nr = fold_nr)
 
-              ###
+            ###
     
 
-              # only use the first fold (could as well do a break here)
-              foldnr_skf = foldnr_skf + 1
+            # only use the first fold (could as well do a break here)
+            foldnr_skf = foldnr_skf + 1

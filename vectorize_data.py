@@ -393,7 +393,7 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
 
             resulting_vector = np.concatenate((resulting_vector, previous_vector_cluster))
 
-    # To ensure that these are not reused
+    # To ensure that the code is not written so these are reused
     previous_vector = "Empty"
     previous_long_vector = "Empty"
     previous_vector_cluster = "Empty"
@@ -432,8 +432,8 @@ def get_resulting_x_vector(current_word_vectorizer, context_word_vectorizer, wor
 
     ### 
     #print(word)
-    if word_count == 0 or word_count == len(text_concatenated) - 1:
-        print("Length final feature vector", len(resulting_vector))
+    if word_count == 0 or word_count == len(text_concatenated) - 1 or word_count % 10000 == 0:
+        print("Vectorizing word number: ", word_count, " Length feature vector", len(resulting_vector))
 
     return resulting_vector
 
@@ -575,6 +575,8 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
 
     vocabulary_to_use = None
 
+    print("Started vectorizing labelled data of length ", len(text_vector_labelled))
+
     # If an external vocabulary has been given, find out which of the words included in the corpus that is included in the vocabulary
     
     if current_word_vocabulary:
@@ -656,16 +658,18 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
 
             result_y_labelled.append(transformed_y)
 
-    print("Read labelled data, len: ", len(result_X_labelled), len(result_y_labelled), len(text_vector_labelled))
+    print("Vectorized labelled data, len: ", len(result_X_labelled), len(result_y_labelled), len(text_vector_labelled))
 
     #Unlabelled
+
+    print("Started vectorizing unlabelled data of length ", len(text_vector_unlabelled))
     result_X_unlabelled_np, text_vector_unlabelled_np = vectorize_unlabelled(text_vector_unlabelled, current_word_vectorizer, context_word_vectorizer, \
                              use_word2vec, number_of_previous_words, number_of_following_words, use_current_word_as_feature, word2vecwrapper, use_clustering)
+    print("Finished vectorizing unlabelled data")
 
     result_X_labelled_np = np.array([np.array(xi) for xi in result_X_labelled])
     result_y_labelled_np = np.array([np.array(yi) for yi in result_y_labelled])
     text_vector_labelled_np = np.array([np.array(ti) for ti in text_vector_labelled])
-    
 
     return result_X_labelled_np, result_X_unlabelled_np, result_y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
         current_word_vectorizer, context_word_vectorizer
