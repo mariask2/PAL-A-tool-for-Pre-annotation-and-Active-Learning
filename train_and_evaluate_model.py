@@ -7,7 +7,7 @@ Those are, do_load_model, classify_from_loaded_model and
 get_sentence_certainty_score
 """
 
-from sklearn.cross_validation import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -296,7 +296,7 @@ def get_sentence_certainty_score(xi, yi, model):
                     max_score = prob_not_majority
         return max_score      
 
-
+# TODO: This is not tested, and also not properly updated
 def train_and_evaluate_model_cross_validation(properties, project_path, word2vecwrapper, cross_validation_properties):
     print()
     print("**************************************************************")
@@ -315,16 +315,20 @@ def train_and_evaluate_model_cross_validation(properties, project_path, word2vec
     
     active_learning_preannotation.check_frequency_of_labels(labelled_label_vector, classes)
 
-    skf = StratifiedKFold(n_folds=cross_validation_properties.nr_of_cross_validation_splits_for_evaluation, y = [0 for el in labelled_label_vector], shuffle = True, random_state = 3) 
+    skf = StratifiedKFold(n_splits=cross_validation_properties.nr_of_cross_validation_splits_for_evaluation,\
+                          shuffle = True, random_state = 3)
+
     # need to input a vector of the same length as labelled_label_vector, so just constuct on only with zeros
+    empty_y = [0 for el in labelled_label_vector]
 
     test_sentences = []
     test_results = []
     expected_results = []
 
     foldnr = 0
-    for train_index, test_index in skf:
+    for train_index, test_index in skf.split(empty_y, empty_y):
         print("foldnr", foldnr)
+     
         x_train_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in train_index]
         y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index]
 
@@ -722,11 +726,13 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
         print("--------")
 
         # one test_fold and one train_fold
-        skf = StratifiedKFold(n_folds=2, y = [0 for el in labelled_label_vector], shuffle = True, random_state = fold_nr) 
+        skf = StratifiedKFold(n_splits=2, shuffle = True, random_state = fold_nr)
+        
         # need to input a vector of the same length as labelled_label_vector, so just constuct one only with zeros
+        empty_y = [0 for el in labelled_label_vector]
 
         foldnr_skf = 0
-        for train_index, test_index in skf: 
+        for train_index, test_index in skf.split(empty_y, empty_y):
               if foldnr_skf > 0:
                   break # only use the first fold, that is created by the StratifiedKFold class
 

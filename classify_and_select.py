@@ -5,13 +5,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.utils import shuffle
 from sklearn.metrics import make_scorer
 from sklearn.metrics import f1_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import StratifiedKFold
 
-from sklearn.grid_search import GridSearchCV
-from sklearn.cross_validation import StratifiedKFold
+#from sklearn.grid_search import GridSearchCV
+#from sklearn.cross_validation import StratifiedKFold
 
-# Change this, in future versions since the sklearn crossvalidation is to be removed
-#from sklearn.model_selection import GridSearchCV
-#from sklearn.model_selection import StratifiedKFold
+
 
 def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
                      label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, \
@@ -815,10 +815,11 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
                 else:
                     Y_flat_remove_bi_dist.append(beginning_classes[0])
             Y_flat_remove_bi_dist = np.array(Y_flat_remove_bi_dist)
-            
-            print("Starting cross-validation")
+
             parameters={'C': [1, 5, 10]}
-            skf = StratifiedKFold(Y_flat_remove_bi_dist, self.nr_of_cross_validation_splits)
+            
+            print("Starting cross-validation with parameters: " + str(parameters))
+            skf = StratifiedKFold(self.nr_of_cross_validation_splits)
 
             f1_scorer = make_scorer(f1_score, average='binary', pos_label=beginning_classes[0])
 
