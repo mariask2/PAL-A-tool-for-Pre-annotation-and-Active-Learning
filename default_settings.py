@@ -34,6 +34,10 @@ use_current_word_as_feature = True
 min_df_current = 1
 min_df_context = 2
 
+# A maximum cut-off for the number of occurrences of a token in the data for a token, or a neighbouring token to be included as a feature
+# float in range [0.0, 1.0] or int. See the scikit learn documentation for the max_df for the class CountVectorizer
+max_df_current = 1.0
+max_df_context = 1.0
 
 # This is to be set to False when active learning is to be applied 
 # If it is true, it instead does the reverse, return the samples for which the learner is most certain

@@ -71,16 +71,18 @@ def select_new_data(properties, project_path, word2vecwrapper):
     X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
         current_word_vectorizer, context_word_vectorizer = \
         vectorize_data.vectorize_data(labelled_text_vector, unlabelled_text_vector, labelled_label_vector, \
-                                          label_dict, use_word2vec = properties.whether_to_use_word2vec, \
-                                          number_of_previous_words = properties.number_of_previous_words, \
-                                          number_of_following_words = properties.number_of_following_words, \
-                                          use_current_word_as_feature = properties.use_current_word_as_feature, \
-                                          min_df_current = properties.min_df_current,  \
-                                          min_df_context = properties.min_df_context, \
-                                          word2vecwrapper = word2vecwrapper, \
-                                          current_word_vocabulary = properties.current_word_vocabulary, \
-                                          context_word_vocabulary = properties.context_word_vocabulary, \
-                                          use_clustering = properties.whether_to_use_clustering)    
+                                      label_dict, use_word2vec = properties.whether_to_use_word2vec, \
+                                    number_of_previous_words = properties.number_of_previous_words, \
+                                    number_of_following_words = properties.number_of_following_words, \
+                                    use_current_word_as_feature = properties.use_current_word_as_feature, \
+                                    min_df_current = properties.min_df_current,  \
+                                    min_df_context = properties.min_df_context, \
+                                    max_df_current = properties.max_df_current,\
+                                    max_df_context = properties.max_df_context,\
+                                    word2vecwrapper = word2vecwrapper, \
+                                    current_word_vocabulary = properties.current_word_vocabulary, \
+                                    context_word_vocabulary = properties.context_word_vocabulary, \
+                                    use_clustering = properties.whether_to_use_clustering)
 
     to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
         classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -276,7 +278,17 @@ class PropertiesContainer:
         try:    
             self.min_df_context = properties.min_df_context
         except AttributeError:
-            self.min_df_context = default_settings.min_df_context 
+            self.min_df_context = default_settings.min_df_context
+        
+        try:
+            self.max_df_current = properties.max_df_current
+        except AttributeError:
+            self.max_df_current = default_settings.max_df_current
+        
+        try:
+            self.max_df_context = properties.max_df_context
+        except AttributeError:
+            self.max_df_context = default_settings.max_df_context
 
         try:  
             self.whether_to_use_word2vec = properties.whether_to_use_word2vec

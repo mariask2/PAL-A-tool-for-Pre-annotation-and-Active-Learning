@@ -340,19 +340,21 @@ def train_and_evaluate_model_cross_validation(properties, project_path, word2vec
         X_train_np, X_test_np, y_train_np, text_vector_train_np, text_vector_text_test_np, \
             current_word_vectorizer, context_word_vectorizer = \
             vectorize_data.vectorize_data(text_vector_labelled = x_train_sentences, \
-                                   text_vector_unlabelled = x_test_sentences, \
-                                              label_vector_labelled = y_train, \
-                                              class_dict = label_dict, \
-                                              use_word2vec = properties.whether_to_use_word2vec, \
-                                              number_of_previous_words = properties.number_of_previous_words,\
-                                              number_of_following_words = properties.number_of_following_words, \
-                                              use_current_word_as_feature = properties.use_current_word_as_feature, \
-                                              min_df_current = properties.min_df_current, \
-                                              min_df_context = properties.min_df_context, \
-                                              word2vecwrapper = word2vecwrapper, \
-                                              current_word_vocabulary = properties.current_word_vocabulary, \
-                                              context_word_vocabulary = properties.context_word_vocabulary,\
-                                              use_clustering = properties.whether_to_use_clustering)
+                                          text_vector_unlabelled = x_test_sentences, \
+                                            label_vector_labelled = y_train, \
+                                            class_dict = label_dict, \
+                                            use_word2vec = properties.whether_to_use_word2vec, \
+                                            number_of_previous_words = properties.number_of_previous_words,\
+                                            number_of_following_words = properties.number_of_following_words, \
+                                            use_current_word_as_feature = properties.use_current_word_as_feature, \
+                                            min_df_current = properties.min_df_current, \
+                                            min_df_context = properties.min_df_context, \
+                                            max_df_current = properties.max_df_current, \
+                                            max_df_context = properties.max_df_context, \
+                                            word2vecwrapper = word2vecwrapper, \
+                                            current_word_vocabulary = properties.current_word_vocabulary, \
+                                            context_word_vocabulary = properties.context_word_vocabulary,\
+                                            use_clustering = properties.whether_to_use_clustering)
 
         model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                           properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
@@ -423,25 +425,25 @@ def train_and_evaluate_model_against_evaluation_data(properties, project_path, w
     X_train_np, X_test_np, y_train_np, text_vector_train_np, text_vector_text_test_np, \
         current_word_vectorizer, context_word_vectorizer = \
         vectorize_data.vectorize_data(text_vector_labelled = labelled_text_vector, \
-                                          text_vector_unlabelled = evaluation_data, \
-                                          label_vector_labelled = labelled_label_vector, \
-                                          class_dict = label_dict, \
-                                          use_word2vec = properties.whether_to_use_word2vec, \
-                                          number_of_previous_words = properties.number_of_previous_words, \
-                                          number_of_following_words = properties.number_of_following_words, \
-                                          use_current_word_as_feature = properties.use_current_word_as_feature, \
-                                          min_df_current = properties.min_df_current, \
-                                          min_df_context = properties.min_df_context, \
-                                          word2vecwrapper = word2vecwrapper, \
-                                          current_word_vocabulary = properties.current_word_vocabulary, \
-                                          context_word_vocabulary = properties.context_word_vocabulary, \
-                                          use_clustering = properties.whether_to_use_clustering)    
+                                    text_vector_unlabelled = evaluation_data, \
+                                        label_vector_labelled = labelled_label_vector, \
+                                        class_dict = label_dict, \
+                                        use_word2vec = properties.whether_to_use_word2vec, \
+                                        number_of_previous_words = properties.number_of_previous_words, \
+                                        number_of_following_words = properties.number_of_following_words, \
+                                        use_current_word_as_feature = properties.use_current_word_as_feature, \
+                                        min_df_current = properties.min_df_current, \
+                                        min_df_context = properties.min_df_context, \
+                                        max_df_current = properties.max_df_current, \
+                                        max_df_context = properties.max_df_context, \
+                                        word2vecwrapper = word2vecwrapper, \
+                                        current_word_vocabulary = properties.current_word_vocabulary, \
+                                        context_word_vocabulary = properties.context_word_vocabulary, \
+                                        use_clustering = properties.whether_to_use_clustering)
 
     model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                       properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
                                       properties.nr_of_cross_validation_splits, properties.c_value)
-
-
 
     print("Starts to train")
     model.fit(X_train_np, y_train_np)
@@ -559,19 +561,21 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
     X_train_np, X_test_np, y_train_np, text_vector_train_np, text_vector_text_test_np, \
                       current_word_vectorizer, context_word_vectorizer = \
                       vectorize_data.vectorize_data(text_vector_labelled = x_train_sentences, \
-                                              text_vector_unlabelled = x_test_sentences, \
-                                              label_vector_labelled = y_train, \
-                                              class_dict = label_dict, \
-                                              use_word2vec = False, \
-                                              number_of_previous_words = properties.number_of_previous_words,\
-                                              number_of_following_words = properties.number_of_following_words, \
-                                              use_current_word_as_feature = properties.use_current_word_as_feature, \
-                                              min_df_current = properties.min_df_current, \
-                                              min_df_context = properties.min_df_context, \
-                                              word2vecwrapper = word2vecwrapper, \
-                                              current_word_vocabulary = properties.current_word_vocabulary, \
-                                              context_word_vocabulary = properties.context_word_vocabulary, \
-                                              use_clustering = whether_to_use_clustering)    
+                                            text_vector_unlabelled = x_test_sentences, \
+                                            label_vector_labelled = y_train, \
+                                            class_dict = label_dict, \
+                                            use_word2vec = False, \
+                                            number_of_previous_words = properties.number_of_previous_words,\
+                                            number_of_following_words = properties.number_of_following_words, \
+                                            use_current_word_as_feature = properties.use_current_word_as_feature, \
+                                            min_df_current = properties.min_df_current, \
+                                            min_df_context = properties.min_df_context, \
+                                            max_df_current = properties.max_df_current, \
+                                            max_df_context = properties.max_df_context,\
+                                            word2vecwrapper = word2vecwrapper, \
+                                            current_word_vocabulary = properties.current_word_vocabulary, \
+                                            context_word_vocabulary = properties.context_word_vocabulary, \
+                                            use_clustering = whether_to_use_clustering)
 
     model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                           properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
@@ -620,15 +624,17 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                           vectorize_data.vectorize_data(\
                 text_vector_labelled = x_train_sentences, text_vector_unlabelled = x_pool_sentences,\
                     label_vector_labelled = y_train, \
-                                          class_dict = label_dict, use_word2vec = False, \
-                                          number_of_previous_words = properties.number_of_previous_words, \
-                                          number_of_following_words = properties.number_of_following_words, \
-                                          use_current_word_as_feature = properties.use_current_word_as_feature, \
-                                          min_df_current = properties.min_df_current,  \
-                                          min_df_context = properties.min_df_context, \
-                                          word2vecwrapper = word2vecwrapper, \
-                                          current_word_vocabulary = properties.current_word_vocabulary, \
-                                          context_word_vocabulary = properties.context_word_vocabulary, \
+                                    class_dict = label_dict, use_word2vec = False, \
+                                        number_of_previous_words = properties.number_of_previous_words, \
+                                        number_of_following_words = properties.number_of_following_words, \
+                                        use_current_word_as_feature = properties.use_current_word_as_feature, \
+                                        min_df_current = properties.min_df_current,  \
+                                        min_df_context = properties.min_df_context, \
+                                        max_df_current = properties.max_df_current, \
+                                        max_df_context = properties.max_df_context, \
+                                        word2vecwrapper = word2vecwrapper, \
+                                        current_word_vocabulary = properties.current_word_vocabulary, \
+                                        context_word_vocabulary = properties.context_word_vocabulary, \
                     use_clustering = whether_to_use_clustering)  
 
             to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \

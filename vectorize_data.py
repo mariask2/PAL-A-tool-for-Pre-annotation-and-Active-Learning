@@ -521,8 +521,9 @@ def do_vectorize_unlabelled(text_vector_unlabelled, current_word_vectorizer, con
 
 
 def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_labelled, class_dict, use_word2vec,\
-                       number_of_previous_words, number_of_following_words, use_current_word_as_feature,\
-                       min_df_current, min_df_context, word2vecwrapper, current_word_vocabulary, context_word_vocabulary, use_clustering):
+                        number_of_previous_words, number_of_following_words, use_current_word_as_feature,\
+                        min_df_current, min_df_context, max_df_current, max_df_context, word2vecwrapper,\
+                        current_word_vocabulary, context_word_vocabulary, use_clustering):
 
     """
     vectorize_data
@@ -555,6 +556,10 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
     params: min_df_current:  A cut-off for the number of occurrences of a token in the data for it to be included as a feature for the current word
 
     params: min_df_context: A cut-off for the number of occurrences of a token in the data for it to be included as a feature for the context words
+    
+    params: max_df_current:  A maximum cut-off for the number (or %) of occurrences of a token in the data for it to be included as a feature for the current word
+    
+    params: max_df_context: A maximum cut-off for the number (or %) of occurrences of a token in the data for it to be included as a feature for the context words
 
     params: word2vecwrapper: An instance of the Word2vecWrapper, to be able to get semantic information
 
@@ -593,7 +598,8 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
         
     # Create a vectorizer for all words that are included (fit on training data)    
     # (min_df ignored when vocabulary is not none)
-    current_word_vectorizer = CountVectorizer(binary = True, min_df=min_df_current, vocabulary = vocabulary_to_use)
+    current_word_vectorizer = CountVectorizer(binary = True, min_df=min_df_current, \
+                                              max_df = max_df_current, vocabulary = vocabulary_to_use)
 
     # only include features that have occurred min_df_current in the labelled data
     vectorized_data_labelled = current_word_vectorizer.fit_transform(text_concatenated_labelled)
@@ -617,7 +623,9 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
             if word in vocabulary or word.split("_")[0] in vocabulary:
                 vocabulary_to_use_context.append(word)
 
-    context_word_vectorizer = CountVectorizer(binary = True, min_df=min_df_context, vocabulary = vocabulary_to_use_context) 
+    context_word_vectorizer = CountVectorizer(binary = True, min_df = min_df_context,\
+                                              max_df = max_df_context, vocabulary = vocabulary_to_use_context)
+
     # include features that have occurred at least min_df_context in the labelled data
     vectorized_data_labelled_context = context_word_vectorizer.fit_transform(text_concatenated_labelled)
     
