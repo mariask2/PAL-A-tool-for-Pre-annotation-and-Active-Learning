@@ -731,7 +731,7 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
         print("--------")
 
         # one test_fold and one train_fold
-        skf = StratifiedKFold(n_splits=2, shuffle = True, random_state = fold_nr)
+        skf = StratifiedKFold(n_splits=simulation_properties.train_test_splits, shuffle = True, random_state = fold_nr)
         
         # need to input a vector of the same length as labelled_label_vector, so just constuct one only with zeros
         empty_y = [0 for el in labelled_label_vector]
@@ -753,12 +753,10 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
             if properties.maximum_samples_to_search_among != "all":
                 if len(train_index) > properties.maximum_samples_to_search_among + simulation_properties.seed_set_size:
                     train_index = train_index[:properties.maximum_samples_to_search_among + simulation_properties.seed_set_size]
-                    
-            print("test_index_all", test_index_all)
-            print("test_index", len(test_index))
-            print("train_index (pool index)", train_index)
+        
+            print("test_index, len: ", len(test_index), " data: ", test_index)
+            print("pool index, len: ", len(train_index)," data: ", train_index)
 
-              
                        
             x_test_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in test_index]
             y_test = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in test_index]

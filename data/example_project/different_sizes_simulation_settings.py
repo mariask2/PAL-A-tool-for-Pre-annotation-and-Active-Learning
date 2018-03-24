@@ -79,3 +79,6 @@ seed_set_size = 10
 max_size = 100
 step_size = 1
 max_test_data_size = 400
+
+# Split into train and test. 2 means equal, 3 means use 1/3 as test data, 4 means use 1/4 as test data and so on
+train_test_splits = 3

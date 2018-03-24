@@ -100,6 +100,13 @@ class SimulationProperties:
             print("Settings file lacks the property 'max_test_data_size'.")
             exit(1)
 
+        try:
+            self.train_test_splits = properties.train_test_splits
+        except AttributeError:
+            print("Settings file lacks the property 'train_test_splits'.")
+            exit(1)
+
+
 
 if __name__ == "__main__":
 
