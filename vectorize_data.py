@@ -170,7 +170,7 @@ class Word2vecWrapper:
         """
         if self.word2vec_model == None:
             print("Loading word2vec model, this might take a while ....")
-            self.word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True)
+            self.word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True, unicode_errors='ignore')
             #self.word2vec_model = gensim.models.Word2Vec.load_word2vec_format(self.model_path, binary=True)
             #self.word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True)
             print("Loaded word2vec model")
@@ -188,7 +188,8 @@ class Word2vecWrapper:
             raw_vec = self.word2vec_model[word]
             if len(raw_vec) != self.semantic_vector_length:
                 print("The true semantic vector has length " + str(len(raw_vec)))
-                print("while the configuration file states that is should have length " + str(self.semantic_vector_length))
+                print("while the configuration file states that is should have length. Change the variable semantic_vector_length in the settings file to "\
+                      + str(self.semantic_vector_length))
                 exit(1)
             return raw_vec
         except KeyError:
@@ -685,6 +686,7 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
 
 
 if __name__ == "__main__":
+    # Run with, for instance: python vectorize_data.py --project=data.example_project
     parser = argparse.ArgumentParser()
     properties_main, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
     word2vecwrapper = Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length)

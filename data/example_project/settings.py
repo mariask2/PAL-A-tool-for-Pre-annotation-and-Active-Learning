@@ -148,6 +148,7 @@ max_df_context = 0.80
 
 # The path to the semantic space that is read by Gensim
 model_path = '/Users/maria/mariaskeppstedtdsv/post-doc/gavagai/googlespace/GoogleNews-vectors-negative300.bin'
+#model_path = '/Users/maria/mariaskeppstedtdsv/post-doc/gavagai/googlespace/word2vec_twitter_model/word2vec_twitter_model.bin'
 
 # Vector length for the semantic vectors (300 for GoogleNews-vectors-negative300.bin, for instance.)
 semantic_vector_length = 300

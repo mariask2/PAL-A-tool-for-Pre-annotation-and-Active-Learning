@@ -493,7 +493,7 @@ def train_and_evaluate_model_against_evaluation_data(properties, project_path, w
 
 def evaluate_category_different_data_sizes(category, test_sentences, test_results, expected_results, outside_class, project_path, \
                                                output_dir, inside_prefix, beginning_prefix, parameters, cs, model_type,\
-                                               whether_to_use_clustering, data_size, selection_type, fold_nr):
+                                               whether_to_use_word2vec, data_size, selection_type, fold_nr):
     test_results_binary = get_binary_list(test_results, category, outside_class, inside_prefix, beginning_prefix)
     expected_results_binary = get_binary_list(expected_results, category, outside_class, inside_prefix, beginning_prefix)
 
@@ -517,7 +517,7 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     
-    base_name = category + "_" + selection_type + "_" + model_type.__name__ + "_clustering_" + str(whether_to_use_clustering) + "_" + str(data_size)
+    base_name = category + "_" + selection_type + "_" + model_type.__name__ + "_word2vec_" + str(whether_to_use_word2vec) + "_" + str(data_size)
     output_file_res_path = os.path.join(output_path, base_name + "_res.txt") 
     #output_file_data_path = os.path.join(output_path, base_name + "_data.csv") 
     output_file_res = open(output_file_res_path, "w")
@@ -552,9 +552,9 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     
 
 def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, properties, word2vecwrapper, \
-                                      project_path, whether_to_use_clustering, selection_type, fold_nr):
+                                      project_path, whether_to_use_word2vec, selection_type, fold_nr):
     print("start train and evaluate method")
-    print("whether_to_use_clustering", whether_to_use_clustering)
+    print("whether_to_use_word2vec", whether_to_use_word2vec)
     nr_of_samples = len(x_train_sentences)
     active_learning_preannotation.check_frequency_of_labels(y_train, classes)
 
@@ -564,7 +564,7 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
                                             text_vector_unlabelled = x_test_sentences, \
                                             label_vector_labelled = y_train, \
                                             class_dict = label_dict, \
-                                            use_word2vec = False, \
+                                            use_word2vec = whether_to_use_word2vec, \
                                             number_of_previous_words = properties.number_of_previous_words,\
                                             number_of_following_words = properties.number_of_following_words, \
                                             use_current_word_as_feature = properties.use_current_word_as_feature, \
@@ -575,7 +575,7 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
                                             word2vecwrapper = word2vecwrapper, \
                                             current_word_vocabulary = properties.current_word_vocabulary, \
                                             context_word_vocabulary = properties.context_word_vocabulary, \
-                                            use_clustering = whether_to_use_clustering)
+                                            use_clustering = False)
 
     model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                           properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
@@ -597,11 +597,11 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
     for category in [el for el in label_dict.keys() if el.startswith(properties.beginning_prefix)]:
         evaluate_category_different_data_sizes(category, test_sentences, test_results, expected_results, properties.outside_class, project_path, 
                                                properties.evaluation_output_dir, properties.inside_prefix, properties.beginning_prefix, \
-                                                   model.get_params(), model.get_cs(), properties.model_type, whether_to_use_clustering, nr_of_samples, \
+                                                   model.get_params(), model.get_cs(), properties.model_type, whether_to_use_word2vec, nr_of_samples, \
                                                    selection_type, fold_nr)
 
 def run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
-                             properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, whether_to_use_clustering, fold_nr):
+                             properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, whether_to_use_word2vec, fold_nr):
 
     print("")
     print("Active selection")
@@ -611,7 +611,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
     used_indeces = [i for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:seed_set_size]]
               #print("used_indeces", used_indeces)
 
-    print("whether_to_use_clustering", whether_to_use_clustering)
+    print("whether_to_use_word2vec", whether_to_use_word2vec)
     print("nr_of_samples + step_size", str(nr_of_samples + step_size))
     print("len(train_index)", str(len(train_index)))
     seed_set_run = True
@@ -624,7 +624,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                           vectorize_data.vectorize_data(\
                 text_vector_labelled = x_train_sentences, text_vector_unlabelled = x_pool_sentences,\
                     label_vector_labelled = y_train, \
-                                    class_dict = label_dict, use_word2vec = False, \
+                                    class_dict = label_dict, use_word2vec = whether_to_use_word2vec, \
                                         number_of_previous_words = properties.number_of_previous_words, \
                                         number_of_following_words = properties.number_of_following_words, \
                                         use_current_word_as_feature = properties.use_current_word_as_feature, \
@@ -635,7 +635,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                                         word2vecwrapper = word2vecwrapper, \
                                         current_word_vocabulary = properties.current_word_vocabulary, \
                                         context_word_vocabulary = properties.context_word_vocabulary, \
-                    use_clustering = whether_to_use_clustering)  
+                    use_clustering = False)
 
             to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
                           classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -689,7 +689,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
         assert(len(used_indeces) == len(x_train_sentences))
         nr_of_samples = len(used_indeces)
         train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                          properties, word2vecwrapper, project_path, whether_to_use_clustering, \
+                                          properties, word2vecwrapper, project_path, whether_to_use_word2vec, \
                                           selection_type = "active", fold_nr = fold_nr)
                   
         seed_set_run = False
@@ -772,10 +772,10 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
                 y_train = [ vec for (i, vec) in enumerate(labelled_label_vector) if i in train_index[:nr_of_samples]]
 
                 train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                                    properties, word2vecwrapper, project_path, whether_to_use_clustering = False, \
+                                                    properties, word2vecwrapper, project_path, whether_to_use_word2vec = False, \
                                                     selection_type = "random", fold_nr = fold_nr)
                 train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
-                                                    properties, word2vecwrapper, project_path, whether_to_use_clustering = True, \
+                                                    properties, word2vecwrapper, project_path, whether_to_use_word2vec = True, \
                                                     selection_type = "random", fold_nr = fold_nr)
 
                 nr_of_samples = nr_of_samples + step_size
@@ -785,10 +785,10 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
             # Active selection of data
             run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
-                                       whether_to_use_clustering = False, fold_nr = fold_nr)
+                                       whether_to_use_word2vec = False, fold_nr = fold_nr)
             run_active_selection(labelled_text_vector, labelled_label_vector, train_index, x_test_sentences, y_test, label_dict, classes, \
                                        properties, word2vecwrapper, project_path, seed_set_size, step_size, max_size, \
-                                       whether_to_use_clustering = True, fold_nr = fold_nr)
+                                       whether_to_use_word2vec = True, fold_nr = fold_nr)
 
             ###
     
