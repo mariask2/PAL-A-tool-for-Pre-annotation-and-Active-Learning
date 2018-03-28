@@ -23,12 +23,13 @@ from sklearn.externals import joblib
 import numpy
 import random
 import math
-
+import subprocess
 import transform_to_brat_format
 import vectorize_data
 import classify_and_select
 import active_learning_preannotation
 import simple_tokenizer
+
 
 #from classify_and_select import StructuredModelFrankWolfeSSVM
 
@@ -501,7 +502,6 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     recall = recall_score(y_true=expected_results_binary, y_pred=test_results_binary, average='binary', pos_label=category)
     f1 = f1_score(y_true=expected_results_binary, y_pred=test_results_binary, average='binary', pos_label=category)
 
-    print("\n---------")
     print("selection_type", selection_type)
     print("data_size", data_size)
 
@@ -518,15 +518,36 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
         os.makedirs(output_path)
     
     base_name = category + "_" + selection_type + "_" + model_type.__name__ + "_word2vec_" + str(whether_to_use_word2vec) + "_" + str(data_size)
-    output_file_res_path = os.path.join(output_path, base_name + "_res.txt") 
-    #output_file_data_path = os.path.join(output_path, base_name + "_data.csv") 
+
+    csv_base = category + "_" + selection_type + "_" + model_type.__name__ + "_word2vec_" + str(whether_to_use_word2vec)
+    output_file_conll_path = os.path.join(output_path, csv_base + "_conll.csv")
+    output_file_conll = open(output_file_conll_path, "w")
+    for text_list, exp_list, res_list in zip(test_sentences, expected_results, test_results):
+        for text, exp, res in zip(text_list, exp_list, res_list):
+            output_file_conll.write("\t".join([text, exp, res]) + "\n")
+        output_file_conll.write("\n\n") # New sentence
+    output_file_conll.close()
+    conll_res = askConllScript(output_file_conll_path, category[len(beginning_prefix):])
+    print(conll_res)
+
+    output_file_conll_res_path = os.path.join(output_path, base_name + "conll_res.txt")
+    output_file_conll_res = open(output_file_conll_res_path, "w")
+    output_file_conll_res.write("\t".join(["precision", str(conll_res["precision"])]) + "\n")
+    output_file_conll_res.write("\t".join(["recall", str(conll_res["recall"])]) + "\n")
+    output_file_conll_res.write("\t".join(["f1_score", str(conll_res["FB1"])]) + "\n")
+    output_file_conll_res.write("\t".join(["c", str(cs).replace("\n", " ")]) + "\n")
+    output_file_conll_res.close()
+
+    output_file_res_path = os.path.join(output_path, base_name + "_res.txt")
+    #output_file_data_path = os.path.join(output_path, base_name + "_data.csv")
     output_file_res = open(output_file_res_path, "w")
     #output_file_data = open(output_file_data_path, "w")
-
     output_file_res.write("\t".join(["precision", str(precision)]) + "\n")
     output_file_res.write("\t".join(["recall", str(recall)]) + "\n")
     output_file_res.write("\t".join(["f1_score", str(f1)]) + "\n")
-    output_file_res.write("\t".join(["parameters", str(parameters).replace("\n", " ")]) + "\n")
+    output_file_res.write("\t".join(["c", str(cs).replace("\n", " ")]) + "\n")
+
+
 
     print("\t".join(["precision", str(precision)]))
     print("\t".join(["recall", str(recall)]))
@@ -548,8 +569,31 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
         output_file_data.write("\t".join([" ".join(sentence), str(result_full), str(expected_full), result, expected, result_type]) + "\n")
     """    
     output_file_res.close()
+
+    print("---------")
+    print("---------\n")
     #output_file_data.close()
     
+def askConllScript(outputdata, category):
+    #print ("Using conll script for file: ", outputdata, category)
+    conllCommand = "./conlleval.pl -d '\t' < " + outputdata
+    print("Running command " + conllCommand)
+    status = str(subprocess.getoutput(conllCommand))
+    conllOutput = status.split('\n')
+    print(conllOutput)
+    returndict = {}
+    for line in conllOutput:
+        if line.find(category) != -1:
+            line = line.replace(category + ":", "")
+            splitted =  line.split(";")
+            for el in splitted:
+                sp = el.split(":")
+                returndict[sp[0].strip()] = float(sp[1].strip().replace("%", ""))/100
+        else:
+            pass
+            #print("Does not use: ",  line)
+    return returndict
+
 
 def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, properties, word2vecwrapper, \
                                       project_path, whether_to_use_word2vec, selection_type, fold_nr):
