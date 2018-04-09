@@ -445,9 +445,6 @@ class PropertiesContainer:
         except AttributeError: 
             self.nr_of_cross_validation_splits = default_settings.nr_of_cross_validation_splits 
 
-        if not self.use_cross_validation and hasattr(properties, 'nr_of_cross_validation_splits'):
-            raise ValueError("If 'use_cross_validation' is False, there is no point of giving a 'nr_of_cross_validation_splits'")
-
         # Only implemented for NonStructuredLogisticRegression so far
         if self.model_type == classify_and_select.NonStructuredLogisticRegression and hasattr(properties, 'max_iterations'):
             raise NotImplementedError("The variable 'max_iterations' is not used for NonStructuredLogisticRegression")
