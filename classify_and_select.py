@@ -702,7 +702,11 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
         self.__name__ = "StructuredModelFrankWolfeSSVM"
         self.init_params(label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, \
                              use_cross_validation, nr_of_cross_validation_splits, c_value)
-        
+    
+    def get_params(self):
+        return "Params undefined for StructuredModelFrankWolfeSSVM"
+
+
     def fit(self, X, Y):
         self.model = ChainCRF() # make a new model each time
         self.ssvm = FrankWolfeSSVM(model=self.model, max_iter=self.max_iterations, C=self.c_value)
