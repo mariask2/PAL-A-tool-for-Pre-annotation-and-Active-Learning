@@ -691,6 +691,8 @@ class ModelWrapperBase:
     def get_params(self):
         return self.model.get_params()
 
+    def get_cs(self):
+        return "No cs for this model"
 
 
 class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
