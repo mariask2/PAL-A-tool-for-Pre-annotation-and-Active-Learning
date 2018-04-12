@@ -521,12 +521,18 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
 
     csv_base = category + "_" + selection_type + "_" + model_type.__name__ + "_word2vec_" + str(whether_to_use_word2vec)
     output_file_conll_path = os.path.join(output_path, csv_base + "_conll.csv")
+
+
+    write_in_conll_format(test_sentences, expected_results, test_results,\
+                          output_file_conll_path, outside_class, inside_prefix, beginning_prefix)
+    """
     output_file_conll = open(output_file_conll_path, "w")
     for text_list, exp_list, res_list in zip(test_sentences, expected_results, test_results):
         for text, exp, res in zip(text_list, exp_list, res_list):
             output_file_conll.write("\t".join([text, exp, res]) + "\n")
         output_file_conll.write("\n\n") # New sentence
     output_file_conll.close()
+    """
     conll_res = askConllScript(output_file_conll_path, category[len(beginning_prefix):])
     print(conll_res)
 
@@ -573,7 +579,21 @@ def evaluate_category_different_data_sizes(category, test_sentences, test_result
     print("---------")
     print("---------\n")
     #output_file_data.close()
-    
+
+def write_in_conll_format(test_sentences, expected_results, test_results,\
+                          output_file_conll_path, outside_class, inside_prefix, beginning_prefix):
+    output_file_conll = open(output_file_conll_path, "w")
+    for text_list, exp_list, res_list in zip(test_sentences, expected_results, test_results):
+        for nr, (text, exp, res) in enumerate(zip(text_list, exp_list, res_list)):
+            if res.startswith(inside_prefix):
+                if nr == 0 or res_list[nr-1] == outside_class:
+                    res = beginning_prefix + res[2:]
+                    print(res)
+            output_file_conll.write("\t".join([text, exp, res]) + "\n")
+        output_file_conll.write("\n\n") 
+    output_file_conll.close()
+
+
 def askConllScript(outputdata, category):
     #print ("Using conll script for file: ", outputdata, category)
     conllCommand = "./conlleval.pl -d '\t' < " + outputdata
