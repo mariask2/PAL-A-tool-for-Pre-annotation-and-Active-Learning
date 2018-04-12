@@ -588,9 +588,8 @@ def write_in_conll_format(test_sentences, expected_results, test_results,\
             if res.startswith(inside_prefix):
                 if nr == 0 or res_list[nr-1] == outside_class:
                     res = beginning_prefix + res[2:]
-                    print(res)
             output_file_conll.write("\t".join([text, exp, res]) + "\n")
-        output_file_conll.write("\n\n") 
+        output_file_conll.write("\n\n")
     output_file_conll.close()
 
 
