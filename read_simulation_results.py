@@ -6,6 +6,9 @@
 import argparse
 import os
 import glob
+import math
+from matplotlib.pyplot import plot, show, bar, grid, axis, savefig, clf
+import matplotlib.pyplot as plt
 
 import active_learning_preannotation
 
@@ -26,15 +29,37 @@ def extract_data(result_dict, files):
                 result_dict[number].append(float(f_score))
         open_f.close()
 
-def write_dict(name, result_dict, output_file):
+def write_dict(name, result_dict, output_file, color, marker, markersize, sub, x_value_extra):
+    x_values = []
+    y_values = []
+    error_max = []
+    error_min = []
     output_file.write(name + "\n")
     output_file.write("# sample size\tf_score\n")
     for key in sorted(result_dict.keys()):
+        sorted_res = sorted(result_dict[key][:])
+        min = sorted_res[0]
+        max = sorted_res[-1]
         mean = sum(result_dict[key])/len(result_dict[key])
-        output_file.write(str(key) + "\t" + str(mean) + "\n")
+        output_str = str(key) + "\t" + str(mean) + "\t"  +  str(min)  + "\t" + str(max) + "\n"
+        output_file.write(output_str)
+        x_values.append(key + x_value_extra)
+        y_values.append(mean)
+        error_max.append(max - mean)
+        error_min.append(mean - min)
+    print(x_values)
+    print(y_values)
+    print("min", error_min)
+    print("max", error_max)
+
+
+    plt.errorbar(x_values, y_values, yerr=[error_min, error_max], color=color, marker=marker, linewidth=1, markersize=markersize)
+    plt.plot(x_values, y_values, color=color, marker=marker, linewidth=1, markersize=markersize)
+
+
     output_file.write("\n\n")
 
-def read_results(result_path):
+def read_results(result_path, category):
     random_word2vecfalse = {}
     random_word2vectrue = {}
     active_word2vecfalse = {}
@@ -51,12 +76,17 @@ def read_results(result_path):
         extract_data(active_word2vectrue, glob.glob(os.path.join(active_dir, "*True*conll_res.txt")))
 
     output_file = open(os.path.join(result_path, "conll_media_fscore.dat"), "w")
-    write_dict("#random_word2vecfalse", random_word2vecfalse, output_file)
-    write_dict("#active_word2vecfalse", active_word2vecfalse, output_file)
-    write_dict("#random_word2vectrue", random_word2vectrue, output_file)
-    write_dict("#active_word2vectrue", active_word2vectrue, output_file)
+    fig = plt.figure()
+    sub = fig.add_subplot(111)
+    write_dict("#random_word2vecfalse", random_word2vecfalse, output_file, "red", 's', 4, sub, 0)
+    write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4,  sub, 0.05)
+    write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, sub, 2*0.05)
+    write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, sub, 3*0.05)
 
     output_file.close()
+    print("Before show")
+    plt.show()
+    print("After show")
 
 
 if __name__ == "__main__":
@@ -69,12 +99,24 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    if not args.category:
-        print("No category given, e.g. B-speculation")
+    categories = []
     
-    result_path = os.path.join(path_slash_format, OUTPUT_DIR, args.category)
-    print("Reads results from ", result_path)
-    read_results(result_path)
+    # If no categories are given on the comand line, plot results for all categories in the current project (the one that is given with the option --project
+    # and that starts with a B
+    if not args.category:
+        default_path = os.path.join(path_slash_format, OUTPUT_DIR)
+        print("No category given, will use all in the folder '" + OUTPUT_DIR + "' that starts with 'B'")
+        for dir in os.listdir(default_path):
+            if not dir.startswith(".") and dir.startswith("B"):
+                categories.append(dir)
+    else:
+        categories.append(args.category)
+
+    for category in categories:
+        print("Plots results for ", category)
+        result_path = os.path.join(path_slash_format, OUTPUT_DIR, category)
+        print("Reads results from ", result_path)
+        read_results(result_path, category)
 
     
 
