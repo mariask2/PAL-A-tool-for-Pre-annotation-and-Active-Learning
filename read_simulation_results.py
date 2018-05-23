@@ -47,10 +47,10 @@ def write_dict(name, result_dict, output_file, color, marker, markersize, x_valu
         y_values.append(mean)
         error_max.append(max - mean)
         error_min.append(mean - min)
-    print(x_values)
-    print(y_values)
-    print("min", error_min)
-    print("max", error_max)
+    #print(x_values)
+    #print(y_values)
+    #print("min", error_min)
+    #print("max", error_max)
 
 
     plt.errorbar(x_values, y_values, yerr=[error_min, error_max], color=color, marker=marker, linewidth=1, markersize=markersize)
@@ -129,9 +129,8 @@ if __name__ == "__main__":
         result_path = os.path.join(path_slash_format, OUTPUT_DIR, category)
         print("Reads results from ", result_path)
         read_results(result_path, category, xspace, index, sub_plot)
-    print("Before show")
-    plt.show()
-    print("After show")
+    #plt.show()
+
 
     figure_output_path = os.path.join(path_slash_format, OUTPUT_DIR, "_".join(categories) + ".pdf")
     print("Will save pdf of figure at '" + figure_output_path + "'.")
