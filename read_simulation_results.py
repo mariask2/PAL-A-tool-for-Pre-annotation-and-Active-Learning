@@ -9,6 +9,7 @@ import glob
 import math
 from matplotlib.pyplot import plot, show, bar, grid, axis, savefig, clf
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 
 import active_learning_preannotation
 
