@@ -10,6 +10,7 @@ import math
 from matplotlib.pyplot import plot, show, bar, grid, axis, savefig, clf
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
+import numpy as np
 
 import active_learning_preannotation
 
@@ -55,15 +56,18 @@ def write_dict(name, result_dict, output_file, color, marker, markersize, x_valu
 
 
     plt.errorbar(x_values, y_values, yerr=[error_min, error_max], color=color, marker=marker, linewidth=1, markersize=markersize)
-    plt.plot(x_values, y_values, color=color, marker=marker, linewidth=1, markersize=markersize)
+    plot_handle, = plt.plot(x_values, y_values, color=color, marker=marker, linewidth=1, markersize=markersize)
 
     output_file.write("\n\n")
+    return plot_handle
 
 def read_results(result_path, category, extra_xspace, category_index, sub_plot):
     random_word2vecfalse = {}
     random_word2vectrue = {}
     active_word2vecfalse = {}
     active_word2vectrue = {}
+    
+    handles_labels = []
     
     for subdir in [el for el in os.listdir(result_path) if not el.startswith(".")]:
         full_subdir = os.path.join(result_path, subdir)
@@ -78,18 +82,36 @@ def read_results(result_path, category, extra_xspace, category_index, sub_plot):
     title = category.replace("B-", "")
     title = title[0].upper() + title[1:]
     plt.title(title)
-    plt.xlabel('Number of training samples')
+    plt.xlabel('Training data size')
     if category_index == 0: # Only need to write this once
         plt.ylabel('F-score')
+    
+
 
     output_file = open(os.path.join(result_path, "conll_media_fscore.dat"), "w")
 
-    write_dict("#random_word2vecfalse", random_word2vecfalse, output_file, "red", 's', 4, 0)
-    write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4, 1*extra_xspace)
-    write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, 2*extra_xspace)
-    write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, 3*extra_xspace)
+    handles_labels.append((write_dict("#random_word2vecfalse", random_word2vecfalse, output_file, "red", 's', 4, 0),\
+                           "Random"))
+    handles_labels.append((write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4, 1*extra_xspace), \
+                           "Active"))
+    handles_labels.append((write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, 2*extra_xspace), \
+                           "Random, \nW2V"))
+    handles_labels.append((write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, 3*extra_xspace), \
+                           "Active, \nW2V"))
+
+
+    min_x = sorted(list(random_word2vecfalse.keys()) + list(active_word2vecfalse.keys()) +\
+                   list(random_word2vectrue.keys()) + list(active_word2vectrue.keys()))[0]
+    max_x = sorted(list(random_word2vecfalse.keys()) + list(active_word2vecfalse.keys()) +\
+                                  list(random_word2vectrue.keys()) + list(active_word2vectrue.keys()))[-1]
+
+
+    plt.xlim(min_x, max_x)
+    plt.ylim(0.0, 1,0)
+    plt.xticks(np.arange(min_x, max_x, step=int(max_x/10)))
 
     output_file.close()
+    return handles_labels
 
 
 if __name__ == "__main__":
@@ -129,7 +151,13 @@ if __name__ == "__main__":
         print("Plots results for ", category)
         result_path = os.path.join(path_slash_format, OUTPUT_DIR, category)
         print("Reads results from ", result_path)
-        read_results(result_path, category, xspace, index, sub_plot)
+        handles_labels = read_results(result_path, category, xspace, index, sub_plot)
+
+
+
+    fig.legend(handles = [handle for (handle, label) in handles_labels][::-1],\
+               labels = [label for (handle, label) in handles_labels][::-1])
+    plt.subplots_adjust(right = 0.8)
     #plt.show()
 
 
