@@ -1,7 +1,7 @@
 # Code to transform simulation results into a format that can be read by gnuplot
 # As well as to do calculations for average f-score
 # Run for instance as:
-# python read_simulation_results.py --project=data.example_project --category=B-speculation
+# python read_simulation_results.py --project=data.example_project --category=B-speculation --xspace=0.05
 
 import argparse
 import os
@@ -29,7 +29,7 @@ def extract_data(result_dict, files):
                 result_dict[number].append(float(f_score))
         open_f.close()
 
-def write_dict(name, result_dict, output_file, color, marker, markersize, sub, x_value_extra):
+def write_dict(name, result_dict, output_file, color, marker, markersize, x_value_extra):
     x_values = []
     y_values = []
     error_max = []
@@ -56,10 +56,9 @@ def write_dict(name, result_dict, output_file, color, marker, markersize, sub, x
     plt.errorbar(x_values, y_values, yerr=[error_min, error_max], color=color, marker=marker, linewidth=1, markersize=markersize)
     plt.plot(x_values, y_values, color=color, marker=marker, linewidth=1, markersize=markersize)
 
-
     output_file.write("\n\n")
 
-def read_results(result_path, category):
+def read_results(result_path, category, extra_xspace, category_index, sub_plot):
     random_word2vecfalse = {}
     random_word2vectrue = {}
     active_word2vecfalse = {}
@@ -74,19 +73,22 @@ def read_results(result_path, category):
         extract_data(random_word2vectrue, glob.glob(os.path.join(random_dir, "*True*conll_res.txt")))
         extract_data(active_word2vecfalse, glob.glob(os.path.join(active_dir, "*False*conll_res.txt")))
         extract_data(active_word2vectrue, glob.glob(os.path.join(active_dir, "*True*conll_res.txt")))
+    
+    title = category.replace("B-", "")
+    title = title[0].upper() + title[1:]
+    plt.title(title)
+    plt.xlabel('Number of training samples')
+    if category_index == 0: # Only need to write this once
+        plt.ylabel('F-score')
 
     output_file = open(os.path.join(result_path, "conll_media_fscore.dat"), "w")
-    fig = plt.figure()
-    sub = fig.add_subplot(111)
-    write_dict("#random_word2vecfalse", random_word2vecfalse, output_file, "red", 's', 4, sub, 0)
-    write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4,  sub, 0.05)
-    write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, sub, 2*0.05)
-    write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, sub, 3*0.05)
+
+    write_dict("#random_word2vecfalse", random_word2vecfalse, output_file, "red", 's', 4, 0)
+    write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4, 1*extra_xspace)
+    write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, 2*extra_xspace)
+    write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, 3*extra_xspace)
 
     output_file.close()
-    print("Before show")
-    plt.show()
-    print("After show")
 
 
 if __name__ == "__main__":
@@ -94,6 +96,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--category', action='store', dest='category', help='The category that was evaluated, with its B-prefix, e.g., B-speculation')
+    
+    parser.add_argument('--xspace', action='store', dest='xspace', help='An extra space on the x-axes to improve visability of the results')
     
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
     
@@ -107,16 +111,31 @@ if __name__ == "__main__":
         default_path = os.path.join(path_slash_format, OUTPUT_DIR)
         print("No category given, will use all in the folder '" + OUTPUT_DIR + "' that starts with 'B'")
         for dir in os.listdir(default_path):
-            if not dir.startswith(".") and dir.startswith("B"):
-                categories.append(dir)
+            if os.path.isdir(os.path.join(path_slash_format, OUTPUT_DIR, dir)):
+                if not dir.startswith(".") and dir.startswith("B"):
+                    categories.append(dir)
     else:
         categories.append(args.category)
 
-    for category in categories:
+    if not args.xspace:
+        xspace = 0
+    else:
+        xspace = float(args.xspace)
+
+    fig = plt.figure()
+    for index, category in enumerate(categories):
+        sub_plot = fig.add_subplot(1, len(categories), index+1)
         print("Plots results for ", category)
         result_path = os.path.join(path_slash_format, OUTPUT_DIR, category)
         print("Reads results from ", result_path)
-        read_results(result_path, category)
+        read_results(result_path, category, xspace, index, sub_plot)
+    print("Before show")
+    plt.show()
+    print("After show")
+
+    figure_output_path = os.path.join(path_slash_format, OUTPUT_DIR, "_".join(categories) + ".pdf")
+    print("Will save pdf of figure at '" + figure_output_path + "'.")
+    fig.savefig(figure_output_path)
 
     
 
