@@ -8,7 +8,8 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
 
-import process_monitoring
+from process_monitoring import ProcessMonitor
+
 
 #from sklearn.grid_search import GridSearchCV
 #from sklearn.cross_validation import StratifiedKFold
@@ -18,7 +19,7 @@ import process_monitoring
 def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, text_vector_unlabelled_np, \
                      label_dict, minority_categories, nr_of_samples,  maximum_samples_to_search_among, outside_class, \
                      beginning_prefix, inside_prefix, inactive_learning, max_iterations, prefer_predicted_chunks, \
-                     model_type, use_cross_validation, nr_of_cross_validation_splits, c_value):
+                     model_type, use_cross_validation, nr_of_cross_validation_splits, c_value, process_monitoring_instance):
 
     """
 
@@ -174,7 +175,8 @@ def get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labe
 
     to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected = \
         model.get_selected_unlabelled(X_labelled_np, y_labelled_np, X_unlabelled_np, nr_of_samples, text_vector_labelled_np, \
-                               text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks)
+                               text_vector_unlabelled_np,  maximum_samples_to_search_among, inactive_learning, prefer_predicted_chunks,\
+                                      process_monitoring_instance)
 
     #print(predicted_for_selected)
     #print(predicted_for_selected.__class__.__name__)
@@ -502,8 +504,9 @@ class ModelWrapperBase:
         """
         raise NotImplementedError
 
-    def get_selected_unlabelled(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled, maximum_samples_to_search_among,\
-                                    inactive_learning, prefer_predicted_chunks):
+    def get_selected_unlabelled(self, labelled_x, labelled_y, unlabelled_x, step_size, sentences_labelled, sentences_unlabelled,    maximum_samples_to_search_among,\
+        inactive_learning, prefer_predicted_chunks,\
+                                process_monitoring_instance):
         """
         get_new_data is the main function of this module. It is the function to call to get actively selected and pre-annotated data
         This method should only be called after the fit method has been called. Otherwise, and sklearn.utils.validation.NotFittedError will be raised
@@ -653,7 +656,8 @@ class ModelWrapperBase:
 
         # Get scores for the unlabelled samples for which a minority category has been predicted
         scores_with_index, index_in_which_no_minority_categories_are_predicted = \
-            self.get_scores_unlabelled_with_predicted_chunks(to_search_among_x, ys, selected_indeces, sentences_unlabelled)
+            self.get_scores_unlabelled_with_predicted_chunks(to_search_among_x, ys, selected_indeces,\
+                                                             sentences_unlabelled, process_monitoring_instance)
 
         # if there are too few samples among the unlabelled in which minority categoies are predict, also return unlabelled samples without minority categories
         # or if the setting is chosen to don't prefer samples in which minority categores are predicted, compute certainty score for all those unlabelled
@@ -758,7 +762,8 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
         #print("alternative_score_to_compare_with", alternative_score_to_compare_with)
         return min_difference
 
-    def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled):
+    def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces,\
+                                                    sentences_unlabelled, process_monitoring_instance):
         scores_with_index = []
         index_in_which_no_minority_categories_are_predicted = []
         searched_among = 0 # Only to print information 
@@ -881,10 +886,11 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
         return min_probabilities, all_diffs
 
 
-    def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled):
+    def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces,\
+                                                    sentences_unlabelled, process_monitoring_instance):
         
         min_probability_differences, all_diffs = self.get_probabilities(to_search_among_x)
-        process_monitoring.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
+        process_monitoring_instance.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
                                                          selected_indeces, ys, self.majority_class, self.inv_label_dict)
         #print("min_probability_differences", min_probability_differences)
 

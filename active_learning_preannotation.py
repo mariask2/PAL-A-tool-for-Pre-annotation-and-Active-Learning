@@ -9,7 +9,7 @@ import transform_to_brat_format
 import vectorize_data
 import classify_and_select
 import default_settings
-import process_monitoring
+from process_monitoring import ProcessMonitor
 
 
 def check_frequency_of_labels(labelled_label_vector, classes):
@@ -51,6 +51,7 @@ def select_new_data(properties, project_path, word2vecwrapper):
     print("* Start selection and pre-annotation of new training samples *")
     print("**************************************************************")
 
+
     unlabelled_data_dir_for_project = os.path.join(project_path, properties.unlabelled_data_dir)
     unlabelled_data_path = os.path.join(unlabelled_data_dir_for_project, properties.unlabelled_data_file)
     
@@ -85,7 +86,7 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                     context_word_vocabulary = properties.context_word_vocabulary, \
                                     use_clustering = properties.whether_to_use_clustering)
 
-    process_monitoring.init_process_monitoring(path_slash_format_main, properties_main, unlabelled_text_vector)
+    process_monitor_instance =  ProcessMonitor(path_slash_format_main, properties_main, unlabelled_text_vector)
 
     to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
         classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -96,7 +97,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                              properties.max_iterations, properties.prefer_predicted_chunks, \
                                              properties.model_type, properties.use_cross_validation, \
                                              properties.nr_of_cross_validation_splits, \
-                                             properties.c_value)
+                                             properties.c_value,\
+                                            process_monitor_instance)
 
     tolabel_data_dir_for_project = os.path.join(project_path, properties.tolabel_data_dir)
     if not os.path.exists(tolabel_data_dir_for_project):
