@@ -153,6 +153,12 @@ model_path = '/Users/maria/mariaskeppstedtdsv/post-doc/gavagai/googlespace/Googl
 # Vector length for the semantic vectors (300 for GoogleNews-vectors-negative300.bin, for instance.)
 semantic_vector_length = 300
 
+
+###
+# Whether process monitoring data should be recorded
+####
+write_process_monitoring = True
+
 #######
 # This is to be set to False when active learning is to be applied 
 # If it is true, it instead does the reverse, return the samples for which the learner is most certain
@@ -211,5 +217,6 @@ semantic_vector_length = 300
 #outside_class = "O"
 #negative_category = "no"
 #whether_to_use_word2vec = True
-whether_to_use_clustering = True
+#whether_to_use_clustering = True
 #nr_of_cross_validation_splits = 2
+#process_monitoring_dir = "process_monitoring"

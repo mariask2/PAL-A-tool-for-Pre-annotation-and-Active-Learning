@@ -106,8 +106,8 @@ def read_results(result_path, category, extra_xspace, category_index, sub_plot):
                                   list(random_word2vectrue.keys()) + list(active_word2vectrue.keys()))[-1]
 
 
-    plt.xlim(min_x, max_x)
-    plt.ylim(0.0, 1,0)
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
     plt.xticks(np.arange(min_x, max_x, step=int(max_x/10)))
 
     output_file.close()

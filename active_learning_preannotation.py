@@ -9,6 +9,7 @@ import transform_to_brat_format
 import vectorize_data
 import classify_and_select
 import default_settings
+import process_monitoring
 
 
 def check_frequency_of_labels(labelled_label_vector, classes):
@@ -83,6 +84,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                     current_word_vocabulary = properties.current_word_vocabulary, \
                                     context_word_vocabulary = properties.context_word_vocabulary, \
                                     use_clustering = properties.whether_to_use_clustering)
+
+    process_monitoring.init_process_monitoring(path_slash_format_main, properties_main, unlabelled_text_vector)
 
     to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
         classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
@@ -443,7 +446,18 @@ class PropertiesContainer:
         try:  
             self.nr_of_cross_validation_splits = properties.nr_of_cross_validation_splits
         except AttributeError: 
-            self.nr_of_cross_validation_splits = default_settings.nr_of_cross_validation_splits 
+            self.nr_of_cross_validation_splits = default_settings.nr_of_cross_validation_splits
+        
+        
+        try:
+            self.write_process_monitoring = properties.write_process_monitoring
+        except AttributeError:
+            self.write_process_monitoring = default_settings.write_process_monitoring
+
+        try:
+            self.process_monitoring_dir = properties.process_monitoring_dir
+        except AttributeError:
+            self.process_monitoring_dir = default_settings.process_monitoring_dir
 
         # Only implemented for NonStructuredLogisticRegression so far
         if self.model_type == classify_and_select.NonStructuredLogisticRegression and hasattr(properties, 'max_iterations'):
@@ -457,6 +471,8 @@ if __name__ == "__main__":
     properties_main, path_slash_format_main, path_dot_format = load_properties(parser)
     word2vecwrapper = vectorize_data.Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length)
 
+
+    
     select_new_data(properties_main, path_slash_format_main, word2vecwrapper)
 
 

@@ -8,6 +8,8 @@ from sklearn.metrics import f1_score
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import StratifiedKFold
 
+import process_monitoring
+
 #from sklearn.grid_search import GridSearchCV
 #from sklearn.cross_validation import StratifiedKFold
 
@@ -858,9 +860,11 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
 
     def get_probabilities(self, to_search_among_x):
         probabilities = self.predict_proba(to_search_among_x)
-
+        
+        all_diffs = [] # To use in process monitoring only
         min_probabilities = []
         for sentence in probabilities:
+            all_diff_sentence = [] # To use in process monitoring only
             min_difference_in_sentence = float("inf")
             for word in sentence:
                 word = list(word)
@@ -868,15 +872,20 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
                 word_sorted = sorted(word, reverse=True)
                 #print("probabilities for word", word_sorted)
                 diff_best_second_best = word_sorted[0] - word_sorted[1]
+                all_diff_sentence.append(diff_best_second_best)
                 #print("diff_best_second_best", diff_best_second_best)
                 if diff_best_second_best < min_difference_in_sentence:
                     min_difference_in_sentence = diff_best_second_best
+            all_diffs.append(all_diff_sentence)
             min_probabilities.append(min_difference_in_sentence)
-        return min_probabilities
+        return min_probabilities, all_diffs
 
 
     def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces, sentences_unlabelled):
-        min_probability_differences = self.get_probabilities(to_search_among_x)
+        
+        min_probability_differences, all_diffs = self.get_probabilities(to_search_among_x)
+        process_monitoring.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
+                                                         selected_indeces, ys, self.majority_class, self.inv_label_dict)
         #print("min_probability_differences", min_probability_differences)
 
         scores_with_index = []

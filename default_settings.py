@@ -83,6 +83,12 @@ use_cross_validation = False
 # If 10-fold cross validation is chosen, this c_value is not used
 c_value = 1
 
+###
+# Whether process monitoring data should be recorded
+####
+
+write_process_monitoring = False
+
 # Settings, typically not changed
 #################################
 
@@ -102,3 +108,4 @@ negative_category = "no"
 whether_to_use_word2vec = False
 whether_to_use_clustering = False
 nr_of_cross_validation_splits = 10
+process_monitoring_dir = "process_monitoring"
