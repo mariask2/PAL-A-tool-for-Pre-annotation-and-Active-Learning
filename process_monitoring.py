@@ -10,6 +10,8 @@ class ProcessMonitor():
         self.VECTORIZER_NAME = "vectorizer"
         self.PREDICTION = "PREDICTION"
         self.SCORE = "SCORE"
+        self.MOST_COMMON_PREDICTION = "MOST_COMMON_PREDICTION"
+        self.MEAN_SCORE = "MEAN_SCORE"
         self.MINORITY_CLASSES = "MINORITY_CLASSES"
         self.path_slash_format = path_slash_format
         self.process_monitoring_dir = properties.process_monitoring_dir
@@ -45,7 +47,19 @@ class ProcessMonitor():
         else:
             return word
 
-
+    def get_mean_conf_from_lst(self, conf_lst):
+         return sum(conf_lst)/len(conf_lst)
+    
+    def get_most_common_predicted(self, predicted_lst, majority_class, inv_labelled_dict):
+        nr_of_majority = predicted_lst.count(majority_class)
+        half_length = len(predicted_lst)/2
+        if nr_of_majority > half_length:
+            most_common_predicted = inv_labelled_dict[majority_class]
+        else:
+            most_common_predicted = self.MINORITY_CLASSES
+        return most_common_predicted
+    
+    
     def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, inv_labelled_dict):
         if not self.write_process_monitoring:
             return
@@ -61,14 +75,10 @@ class ProcessMonitor():
                 word_hash[word][self.SCORE].append(conf)
         final_hash = {}
         for key, item in word_hash.items():
-            mean_conf = sum(item[self.SCORE])/len(item[self.SCORE])
-            nr_of_majority = item[self.PREDICTION].count(majority_class)
-            half_length = len(item[self.PREDICTION])/2
-            if nr_of_majority > half_length:
-                most_common_predicted = inv_labelled_dict[majority_class]
-            else:
-                most_common_predicted = self.MINORITY_CLASSES
-            final_hash[key] = {self.PREDICTION: most_common_predicted, self.SCORE: mean_conf}
+            mean_conf = self.get_mean_conf_from_lst(item[self.SCORE])
+            most_common_predicted = self.get_most_common_predicted(item[self.PREDICTION], majority_class, inv_labelled_dict)
+            final_hash[key] = {self.MOST_COMMON_PREDICTION: most_common_predicted, self.MEAN_SCORE: mean_conf,\
+                self.PREDICTION:item[self.PREDICTION], self.SCORE:item[self.SCORE] }
 
         for key, item in final_hash.items():
             print(key, item)
