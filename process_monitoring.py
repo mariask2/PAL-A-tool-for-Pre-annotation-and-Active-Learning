@@ -19,6 +19,7 @@ class ProcessMonitor():
         self.write_process_monitoring = properties.write_process_monitoring
         self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
         self.SAVED_DICTIONARY_PREFIX = "saved_dict_"
+        self.NUMBER_OF_LABELLED_KEY = "NUMBER_OF_LABELLED"
 
     def get_full_process_monitoring_dir_path(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
@@ -41,7 +42,9 @@ class ProcessMonitor():
             else:
                 return False
 
-
+    def set_number_of_labelled(self, number_of_labelled):
+        self.number_of_labelled = number_of_labelled
+    
     def remove_underscore(self, word):
         if len(word) == 3 and word[1] == "_":
             return word[0]
@@ -86,13 +89,14 @@ class ProcessMonitor():
             print(key, item)
 
         # Note, not thread safe at all. Not intended to be run by more than one thread or process
-        path_and_prefix = os.path.join(self.get_full_process_monitoring_dir_path(), self.SAVED_DICTIONARY_PREFIX)
+        path_and_prefix = os.path.join(self.get_full_process_monitoring_dir_path(),\
+                                       self.SAVED_DICTIONARY_PREFIX + str(self.number_of_labelled) + "_")
         previously_saved_files = glob.glob(path_and_prefix + "*")
+        
         if len(previously_saved_files) == 0:
             suffix_to_use = 1
         else:
             suffixes = sorted([int(el[-1]) for el in previously_saved_files])
-            print(suffixes)
             last_used_suffix = suffixes[-1]
             suffix_to_use = last_used_suffix + 1
 

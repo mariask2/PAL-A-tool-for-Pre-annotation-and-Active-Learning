@@ -87,6 +87,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                     use_clustering = properties.whether_to_use_clustering)
 
     process_monitor_instance =  ProcessMonitor(path_slash_format_main, properties_main, unlabelled_text_vector)
+    process_monitor_instance.set_number_of_labelled(len(text_vector_labelled_np))
+
 
     to_select_X, new_unlabelled_x, to_select_text, new_sentences_unlabelled, predicted_for_selected = \
         classify_and_select.get_new_data(X_labelled_np, X_unlabelled_np, y_labelled_np, text_vector_labelled_np, \
