@@ -15,9 +15,10 @@ import active_learning_preannotation
 
 ############
 ## The ProcessMonitor class has quite specialised functionality, and is still under development
-## so its functionality is not yet described in
-##
-##
+## so its functionality is not yet described in the general readme file
+## For this to work, the directory "process_monitoring" most be deleted before the active learning process starts
+## The first thing that will happen ist
+## python process_monitoring.py --project=data.example_project
 
 
 class ProcessMonitor():
@@ -153,8 +154,10 @@ class ProcessMonitor():
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
-        
+
+
         for (nr, filename) in suffixes_names:
+            annotated_points = set()
             sp = filename.split("_")
             nr_ending = sp[-2] + "_" + sp[-1]
             result_dict = joblib.load(filename)
@@ -168,20 +171,35 @@ class ProcessMonitor():
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        alfa = min(result_dict[found_word][self.MEAN_SCORE], result_dict[found_word][self.MEAN_SCORE] + 0.1)
+                        # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
+                        alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
                         color_to_use = (0,0,1,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
 
+            # minority class annotation
+            for point, found_word in zip(DX, found_words):
+                if found_word in result_dict:
+                    if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
+                        rounded_tuple = (round(point[0]), round(point[0]))
+                        if rounded_tuple not in annotated_points: # not to many annotations close in the plot
+                            annotated_points.add(rounded_tuple)
+                            annotated_points.add((rounded_tuple[0] + 1, rounded_tuple[1]))
+                            annotated_points.add((rounded_tuple[0] - 1, rounded_tuple[1]))
+                            annotated_points.add((rounded_tuple[0], rounded_tuple[1] + 1))
+                            annotated_points.add((rounded_tuple[0], rounded_tuple[1] - 1))
+                            annotated_points.add(rounded_tuple)
+                            plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=6)
+            #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
             # minority class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         print(result_dict[found_word][self.MEAN_SCORE])
-                        # Add some extra to the color, because if it too small, you can't see it
-                        alfa = min(result_dict[found_word][self.MEAN_SCORE], result_dict[found_word][self.MEAN_SCORE] + 0.1)
+                        # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
+                        alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
                         color_to_use = (0,1,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
-                        plt.annotate(found_word, (point[0], point[1]), xytext=(-15, 25), arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05))
+
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
