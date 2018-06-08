@@ -13,6 +13,12 @@ import gensim
 
 import active_learning_preannotation
 
+############
+## The ProcessMonitor class has quite specialised functionality, and is still under development
+## so its functionality is not yet described in
+##
+##
+
 
 class ProcessMonitor():
     def __init__(self, path_slash_format, properties, unlabelled_text_vector = None):
@@ -32,6 +38,7 @@ class ProcessMonitor():
         self.write_process_monitoring = properties.write_process_monitoring
         self.vector_length = properties.semantic_vector_length
         self.model_path = properties.model_path
+        self.majority_class = properties.outside_class
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
  
@@ -99,9 +106,6 @@ class ProcessMonitor():
             final_hash[key] = {self.MOST_COMMON_PREDICTION: most_common_predicted, self.MEAN_SCORE: mean_conf,\
                 self.PREDICTION:item[self.PREDICTION], self.SCORE:item[self.SCORE] }
 
-        for key, item in final_hash.items():
-            print(key, item)
-
         # Note, not thread safe at all. Not intended to be run by more than one thread or process
         path_and_prefix = os.path.join(self.get_full_process_monitoring_dir_path(),\
                                        self.SAVED_DICTIONARY_PREFIX + str(self.number_of_labelled) + "_")
@@ -130,11 +134,10 @@ class ProcessMonitor():
         all_vectors_list = []
         found_words = []
         for word in word_list:
+            word = self.remove_underscore(word)
             try:
-                vec_raw  = word2vec_model[self.remove_underscore(word)]
+                vec_raw  = word2vec_model[word]
                 norm_vector = list(preprocessing.normalize(np.reshape(vec_raw, newshape = (1, self.vector_length)), norm='l2')[0])
-                print(word)
-                #print(vec)
                 all_vectors_list.append(norm_vector)
                 found_words.append(word)
             except KeyError:
@@ -146,13 +149,44 @@ class ProcessMonitor():
         DX_pca = pca_model.fit_transform(all_vectors_np)
         DX = tsne_model.fit_transform(DX_pca)
 
-        fig = plt.figure()
+        path_and_prefix_states = os.path.join(self.get_full_process_monitoring_dir_path(),\
+                               self.SAVED_DICTIONARY_PREFIX)
+        previously_saved_files = glob.glob(path_and_prefix_states + "*")
+        suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
         
-        for point, found_word in zip(DX, found_words):
-            plt.scatter(point[0], point[1], color = "gray", marker = ".", s=1)
+        for (nr, filename) in suffixes_names:
+            sp = filename.split("_")
+            nr_ending = sp[-2] + "_" + sp[-1]
+            result_dict = joblib.load(filename)
+        
+            fig = plt.figure()
+            plt.axis('off')
+            plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
+                            labelleft='off', labeltop='off', labelright='off', labelbottom='off')
+        
+            # outside class plot
+            for point, found_word in zip(DX, found_words):
+                if found_word in result_dict:
+                    if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
+                        alfa = min(result_dict[found_word][self.MEAN_SCORE], result_dict[found_word][self.MEAN_SCORE] + 0.1)
+                        color_to_use = (0,0,1,alfa)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
 
-        save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX + self.PLOT_FILE_ENDING)
-        plt.savefig(save_figure_file_name, bbox_inches='tight')
+            # minority class plot
+            for point, found_word in zip(DX, found_words):
+                if found_word in result_dict:
+                    if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
+                        print(result_dict[found_word][self.MEAN_SCORE])
+                        # Add some extra to the color, because if it too small, you can't see it
+                        alfa = min(result_dict[found_word][self.MEAN_SCORE], result_dict[found_word][self.MEAN_SCORE] + 0.1)
+                        color_to_use = (0,1,0,alfa)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
+                        plt.annotate(found_word, (point[0], point[1]), xytext=(-15, 25), arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05))
+
+            save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
+                                                 nr_ending + self.PLOT_FILE_ENDING)
+            #print(save_figure_file_name)
+            plt.savefig(save_figure_file_name) #, bbox_inches='tight')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
