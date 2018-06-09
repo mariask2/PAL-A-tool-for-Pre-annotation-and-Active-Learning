@@ -44,10 +44,6 @@ class ProcessMonitor():
         self.vector_length = properties.semantic_vector_length
         self.model_path = properties.model_path
         self.majority_class = properties.outside_class
-        print("*************************")
-        print(unlabelled_text_vector, "unlabelled_text_vector")
-        print(self.write_process_monitoring, "self.write_process_monitoring")
-        print("*************************")
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
     
