@@ -45,6 +45,7 @@ class ProcessMonitor():
         self.majority_class = properties.outside_class
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
+
  
     def get_full_process_monitoring_dir_path_no_word2vec_info(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
@@ -170,6 +171,11 @@ class ProcessMonitor():
         path_and_prefix_states = os.path.join(self.get_full_process_monitoring_dir_path(),\
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
+        
+        if len(previously_saved_files) == 0:
+            print("No saved files were found. Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
+                  + str(self.whether_to_use_word2vec))
+        
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
 
 
@@ -179,7 +185,7 @@ class ProcessMonitor():
         largest_y = -1*float("inf")
 
         for (nr, filename) in suffixes_names:
-                        
+            
             annotated_points = set()
             sp = filename.split("_")
             nr_ending = sp[-2] + "_" + sp[-1]
@@ -235,7 +241,6 @@ class ProcessMonitor():
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        print(result_dict[found_word][self.MEAN_SCORE])
                         # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
                         alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
                         color_to_use = (0,1,0,alfa)
@@ -245,7 +250,6 @@ class ProcessMonitor():
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
-            #print(save_figure_file_name)
             plt.savefig(save_figure_file_name) #, bbox_inches='tight')
 
 if __name__ == "__main__":

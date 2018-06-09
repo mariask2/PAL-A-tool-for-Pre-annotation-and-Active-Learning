@@ -10,6 +10,7 @@ import vectorize_data
 import classify_and_select
 import default_settings
 from process_monitoring import ProcessMonitor
+from classify_and_select import NonStructuredLogisticRegression
 
 
 def check_frequency_of_labels(labelled_label_vector, classes):
@@ -242,6 +243,15 @@ class PropertiesContainer:
             if not (minority_class.startswith(self.beginning_prefix) or minority_class.startswith(self.inside_prefix)):
                 print("The class " + minority_class + " does not start with the beginning_prefix or the inside_prefix.")
                 exit(1)
+
+        if self.write_process_monitoring and self.maximum_samples_to_search_among != "all":
+            print("When 'write_process_monitoring' is 'True', 'maximum_samples_to_search_among' must be set to 'all'. Please change in the settings.py file")
+            exit(1)
+
+        if self.write_process_monitoring and self.model_type != NonStructuredLogisticRegression:
+            print("When 'write_process_monitoring' is 'True', 'model_type' must be set to 'NonStructuredLogisticRegression'. Please change in the settings.py file")
+            exit(1)
+
 
     def __init__(self, properties):
         """
