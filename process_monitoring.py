@@ -29,12 +29,15 @@ class ProcessMonitor():
         self.MOST_COMMON_PREDICTION = "MOST_COMMON_PREDICTION"
         self.MEAN_SCORE = "MEAN_SCORE"
         self.MINORITY_CLASSES = "MINORITY_CLASSES"
+        self.FOLDER_FOR_WORD2VEC_TRUE = "word2vec_true"
+        self.FOLDER_FOR_WORD2VEC_FALSE = "word2vec_false"
         self.SAVED_DICTIONARY_PREFIX = "saved_dict_"
         self.NUMBER_OF_LABELLED_KEY = "NUMBER_OF_LABELLED"
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
 
         self.path_slash_format = path_slash_format
+        self.whether_to_use_word2vec = properties.whether_to_use_word2vec
         self.process_monitoring_dir = properties.process_monitoring_dir
         self.write_process_monitoring = properties.write_process_monitoring
         self.vector_length = properties.semantic_vector_length
@@ -43,13 +46,21 @@ class ProcessMonitor():
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
  
-    def get_full_process_monitoring_dir_path(self):
+    def get_full_process_monitoring_dir_path_no_word2vec_info(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
         return full_process_monitoring_dir
+    
+    def get_full_process_monitoring_dir_path(self):
+        if self.whether_to_use_word2vec == True:
+            sub_dir_name = self.FOLDER_FOR_WORD2VEC_TRUE
+        else:
+            sub_dir_name = self.FOLDER_FOR_WORD2VEC_FALSE
+        return os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), sub_dir_name)
+
 
     def init_process_monitoring(self, path_slash_format, properties, unlabelled_text_vector):
         if self.write_process_monitoring:
-            full_process_monitoring_dir_path = self.get_full_process_monitoring_dir_path()
+            full_process_monitoring_dir_path = self.get_full_process_monitoring_dir_path_no_word2vec_info()
 
             if not os.path.exists(full_process_monitoring_dir_path):
                 text_concatenated = np.concatenate(unlabelled_text_vector)
@@ -60,6 +71,12 @@ class ProcessMonitor():
                 os.mkdir(full_process_monitoring_dir_path)
                 vectorizer_full_name = os.path.join(full_process_monitoring_dir_path, self.VECTORIZER_NAME)
                 joblib.dump(word_vectorizer, vectorizer_full_name, compress=9)
+            
+            full_process_monitoring_dir_path_word2vec_info = self.get_full_process_monitoring_dir_path()
+            print("Will write process monitoring info in ", full_process_monitoring_dir_path_word2vec_info)
+ 
+            if not os.path.exists(full_process_monitoring_dir_path_word2vec_info):
+                os.mkdir(full_process_monitoring_dir_path_word2vec_info)
                 return True
             else:
                 return False
@@ -124,7 +141,7 @@ class ProcessMonitor():
         joblib.dump(final_hash, file_to_save_in, compress=9)
 
     def analyse_saved_files(self):
-        count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path(), self.VECTORIZER_NAME))
+        count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.VECTORIZER_NAME))
         print(count_vectorizer)
         types_at_process_start = count_vectorizer.get_feature_names()
         self.plot(types_at_process_start)
@@ -156,7 +173,13 @@ class ProcessMonitor():
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
 
 
+        smallest_x = float("inf")
+        smallest_y = float("inf")
+        largest_x = -1*float("inf")
+        largest_y = -1*float("inf")
+
         for (nr, filename) in suffixes_names:
+                        
             annotated_points = set()
             sp = filename.split("_")
             nr_ending = sp[-2] + "_" + sp[-1]
@@ -166,10 +189,28 @@ class ProcessMonitor():
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
                             labelleft='off', labeltop='off', labelright='off', labelbottom='off')
-        
+
+
+            if smallest_x != float("inf"): # Not first time in loop
+                #"Plot to make sure that the image has the same size"
+                plt.scatter(smallest_x, 0, color = "white", marker = "o", s=10)
+                plt.scatter(0, smallest_y, color = "white", marker = "o", s=10)
+                plt.scatter(largest_x, 0, color = "white", marker = "o", s=10)
+                plt.scatter(0, largest_y, color = "white", marker = "o", s=10)
+
+
             # outside class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
+                    if point[0] < smallest_x:
+                        smallest_x = point[0]
+                    if point[1] < smallest_y:
+                        smallest_y = point[1]
+                    if point[0] > largest_x:
+                        largest_x = point[0]
+                    if point[1] > largest_y:
+                        largest_y = point[1]
+
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
                         alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
@@ -199,6 +240,7 @@ class ProcessMonitor():
                         alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
                         color_to_use = (0,1,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
+
 
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
