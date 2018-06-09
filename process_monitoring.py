@@ -142,15 +142,15 @@ class ProcessMonitor():
         print("Saving in " + file_to_save_in)
         joblib.dump(final_hash, file_to_save_in, compress=9)
 
-    def analyse_saved_files(self, word2vec_model):
+    def analyse_saved_files(self):
         count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.VECTORIZER_NAME))
         print(count_vectorizer)
         types_at_process_start = count_vectorizer.get_feature_names()
-        self.plot(types_at_process_start, word2vec_model)
+        self.plot(types_at_process_start)
 
 
-    def plot(self, word_list, word2vec_model):
-        
+    def plot(self, word_list):
+        word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True, unicode_errors='ignore')
         all_vectors_list = []
         found_words = []
         for word in word_list:
@@ -168,7 +168,11 @@ class ProcessMonitor():
         tsne_model = TSNE(n_components=2, random_state=0)
         DX_pca = pca_model.fit_transform(all_vectors_np)
         DX = tsne_model.fit_transform(DX_pca)
+        self.plot_each_state(DX, found_words, whether_to_use_word2vec = True)
+        self.plot_each_state(DX, found_words, whether_to_use_word2vec = False)
 
+    def plot_each_state(self, DX, found_words, whether_to_use_word2vec):
+        self.whether_to_use_word2vec = whether_to_use_word2vec
         path_and_prefix_states = os.path.join(self.get_full_process_monitoring_dir_path(),\
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
@@ -176,7 +180,7 @@ class ProcessMonitor():
         if len(previously_saved_files) == 0:
             print("No saved files were found in. " + self.get_full_process_monitoring_dir_path() +\
                   " Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
-                  + str(self.whether_to_use_word2vec))
+                  + str(whether_to_use_word2vec))
             return
         
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
@@ -259,11 +263,9 @@ class ProcessMonitor():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
-    process_monitor_instance_word2vec =  ProcessMonitor(path_slash_format, properties, whether_to_use_word2vec = True)
-    word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(process_monitor_instance_word2vec.model_path, binary=True, unicode_errors='ignore')
-    process_monitor_instance_word2vec.analyse_saved_files(word2vec_model)
-    process_monitor_instance =  ProcessMonitor(path_slash_format, properties, whether_to_use_word2vec = False)
-    process_monitor_instance.analyse_saved_files(word2vec_model)
+    process_monitor_instance =  ProcessMonitor(path_slash_format, properties, True)
+    process_monitor_instance.analyse_saved_files()
+
 
 
 
