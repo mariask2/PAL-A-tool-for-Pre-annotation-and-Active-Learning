@@ -87,7 +87,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                                     context_word_vocabulary = properties.context_word_vocabulary, \
                                     use_clustering = properties.whether_to_use_clustering)
 
-    process_monitor_instance =  ProcessMonitor(path_slash_format_main, properties_main, unlabelled_text_vector)
+    process_monitor_instance =  ProcessMonitor(path_slash_format_main, properties_main, \
+                                               properties_main.whether_to_use_word2vec, unlabelled_text_vector)
     process_monitor_instance.set_number_of_labelled(len(text_vector_labelled_np))
 
 

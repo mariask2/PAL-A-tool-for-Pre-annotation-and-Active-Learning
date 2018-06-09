@@ -29,7 +29,7 @@ number_of_following_words = 1
 # The larger value that is given, the more data will be scanned for useful examples
 # however, it will also take more time
 
-maximum_samples_to_search_among = 1000
+maximum_samples_to_search_among = "all"
 
 # Whether to include the current token as feature
 use_current_word_as_feature = True
@@ -70,6 +70,11 @@ outside_class = "O"
 negative_category = "no"
 nr_of_cross_validation_splits = 3
 
+###
+# Whether process monitoring data should be recorded
+####
+
+write_process_monitoring = True
 
 #########
 # For simulation

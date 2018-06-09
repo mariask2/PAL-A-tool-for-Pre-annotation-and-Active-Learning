@@ -22,7 +22,7 @@ import active_learning_preannotation
 
 
 class ProcessMonitor():
-    def __init__(self, path_slash_format, properties, unlabelled_text_vector = None):
+    def __init__(self, path_slash_format, properties, whether_to_use_word2vec, unlabelled_text_vector = None):
         self.VECTORIZER_NAME = "vectorizer"
         self.PREDICTION = "PREDICTION"
         self.SCORE = "SCORE"
@@ -37,7 +37,8 @@ class ProcessMonitor():
         self.PLOT_FILE_ENDING = ".png"
 
         self.path_slash_format = path_slash_format
-        self.whether_to_use_word2vec = properties.whether_to_use_word2vec
+        self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
+        # this does not always correspond to the truth when the acitve learning process is simulated
         self.process_monitoring_dir = properties.process_monitoring_dir
         self.write_process_monitoring = properties.write_process_monitoring
         self.vector_length = properties.semantic_vector_length
@@ -45,7 +46,7 @@ class ProcessMonitor():
         self.majority_class = properties.outside_class
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
-
+    
  
     def get_full_process_monitoring_dir_path_no_word2vec_info(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
@@ -141,15 +142,15 @@ class ProcessMonitor():
         print("Saving in " + file_to_save_in)
         joblib.dump(final_hash, file_to_save_in, compress=9)
 
-    def analyse_saved_files(self):
+    def analyse_saved_files(self, word2vec_model):
         count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.VECTORIZER_NAME))
         print(count_vectorizer)
         types_at_process_start = count_vectorizer.get_feature_names()
-        self.plot(types_at_process_start)
+        self.plot(types_at_process_start, word2vec_model)
 
 
-    def plot(self, word_list):
-        word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True, unicode_errors='ignore')
+    def plot(self, word_list, word2vec_model):
+        
         all_vectors_list = []
         found_words = []
         for word in word_list:
@@ -173,8 +174,10 @@ class ProcessMonitor():
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
         
         if len(previously_saved_files) == 0:
-            print("No saved files were found. Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
+            print("No saved files were found in. " + self.get_full_process_monitoring_dir_path() +\
+                  " Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
                   + str(self.whether_to_use_word2vec))
+            return
         
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
 
@@ -184,6 +187,7 @@ class ProcessMonitor():
         largest_x = -1*float("inf")
         largest_y = -1*float("inf")
 
+        fig = plt.figure()
         for (nr, filename) in suffixes_names:
             
             annotated_points = set()
@@ -191,7 +195,7 @@ class ProcessMonitor():
             nr_ending = sp[-2] + "_" + sp[-1]
             result_dict = joblib.load(filename)
         
-            fig = plt.figure()
+            plt.clf()
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
                             labelleft='off', labeltop='off', labelright='off', labelbottom='off')
@@ -255,8 +259,11 @@ class ProcessMonitor():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
-    process_monitor_instance =  ProcessMonitor(path_slash_format, properties)
-    process_monitor_instance.analyse_saved_files()
+    process_monitor_instance_word2vec =  ProcessMonitor(path_slash_format, properties, whether_to_use_word2vec = True)
+    word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(process_monitor_instance_word2vec.model_path, binary=True, unicode_errors='ignore')
+    process_monitor_instance_word2vec.analyse_saved_files(word2vec_model)
+    process_monitor_instance =  ProcessMonitor(path_slash_format, properties, whether_to_use_word2vec = False)
+    process_monitor_instance.analyse_saved_files(word2vec_model)
 
 
 

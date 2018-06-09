@@ -3,6 +3,10 @@ Functionality for initializing and running a simulation of different sizes and d
 selection methods
 
 Run, for instance, as follows:
+python do_simulate_different_data_sizes.py --project=data.example_project --start_fold=1 --end_fold=2
+
+or
+
 python do_simulate_different_data_sizes.py --project=data.unshared_task_argument_mining --start_fold=1 --end_fold=2
 """
 

@@ -30,6 +30,8 @@ import classify_and_select
 import active_learning_preannotation
 import simple_tokenizer
 
+from process_monitoring import ProcessMonitor
+
 
 #from classify_and_select import StructuredModelFrankWolfeSSVM
 
@@ -679,6 +681,13 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
     print("len(train_index)", str(len(train_index)))
     seed_set_run = True
     while nr_of_samples + step_size < len(train_index) and nr_of_samples + step_size < max_size:
+        
+        process_monitor_instance =  ProcessMonitor(project_path, properties,\
+                                                   whether_to_use_word2vec, \
+                                                   [vec for (i, vec) in enumerate(labelled_text_vector)])
+        process_monitor_instance.set_number_of_labelled(nr_of_samples + step_size)
+        
+        
         if not seed_set_run:
             x_pool_sentences = [ vec for (i, vec) in enumerate(labelled_text_vector) if i in train_index[seed_set_size:] and i not in used_indeces]
             print("len(used_indeces)", len(used_indeces))
@@ -709,7 +718,8 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
                                              properties.max_iterations, properties.prefer_predicted_chunks, \
                                              properties.model_type, properties.use_cross_validation, \
                                              properties.nr_of_cross_validation_splits, \
-                                             properties.c_value)
+                                             properties.c_value,\
+                                                process_monitor_instance)
 
                       #print("to_select_text", to_select_text)
             selected_set = set()
@@ -766,7 +776,6 @@ def simulate_different_data_sizes(properties, simulation_properties, project_pat
     print("* Start classification and evaluation with the training data, where different *")
     print("* amounts of training data is available*")
     print("********************************************************************************")
-
 
     # Classes
     classes = properties.minority_classes[:]
