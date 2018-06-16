@@ -49,8 +49,10 @@ class ProcessMonitor():
         self.VECTORIZER_NAME = "vectorizer"
         self.PREDICTION = "PREDICTION"
         self.SCORE = "SCORE"
-        self.MOST_COMMON_PREDICTION = "MOST_COMMON_PREDICTION"
-        self.MEAN_SCORE = "MEAN_SCORE"
+        self.MOST_COMMON_PREDICTION = "P"
+        self.MEAN_SCORE = "M"
+        self.PREDICTION_STATISTICS = "S"
+        self.VARIANCE_SCORE = "V"
         self.MINORITY_CLASSES = "MINORITY_CLASSES"
         self.FOLDER_FOR_WORD2VEC_TRUE = "word2vec_true"
         self.FOLDER_FOR_WORD2VEC_FALSE = "word2vec_false"
@@ -58,7 +60,7 @@ class ProcessMonitor():
         self.NUMBER_OF_LABELLED_KEY = "NUMBER_OF_LABELLED"
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
-
+        
         self.path_slash_format = path_slash_format
         self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
         # this does not always correspond to the truth when the acitve learning process is simulated
@@ -89,7 +91,9 @@ class ProcessMonitor():
 
             if not os.path.exists(full_process_monitoring_dir_path):
                 text_concatenated = np.concatenate(unlabelled_text_vector)
-                word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 2]), \
+                # To save storage space, only include types occurring at least three time in the statistics
+                # or more than three times, if
+                word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
                                                                 max_df = properties.max_df_current)
                 word_vectorizer.fit_transform(text_concatenated)
                 
@@ -117,6 +121,9 @@ class ProcessMonitor():
 
     def get_mean_conf_from_lst(self, conf_lst):
          return sum(conf_lst)/len(conf_lst)
+
+    def get_variance_from_lst(self, conf_lst):
+        return np.var(conf_lst)
     
     def get_most_common_predicted(self, predicted_lst, majority_class, inv_labelled_dict):
         nr_of_majority = predicted_lst.count(majority_class)
@@ -126,6 +133,15 @@ class ProcessMonitor():
         else:
             most_common_predicted = self.MINORITY_CLASSES
         return most_common_predicted
+    
+    def get_stat_dictionary(self, predicted_lst, inv_labelled_dict):
+        stat_dict = {}
+        for el in predicted_lst:
+            if inv_labelled_dict[el] not in stat_dict:
+                stat_dict[inv_labelled_dict[el]] = 0
+            stat_dict[inv_labelled_dict[el]] = stat_dict[inv_labelled_dict[el]] + 1
+        return stat_dict
+    
     
     
     def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, inv_labelled_dict):
@@ -145,9 +161,11 @@ class ProcessMonitor():
         final_hash = {}
         for key, item in word_hash.items():
             mean_conf = self.get_mean_conf_from_lst(item[self.SCORE])
+            variance_conf = self.get_variance_from_lst(item[self.SCORE])
             most_common_predicted = self.get_most_common_predicted(item[self.PREDICTION], majority_class, inv_labelled_dict)
+            stat_dict = self.get_stat_dictionary(item[self.PREDICTION], inv_labelled_dict)
             final_hash[key] = {self.MOST_COMMON_PREDICTION: most_common_predicted, self.MEAN_SCORE: mean_conf,\
-                self.PREDICTION:item[self.PREDICTION], self.SCORE:item[self.SCORE] }
+                self.PREDICTION_STATISTICS:stat_dict, self.VARIANCE_SCORE: variance_conf}
 
         # Note, not thread safe at all. Not intended to be run by more than one thread or process
         path_and_prefix = os.path.join(self.get_full_process_monitoring_dir_path(),\
@@ -282,6 +300,7 @@ class ProcessMonitor():
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
             plt.savefig(save_figure_file_name) #, bbox_inches='tight')
+        print("Saved plots in " + self.get_full_process_monitoring_dir_path())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
