@@ -248,10 +248,10 @@ class ProcessMonitor():
 
             if smallest_x != float("inf"): # Not first time in loop
                 #"Plot to make sure that the image has the same size"
-                plt.scatter(smallest_x, 0, color = "white", marker = "o", s=10)
-                plt.scatter(0, smallest_y, color = "white", marker = "o", s=10)
-                plt.scatter(largest_x, 0, color = "white", marker = "o", s=10)
-                plt.scatter(0, largest_y, color = "white", marker = "o", s=10)
+                plt.scatter(smallest_x, 0, color = "white", marker = "o", s=1)
+                plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
+                plt.scatter(largest_x, 0, color = "white", marker = "o", s=1)
+                plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
 
 
             # outside class plot
@@ -268,9 +268,9 @@ class ProcessMonitor():
 
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
-                        alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
+                        alfa = result_dict[found_word][self.MEAN_SCORE]#*0.99 + 0.01
                         color_to_use = (0,0,1,alfa)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
 
             # minority class annotation
             for point, found_word in zip(DX, found_words):
@@ -279,28 +279,37 @@ class ProcessMonitor():
                         rounded_tuple = (round(point[0]), round(point[0]))
                         if rounded_tuple not in annotated_points: # not to many annotations close in the plot
                             annotated_points.add(rounded_tuple)
+                            
+                            # TODO. Make this code smarter. The point is that the labels are not supposed to overlap
+                            # but they do anyway
                             annotated_points.add((rounded_tuple[0] + 1, rounded_tuple[1]))
                             annotated_points.add((rounded_tuple[0] - 1, rounded_tuple[1]))
                             annotated_points.add((rounded_tuple[0], rounded_tuple[1] + 1))
                             annotated_points.add((rounded_tuple[0], rounded_tuple[1] - 1))
+                            
+                            annotated_points.add((rounded_tuple[0] + 2, rounded_tuple[1]))
+                            annotated_points.add((rounded_tuple[0] + 3, rounded_tuple[1]))
+                            annotated_points.add((rounded_tuple[0] + 4, rounded_tuple[1]))
+                            annotated_points.add((rounded_tuple[0] + 5, rounded_tuple[1]))
+
                             annotated_points.add(rounded_tuple)
-                            plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=6)
+                            plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
             #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
             # minority class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
-                        alfa = result_dict[found_word][self.MEAN_SCORE]*0.9 + 0.1
+                        alfa = result_dict[found_word][self.MEAN_SCORE]#*0.99 + 0.01
                         color_to_use = (0,1,0,alfa)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=10)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
 
 
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
             plt.savefig(save_figure_file_name) #, bbox_inches='tight')
-        print("Saved plots in " + self.get_full_process_monitoring_dir_path())
+            print("Saved plot in " + save_figure_file_name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
