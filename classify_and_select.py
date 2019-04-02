@@ -868,10 +868,12 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
         
         all_diffs = [] # To use in process monitoring only
         min_probabilities = []
+        all_index_for_min_probabilities = [] # To use in process monitoring only
         for sentence in probabilities:
             all_diff_sentence = [] # To use in process monitoring only
             min_difference_in_sentence = float("inf")
-            for word in sentence:
+            index_for_min_difference_in_sentence = 0
+            for word_index, word in enumerate(sentence):
                 word = list(word)
                 #print("probabilities for word not sorted", word)
                 word_sorted = sorted(word, reverse=True)
@@ -881,18 +883,23 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
                 #print("diff_best_second_best", diff_best_second_best)
                 if diff_best_second_best < min_difference_in_sentence:
                     min_difference_in_sentence = diff_best_second_best
+                    index_for_min_difference_in_sentence = word_index
             all_diffs.append(all_diff_sentence)
             min_probabilities.append(min_difference_in_sentence)
-        return min_probabilities, all_diffs
+            all_index_for_min_probabilities.append(index_for_min_difference_in_sentence)
+        return min_probabilities, all_diffs, all_index_for_min_probabilities
 
 
     def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces,\
                                                     sentences_unlabelled, process_monitoring_instance):
         
-        min_probability_differences, all_diffs = self.get_probabilities(to_search_among_x)
+        min_probability_differences, all_diffs, all_index_for_min_probabilities = self.get_probabilities(to_search_among_x)
         process_monitoring_instance.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
                                                          selected_indeces, ys, self.majority_class, self.inv_label_dict)
         #print("min_probability_differences", min_probability_differences)
+        for nr, index in zip(selected_indeces, all_index_for_min_probabilities):
+            print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
+
 
         scores_with_index = []
         index_in_which_no_minority_categories_are_predicted = []
