@@ -898,7 +898,8 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
         
         min_probability_differences, all_diffs, all_index_for_min_probabilities = self.get_probabilities(to_search_among_x)
         process_monitoring_instance.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
-                                                         selected_indeces, ys, self.majority_class, self.inv_label_dict, all_index_for_min_probabilities)
+                                                                  selected_indeces, ys, self.majority_class, self.inv_label_dict,\
+                                                                  all_index_for_min_probabilities, min_probability_differences)
         
         scores_with_index = []
         index_in_which_no_minority_categories_are_predicted = []

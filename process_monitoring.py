@@ -159,26 +159,27 @@ class ProcessMonitor():
         for el in sentence_index_selected_in_active_selection:
             min_words_in_selected_sentences.append(self.current_selected_indeces_min_prob_word_hash[el])
 
+        min_words_in_selected_sentences.sort()
+
         open_file = open(file_to_save_in, "w")
-        for word in min_words_in_selected_sentences:
-            open_file.write(word + "\n")
+        for order, word in enumerate(min_words_in_selected_sentences):
+            open_file.write(str(word[1]) + "\t" + str(word[0]) + "\t" + str(order) + "\n")
         open_file.close()
         
-            
 
-
-    def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, inv_labelled_dict, all_index_for_min_probabilities):
+    def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, \
+                                      inv_labelled_dict, all_index_for_min_probabilities, min_probability_differences):
         
         if not self.write_process_monitoring:
             return
         
         self.current_selected_indeces_min_prob_word_hash = {}
 
-        for sentence_nr, index_in_sentence_with_min_prop in zip(selected_indeces, all_index_for_min_probabilities):
+        for sentence_nr, index_in_sentence_with_min_prop, min_prop_value in zip(selected_indeces, all_index_for_min_probabilities, min_probability_differences):
             sentence = list(sentences_unlabelled[sentence_nr])
             word_with_lowest_prob = sentence[index_in_sentence_with_min_prop]
             #print(sentence, word_with_lowest_prob)
-            self.current_selected_indeces_min_prob_word_hash[sentence_nr] = word_with_lowest_prob
+            self.current_selected_indeces_min_prob_word_hash[sentence_nr] = (min_prop_value, word_with_lowest_prob)
             #self.current_selected_indeces_min_prob_hash[nr] =
             #print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
         
