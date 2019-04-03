@@ -60,6 +60,7 @@ class ProcessMonitor():
         self.NUMBER_OF_LABELLED_KEY = "NUMBER_OF_LABELLED"
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
+        self.WORD_PREFIX = "most_uncertain_words_"
         
         self.path_slash_format = path_slash_format
         self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
@@ -93,8 +94,9 @@ class ProcessMonitor():
                 text_concatenated = np.concatenate(unlabelled_text_vector)
                 # To save storage space, only include types occurring at least three time in the statistics
                 # or more than three times, if
-                word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
-                                                                max_df = properties.max_df_current)
+                #word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
+                        #max_df = properties.max_df_current)
+                word_vectorizer = CountVectorizer(binary = True, min_df=1, max_df = properties.max_df_current)
                 word_vectorizer.fit_transform(text_concatenated)
                 
                 os.mkdir(full_process_monitoring_dir_path)
@@ -143,11 +145,43 @@ class ProcessMonitor():
         return stat_dict
     
     
-    
-    def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, inv_labelled_dict):
+    #print("min_probability_differences", min_probability_differences)
+
+    def write_process_monitoring_selected_words(self, sentence_index_selected_in_active_selection):
         
         if not self.write_process_monitoring:
             return
+    
+        saved_in = os.path.split(self.current_file_name)
+        file_to_save_in = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
+
+        min_words_in_selected_sentences = []
+        for el in sentence_index_selected_in_active_selection:
+            min_words_in_selected_sentences.append(self.current_selected_indeces_min_prob_word_hash[el])
+
+        open_file = open(file_to_save_in, "w")
+        for word in min_words_in_selected_sentences:
+            open_file.write(word + "\n")
+        open_file.close()
+        
+            
+
+
+    def write_process_monitoring_info(self, sentences_unlabelled, all_diffs, selected_indeces, ys, majority_class, inv_labelled_dict, all_index_for_min_probabilities):
+        
+        if not self.write_process_monitoring:
+            return
+        
+        self.current_selected_indeces_min_prob_word_hash = {}
+
+        for sentence_nr, index_in_sentence_with_min_prop in zip(selected_indeces, all_index_for_min_probabilities):
+            sentence = list(sentences_unlabelled[sentence_nr])
+            word_with_lowest_prob = sentence[index_in_sentence_with_min_prop]
+            #print(sentence, word_with_lowest_prob)
+            self.current_selected_indeces_min_prob_word_hash[sentence_nr] = word_with_lowest_prob
+            #self.current_selected_indeces_min_prob_hash[nr] =
+            #print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
+        
         
         word_hash = {}
         for index, diffs, y in zip(selected_indeces, all_diffs, ys):
@@ -167,22 +201,28 @@ class ProcessMonitor():
             final_hash[key] = {self.MOST_COMMON_PREDICTION: most_common_predicted, self.MEAN_SCORE: mean_conf,\
                 self.PREDICTION_STATISTICS:stat_dict, self.VARIANCE_SCORE: variance_conf}
 
+        self.current_file_name = self.get_file_to_save_in()
+        #print("Saving in " + file_to_save_in)
+        pickle.dump(final_hash, open(self.current_file_name, "wb"))
+
+    def get_file_to_save_in(self):
         # Note, not thread safe at all. Not intended to be run by more than one thread or process
         path_and_prefix = os.path.join(self.get_full_process_monitoring_dir_path(),\
                                        self.SAVED_DICTIONARY_PREFIX + str(self.number_of_labelled) + "_")
         previously_saved_files = glob.glob(path_and_prefix + "*")
-        
+                                       
         if len(previously_saved_files) == 0:
             suffix_to_use = 1
         else:
             suffixes = sorted([int(el[-1]) for el in previously_saved_files])
             last_used_suffix = suffixes[-1]
             suffix_to_use = last_used_suffix + 1
-
+                                               
         file_to_save_in = path_and_prefix + str(suffix_to_use)
-        print("Saving in " + file_to_save_in)
-        pickle.dump(final_hash, open(file_to_save_in, "wb"))
+        return file_to_save_in
 
+    
+    
     def analyse_saved_files(self):
         count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.VECTORIZER_NAME))
         print(count_vectorizer)
@@ -196,6 +236,7 @@ class ProcessMonitor():
         found_words = []
         for word in word_list:
             word = self.remove_underscore(word)
+            print(word)
             try:
                 vec_raw  = word2vec_model[word]
                 norm_vector = list(preprocessing.normalize(np.reshape(vec_raw, newshape = (1, self.vector_length)), norm='l2')[0])
@@ -267,11 +308,15 @@ class ProcessMonitor():
                         largest_y = point[1]
 
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
-                        alfa = result_dict[found_word][self.MEAN_SCORE]#*0.99 + 0.01
-                        color_to_use = (0,0,1,alfa)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
+                        # Make sure its visible even if it certain
+                        if result_dict[found_word][self.MEAN_SCORE] < 0.9:
+                            alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
+                            print(str(alfa) + " " + found_word)
+                            color_to_use = (0,0,0,alfa)
+                            plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
+            print(smallest_x, smallest_y, largest_x, largest_y)
+            
             # minority class annotation
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
@@ -293,22 +338,23 @@ class ProcessMonitor():
                             annotated_points.add((rounded_tuple[0] + 5, rounded_tuple[1]))
 
                             annotated_points.add(rounded_tuple)
-                            plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
+                            #plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
             #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
             # minority class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        # Add some extra to the color, and scale down the scale a bit, because if it too small, you can't see it
-                        alfa = result_dict[found_word][self.MEAN_SCORE]#*0.99 + 0.01
-                        color_to_use = (0,1,0,alfa)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
+                        # Make sure its visible even if it certain
+                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
+                        print(str(alfa) + " " + found_word + " " + "minority" )
+                        color_to_use = (1,0,0,alfa)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
 
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
-            plt.savefig(save_figure_file_name) #, bbox_inches='tight')
+            plt.savefig(save_figure_file_name, dpi = 700) #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 
 if __name__ == "__main__":

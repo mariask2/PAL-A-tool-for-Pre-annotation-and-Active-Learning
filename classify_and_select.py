@@ -692,6 +692,8 @@ class ModelWrapperBase:
         sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
         to_select_X = np.array(to_select_X)
 
+        process_monitoring_instance.write_process_monitoring_selected_words(index_to_select_among_checked)
+        
         return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
 
     def get_params(self):
@@ -888,19 +890,16 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
             min_probabilities.append(min_difference_in_sentence)
             all_index_for_min_probabilities.append(index_for_min_difference_in_sentence)
         return min_probabilities, all_diffs, all_index_for_min_probabilities
-
+        # all_index_for_min_probabilities contains, for each sentence among the sentences in "to_search_among_x", the index of the token that
+        # has the lowest probability
 
     def get_scores_unlabelled_with_predicted_chunks(self, to_search_among_x, ys, selected_indeces,\
                                                     sentences_unlabelled, process_monitoring_instance):
         
         min_probability_differences, all_diffs, all_index_for_min_probabilities = self.get_probabilities(to_search_among_x)
         process_monitoring_instance.write_process_monitoring_info(sentences_unlabelled, all_diffs,\
-                                                         selected_indeces, ys, self.majority_class, self.inv_label_dict)
-        #print("min_probability_differences", min_probability_differences)
-        for nr, index in zip(selected_indeces, all_index_for_min_probabilities):
-            print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
-
-
+                                                         selected_indeces, ys, self.majority_class, self.inv_label_dict, all_index_for_min_probabilities)
+        
         scores_with_index = []
         index_in_which_no_minority_categories_are_predicted = []
         searched_among = 0 # Only to print information 
