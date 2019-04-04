@@ -355,15 +355,6 @@ class ProcessMonitor():
                     #plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
                     #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
                 """
-            # chosen word annotation
-            for point, found_word in zip(DX, found_words):
-                if found_word in result_dict and found_word in most_uncertain_words:
-                    plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
-                    # Give the full annotation information in the margin:
-                    plt.annotate(most_uncertain_words[found_word][1] + ": " + found_word + " " + most_uncertain_words[found_word][0],\
-                        (smallest_x-self.PLOT_MARGIN, int(most_uncertain_words[found_word][1])*9),\
-                            xytext=(smallest_x-self.PLOT_MARGIN, int(most_uncertain_words[found_word][1])*9), color = "black", fontsize=9)
-                    arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
 
             # minority class plot
             for point, found_word in zip(DX, found_words):
@@ -374,6 +365,22 @@ class ProcessMonitor():
                         print(str(alfa) + " " + found_word + " " + "minority" )
                         color_to_use = (1,0,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
+
+            # chosen word annotation
+            for point, found_word in zip(DX, found_words):
+                if found_word in result_dict and found_word in most_uncertain_words:
+                    word_nr = str(int(most_uncertain_words[found_word][1]) + 1)
+                    plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
+                                 fontsize=7, weight = "bold")
+                    plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
+                                     fontsize=7, weight = "medium")
+                    # Give the full annotation information in the margin
+                    # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
+                    uncertainty_to_print = str(int(100*(round(float(most_uncertain_words[found_word][0]),2))))
+                    y_cord = largest_y - int(most_uncertain_words[found_word][1])*9
+                    plt.annotate(word_nr + ": " + found_word + " " + uncertainty_to_print + "%",\
+                         (smallest_x-self.PLOT_MARGIN-10, y_cord),\
+                         xytext=(smallest_x-self.PLOT_MARGIN-10, y_cord), color = "black", fontsize=9)
 
 
 
