@@ -61,6 +61,7 @@ class ProcessMonitor():
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
         self.WORD_PREFIX = "most_uncertain_words_"
+        self.PLOT_MARGIN = 50
         
         self.path_slash_format = path_slash_format
         self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
@@ -290,14 +291,6 @@ class ProcessMonitor():
                             labelleft='off', labeltop='off', labelright='off', labelbottom='off')
 
 
-            if smallest_x != float("inf"): # Not first time in loop
-                #"Plot to make sure that the image has the same size"
-                plt.scatter(smallest_x, 0, color = "white", marker = "o", s=1)
-                plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
-                plt.scatter(largest_x, 0, color = "white", marker = "o", s=1)
-                plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
-
-
             # outside class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
@@ -318,6 +311,13 @@ class ProcessMonitor():
                             color_to_use = (0,0,0,alfa)
                             plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
+                if smallest_x != float("inf"): # Not first time in loop
+                    #"Plot to make sure that the image has the same size"
+                    plt.scatter(smallest_x-self.PLOT_MARGIN, 0, color = "white", marker = "o", s=1)
+                    plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
+                    plt.scatter(largest_x+self.PLOT_MARGIN, 0, color = "white", marker = "o", s=1)
+                    plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
+
             print(smallest_x, smallest_y, largest_x, largest_y)
             
             saved_in = os.path.split(filename)
@@ -330,29 +330,41 @@ class ProcessMonitor():
 
             print(most_uncertain_words)
             most_uncertain_words_file.close()
-            # minority class annotation
-            for point, found_word in zip(DX, found_words):
-                if found_word in result_dict:
+            """
+                # minority class annotation
+                for point, found_word in zip(DX, found_words):
+                    if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        rounded_tuple = (round(point[0]), round(point[0]))
-                        if rounded_tuple not in annotated_points: # not to many annotations close in the plot
-                            annotated_points.add(rounded_tuple)
-                            
-                            # TODO. Make this code smarter. The point is that the labels are not supposed to overlap
-                            # but they do anyway
-                            annotated_points.add((rounded_tuple[0] + 1, rounded_tuple[1]))
-                            annotated_points.add((rounded_tuple[0] - 1, rounded_tuple[1]))
-                            annotated_points.add((rounded_tuple[0], rounded_tuple[1] + 1))
-                            annotated_points.add((rounded_tuple[0], rounded_tuple[1] - 1))
-                            
-                            annotated_points.add((rounded_tuple[0] + 2, rounded_tuple[1]))
-                            annotated_points.add((rounded_tuple[0] + 3, rounded_tuple[1]))
-                            annotated_points.add((rounded_tuple[0] + 4, rounded_tuple[1]))
-                            annotated_points.add((rounded_tuple[0] + 5, rounded_tuple[1]))
+                    rounded_tuple = (round(point[0]), round(point[0]))
+                    if rounded_tuple not in annotated_points: # not to many annotations close in the plot
+                        annotated_points.add(rounded_tuple)
+            
+                    # TODO. Make this code smarter. The point is that the labels are not supposed to overlap
+            # but they do anyway
+            annotated_points.add((rounded_tuple[0] + 1, rounded_tuple[1]))
+            annotated_points.add((rounded_tuple[0] - 1, rounded_tuple[1]))
+            annotated_points.add((rounded_tuple[0], rounded_tuple[1] + 1))
+            annotated_points.add((rounded_tuple[0], rounded_tuple[1] - 1))
+            
+            annotated_points.add((rounded_tuple[0] + 2, rounded_tuple[1]))
+            annotated_points.add((rounded_tuple[0] + 3, rounded_tuple[1]))
+            annotated_points.add((rounded_tuple[0] + 4, rounded_tuple[1]))
+            annotated_points.add((rounded_tuple[0] + 5, rounded_tuple[1]))
+            
+                    annotated_points.add(rounded_tuple)
+                    #plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
+                    #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
+                """
+            # chosen word annotation
+            for point, found_word in zip(DX, found_words):
+                if found_word in result_dict and found_word in most_uncertain_words:
+                    plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
+                    # Give the full annotation information in the margin:
+                    plt.annotate(most_uncertain_words[found_word][1] + ": " + found_word + " " + most_uncertain_words[found_word][0],\
+                        (smallest_x-self.PLOT_MARGIN, int(most_uncertain_words[found_word][1])*9),\
+                            xytext=(smallest_x-self.PLOT_MARGIN, int(most_uncertain_words[found_word][1])*9), color = "black", fontsize=9)
+                    arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
 
-                            annotated_points.add(rounded_tuple)
-                            #plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
-            #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
             # minority class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
