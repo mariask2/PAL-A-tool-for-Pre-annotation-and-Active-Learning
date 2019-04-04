@@ -260,6 +260,8 @@ class ProcessMonitor():
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
         
+
+        
         if len(previously_saved_files) == 0:
             print("No saved files were found in. " + self.get_full_process_monitoring_dir_path() +\
                   " Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
@@ -267,7 +269,7 @@ class ProcessMonitor():
             return
         
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
-
+        print(suffixes_names)
 
         smallest_x = float("inf")
         smallest_y = float("inf")
@@ -318,6 +320,16 @@ class ProcessMonitor():
 
             print(smallest_x, smallest_y, largest_x, largest_y)
             
+            saved_in = os.path.split(filename)
+            most_uncertain_words_file_name = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
+            most_uncertain_words_file = open(most_uncertain_words_file_name)
+            most_uncertain_words = {}
+            for row in most_uncertain_words_file:
+                sp = row.strip().split("\t")
+                most_uncertain_words[self.remove_underscore(sp[0])] = (sp[1], sp[2])
+
+            print(most_uncertain_words)
+            most_uncertain_words_file.close()
             # minority class annotation
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
