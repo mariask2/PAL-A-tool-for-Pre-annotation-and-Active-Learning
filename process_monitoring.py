@@ -62,8 +62,10 @@ class ProcessMonitor():
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
         self.WORD_PREFIX = "most_uncertain_words_"
-        self.PLOT_MARGIN = 50
+        self.PLOT_LEFT_MARGIN = -20
+        self.PLOT_RIGHT_MARGIN = 80
         self.TITLE_MARGIN = 10
+        self.LEFT_FOR_LEFT_MARGIN = 210
         
         self.path_slash_format = path_slash_format
         self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
@@ -315,9 +317,9 @@ class ProcessMonitor():
 
                 if smallest_x != float("inf"): # Not first time in loop
                     #"Plot to make sure that the image has the same size"
-                    plt.scatter(smallest_x-self.PLOT_MARGIN, 0, color = "white", marker = "o", s=1)
+                    plt.scatter(smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, 0, color = "white", marker = "o", s=1)
                     plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
-                    plt.scatter(largest_x+self.PLOT_MARGIN, 0, color = "white", marker = "o", s=1)
+                    plt.scatter(largest_x+self.PLOT_RIGHT_MARGIN, 0, color = "white", marker = "o", s=1)
                     plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
 
             print(smallest_x, smallest_y, largest_x, largest_y)
@@ -369,16 +371,18 @@ class ProcessMonitor():
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
             # chosen word annotation
-            plt.annotate("Uncertainty left for word", (smallest_x-self.PLOT_MARGIN  - 150, largest_y),\
-             xytext=(smallest_x-self.PLOT_MARGIN - 150, largest_y), color = "black", fontsize=8)
+            plt.annotate("Classification uncertainty remaining for the top " + str(len(most_uncertain_words.keys())) + " most uncertain words in data pool", (smallest_x-self.PLOT_LEFT_MARGIN  - self.LEFT_FOR_LEFT_MARGIN, largest_y + 5),\
+             xytext=(smallest_x-self.PLOT_LEFT_MARGIN - self.LEFT_FOR_LEFT_MARGIN, largest_y), color = "black", fontsize=8)
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict and found_word in most_uncertain_words:
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        color_to_use_background = (0, 0, 0, 0.05)
+                        color_to_use_background = (0, 0, 0, 0.02)
+                        color_to_use_background_last = (0, 0, 0, 0.1)
                         color_to_use = (0, 0, 0, 1 - float(most_uncertain_words[found_word][0]))
                         make_it_striped = True
                     else:
-                        color_to_use_background = (1, 0, 0, 0.05)
+                        color_to_use_background = (1, 0, 0, 0.02)
+                        color_to_use_background_last = (1, 0, 0, 0.1)
                         color_to_use = (1, 0, 0, 1 - float(most_uncertain_words[found_word][0]))
                         make_it_striped = False
                     
@@ -391,17 +395,21 @@ class ProcessMonitor():
                     # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
                     uncertainty_to_print = 100 - int(100*(round(float(most_uncertain_words[found_word][0]),2)))
                     y_cord = largest_y - self.TITLE_MARGIN - int(most_uncertain_words[found_word][1])*9
-                    plt.annotate(word_nr + ": " + found_word, \
-                                 (smallest_x-self.PLOT_MARGIN, y_cord),\
-                                 xytext=(smallest_x-self.PLOT_MARGIN, y_cord), color = "black", fontsize=8)
-                    bar_x = smallest_x-self.PLOT_MARGIN-10
+                    plt.annotate("(" + found_word + ")", \
+                                 (smallest_x-self.PLOT_LEFT_MARGIN, y_cord),\
+                                 xytext=(smallest_x-self.PLOT_LEFT_MARGIN, y_cord), color = "black", fontsize=8)
+                    bar_x = smallest_x-self.PLOT_LEFT_MARGIN-110
                     print_color = color_to_use
+                    marker_to_use = "|"
                     for i in range(0, 100):
                         if i > uncertainty_to_print:
                             print_color = color_to_use_background
-                        marker_to_use = "|"
+                        if i == 99:
+                            print_color = color_to_use_background_last
                         plt.scatter(bar_x, y_cord+3, color = print_color, marker = marker_to_use)
-                        bar_x = bar_x-1
+                        bar_x = bar_x+1
+                    plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, y_cord),\
+                                 xytext=(smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, y_cord), color = "black", fontsize=8)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
