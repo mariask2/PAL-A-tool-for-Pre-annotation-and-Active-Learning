@@ -1,7 +1,7 @@
 # Code to transform simulation results into a format that can be read by gnuplot
 # As well as to do calculations for average f-score
 # Run for instance as:
-# python read_simulation_results.py --project=data.example_project --category=B-speculation --xspace=0.05
+# python read_simulation_results.py --project=data.example_project --category=B-speculation --xspace=0.05 --xaxisstep=200 --maxy=0.8
 
 import argparse
 import os
@@ -61,7 +61,7 @@ def write_dict(name, result_dict, output_file, color, marker, markersize, x_valu
     output_file.write("\n\n")
     return plot_handle
 
-def read_results(result_path, category, extra_xspace, category_index, sub_plot):
+def read_results(result_path, category, extra_xspace, category_index, sub_plot, x_axis_step, max_y):
     random_word2vecfalse = {}
     random_word2vectrue = {}
     active_word2vecfalse = {}
@@ -79,10 +79,22 @@ def read_results(result_path, category, extra_xspace, category_index, sub_plot):
         extract_data(active_word2vecfalse, glob.glob(os.path.join(active_dir, "*False*conll_res.txt")))
         extract_data(active_word2vectrue, glob.glob(os.path.join(active_dir, "*True*conll_res.txt")))
     
+    
     title = category.replace("B-", "")
+
+    print(title)
+    # If the three standard ner categories are used
+    if title == "org":
+        title = "Organisation"
+    if title == "per":
+        title = "Person"
+    if title == "loc":
+        title = "Location"
+
     title = title[0].upper() + title[1:]
     plt.title(title)
-    plt.xlabel('Training data size')
+    if category_index % 2 != 0: # Only write label at every other subplot
+        plt.xlabel('Training data size')
     if category_index == 0: # Only need to write this once
         plt.ylabel('F-score')
     
@@ -95,9 +107,9 @@ def read_results(result_path, category, extra_xspace, category_index, sub_plot):
     handles_labels.append((write_dict("#active_word2vecfalse", active_word2vecfalse, output_file, "green", 'd', 4, 1*extra_xspace), \
                            "Active"))
     handles_labels.append((write_dict("#random_word2vectrue", random_word2vectrue, output_file, "blue", '*', 5, 2*extra_xspace), \
-                           "Random, \nW2V"))
+                           "Random, \nWord2Vec"))
     handles_labels.append((write_dict("#active_word2vectrue", active_word2vectrue, output_file, "black", 'o', 4, 3*extra_xspace), \
-                           "Active, \nW2V"))
+                           "Active, \nWord2Vec"))
 
 
     min_x = sorted(list(random_word2vecfalse.keys()) + list(active_word2vecfalse.keys()) +\
@@ -106,9 +118,15 @@ def read_results(result_path, category, extra_xspace, category_index, sub_plot):
                                   list(random_word2vectrue.keys()) + list(active_word2vectrue.keys()))[-1]
 
 
-    plt.xlim(-100, 100)
-    plt.ylim(-100, 100)
-    plt.xticks(np.arange(min_x, max_x, step=int(max_x/10)))
+    print(max_y, "max_y")
+    plt.xlim(200, 1000)
+    plt.ylim(0, max_y)
+    plt.xticks(np.arange(min_x, max_x, step=int(x_axis_step)))
+
+    # Only need to show axes once
+    if category_index != 0:
+        plt.gca().axes.get_yaxis().set_visible(False)
+               
 
     output_file.close()
     return handles_labels
@@ -121,6 +139,12 @@ if __name__ == "__main__":
     parser.add_argument('--category', action='store', dest='category', help='The category that was evaluated, with its B-prefix, e.g., B-speculation')
     
     parser.add_argument('--xspace', action='store', dest='xspace', help='An extra space on the x-axes to improve visability of the results')
+
+    parser.add_argument('--xaxisstep', action='store', dest='xaxisstep', help='The step with which the vales on the x-axis are to be printed')
+
+    parser.add_argument('--maxy', action='store', dest='maxy', help='Max y-value')
+
+
     
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
     
@@ -145,19 +169,31 @@ if __name__ == "__main__":
     else:
         xspace = float(args.xspace)
 
+    if not args.xaxisstep:
+        x_axis_step = 20
+    else:
+        x_axis_step = int(args.xaxisstep)
+
+    if not args.maxy:
+        max_y = 1.0
+    else:
+        max_y = float(args.maxy)
+
+    categories.sort()
+
     fig = plt.figure()
     for index, category in enumerate(categories):
         sub_plot = fig.add_subplot(1, len(categories), index+1)
         print("Plots results for ", category)
         result_path = os.path.join(path_slash_format, OUTPUT_DIR, category)
         print("Reads results from ", result_path)
-        handles_labels = read_results(result_path, category, xspace, index, sub_plot)
+        handles_labels = read_results(result_path, category, xspace, index, sub_plot, x_axis_step, max_y)
 
 
 
     fig.legend(handles = [handle for (handle, label) in handles_labels][::-1],\
                labels = [label for (handle, label) in handles_labels][::-1])
-    plt.subplots_adjust(right = 0.8)
+    plt.subplots_adjust(right = 0.6, wspace = 0.05)
     #plt.show()
 
 
