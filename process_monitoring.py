@@ -82,70 +82,80 @@ class ProcessMonitor():
         self.first_part_html = \
         """
             <!doctype html>
-            <html lang="en">
-            <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>jQuery UI Slider - Default functionality</title>
-            <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-            <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-            <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-            <style type="text/css">
-            .currentImage {
-            margin-top: 20px;
-            margin-left: 20px;
-            margin-bottom: 5px;
-            border-style: solid;
-            border-color: lightgrey;
-            border-width: 1px;
-            background-image: url("plot_34_1.png");
-            background-repeat: no-repeat;
-            background-size: 1500px;
-            width: 1500px;
-            height: 1000px;
-            border-radius: 25px;
-            }
-            .sliderStyle{
-            margin-left: 20px;
-            margin-top; 20px;
-            color: lightgrey;
-            background-color: red;
-            border-radius: 25px;
-            }
+                <html lang="en">
+                    <head>
+                        <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1">
+                                <title>Annotation status</title>
+                                    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+                                        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+                                        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+                                        <style type="text/css">
+                                            .currentImage {
+                                            margin-top: 20px;
+                                            margin-left: 20px;
+                                            margin-bottom: 5px;
+                                            border-style: solid;
+                                            border-color: lightgrey;
+                                            border-width: 1px;
+                                            background-image: url("plot_34_1.png");
+                                            background-repeat: no-repeat;
+                                            background-size: 1500px;
+                                            width: 1500px;
+                                            height: 1000px;
+                                            border-radius: 25px;
+                                            }
+                                            .sliderStyle{
+                                            margin-left: 20px;
+                                            margin-top; 20px;
+                                            color: lightgrey;
+                                            background-color: red;
+                                            border-radius: 25px;
+                                            }
             
-            </style>
-            <script>
+                                    </style>
+                                    <script>
             """
         
         self.second_part_html = \
         """
-            $( function() {
-            $( "#slider" ).slider({
-            disabled: false,
-            range: "min",
-            animate: "slow",
-            value: 0,
-            min: 0,
-            max: suffixes.length,
-            step: 1,
-            slide: function(event, ui){
-            $(".currentImage").css("background-image", "url('plot_" + suffixes[ui.value] + "_1.png')");
-            }});
-            });
+                                    $( function() {
+                                    $( "#slider" ).slider({
+                                    disabled: false,
+                                    range: "min",
+                                    animate: "slow",
+                                    value: 0,
+                                    min: 0,
+                                    max: suffixes.length,
+                                    step: 1,
+                                    slide: function(event, ui){
+                                    $(".currentImage").css("background-image", "url('plot_" + suffixes[ui.value] + "_1.png')");
+                                    }});
+                                    });
             
-            $( document ).ready(function() {
-            $(".sliderStyle").css("width", suffixes.length + 100 + "px");
-            });
-            </script>
-            </head>
-            <body>
-            <div id = "results" class = "currentImage"></div>
-            <div id="slider" class = "sliderStyle"></div>
-            </body>
-            </html>
+                                    $( document ).ready(function() {
+                                    $(".sliderStyle").css("width", suffixes.length + 100 + "px");
+                                    });
+                                    </script>
+                                </head>
+                                <body>
+                                    <div id = "results" class = "currentImage"></div>
+                                    <div id="slider" class = "sliderStyle"></div>
+                                </body>
+                            </html>
 
         """
  
+        self.suffixes_text = "\t\t\t\t\tvar suffixes = ["
+            
+    def create_html(self, number_list):
+        array_string = self.suffixes_text
+        for number in number_list:
+            array_string = array_string + '"' + str(number) + '", '
+
+        array_string = array_string + "];"
+        return self.first_part_html + "\n" + array_string + "\n" + self.second_part_html
+    
     def get_full_process_monitoring_dir_path_no_word2vec_info(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
         return full_process_monitoring_dir
@@ -490,7 +500,7 @@ if __name__ == "__main__":
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
     process_monitor_instance =  ProcessMonitor(path_slash_format, properties, True)
     process_monitor_instance.analyse_saved_files()
-
+    
 
 
 
