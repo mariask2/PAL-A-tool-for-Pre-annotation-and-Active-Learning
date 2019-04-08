@@ -503,9 +503,9 @@ class ProcessMonitor():
                     
                     word_nr = str(int(word_info[2]) + 1)
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=10, weight = "bold")
+                                 fontsize=16, weight = "bold")
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=10, weight = "semibold")
+                                     fontsize=12, weight = "semibold")
                                      
                                      
                     # Give the full annotation information in the margin
