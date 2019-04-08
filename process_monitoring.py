@@ -62,10 +62,20 @@ class ProcessMonitor():
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
         self.WORD_PREFIX = "most_uncertain_words_"
-        self.PLOT_LEFT_MARGIN = -20
-        self.PLOT_RIGHT_MARGIN = 80
-        self.TITLE_MARGIN = 10
-        self.LEFT_FOR_LEFT_MARGIN = 210
+        
+        """
+            self.PLOT_LEFT_MARGIN = -20
+            self.PLOT_RIGHT_MARGIN = 80
+            self.TITLE_MARGIN = 10
+            self.LEFT_FOR_LEFT_MARGIN = 210
+            """
+        
+        self.PLOT_LEFT_MARGIN = 0
+        self.PLOT_RIGHT_MARGIN = 0
+        self.TITLE_MARGIN = 0
+        self.LEFT_FOR_LEFT_MARGIN = 0
+        
+        self.HTML_NAME = "annotation_status.html"
         
         self.path_slash_format = path_slash_format
         self.whether_to_use_word2vec = whether_to_use_word2vec # Don't use the value in the properies file, as
@@ -351,6 +361,10 @@ class ProcessMonitor():
             return
         
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
+        
+      
+      
+        
         print(suffixes_names)
 
         smallest_x = float("inf")
@@ -358,18 +372,29 @@ class ProcessMonitor():
         largest_x = -1*float("inf")
         largest_y = -1*float("inf")
 
-        fig = plt.figure()
+
+        suffixes_for_run_1 = []
+        
         for (nr, filename) in suffixes_names:
+        
+            main_fig = plt.figure()
+            main_fig.set_size_inches(15, 7)
+            fig = main_fig.add_subplot(1, 2, 1)
+
             
+            #splitted = nr.split("_")
+            #if splitted[1] == "1":
+            #suffixes_for_run_1.append(splitted[0])
+
             annotated_points = set()
             sp = filename.split("_")
             nr_ending = sp[-2] + "_" + sp[-1]
             result_dict = pickle.load(open(filename, "rb"))
         
-            plt.clf()
-            plt.axis('off')
-            plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
-                            labelleft='off', labeltop='off', labelright='off', labelbottom='off')
+            #plt.clf()
+            #plt.axis('off')
+            #plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
+                #            labelleft='off', labeltop='off', labelright='off', labelbottom='off')
 
 
             # outside class plot
@@ -448,8 +473,9 @@ class ProcessMonitor():
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
             # chosen word annotation
-            plt.annotate("Classification uncertainty remaining for the top " + str(len(most_uncertain_words.keys())) + " most uncertain words in data pool", (smallest_x-self.PLOT_LEFT_MARGIN  - self.LEFT_FOR_LEFT_MARGIN, largest_y + 5),\
-             xytext=(smallest_x-self.PLOT_LEFT_MARGIN - self.LEFT_FOR_LEFT_MARGIN, largest_y), color = "black", fontsize=8)
+            #plt.annotate("Classification uncertainty remaining for the top " + str(len(most_uncertain_words.keys())) + " most uncertain words in data pool", (smallest_x-self.PLOT_LEFT_MARGIN  - #self.LEFT_FOR_LEFT_MARGIN, largest_y + 5),\
+            #xytext=(smallest_x-self.PLOT_LEFT_MARGIN - self.LEFT_FOR_LEFT_MARGIN, largest_y), color = "black", fontsize=8)
+            found_word_info = []
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict and found_word in most_uncertain_words:
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
@@ -468,8 +494,17 @@ class ProcessMonitor():
                                  fontsize=7, weight = "bold")
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
                                      fontsize=7, weight = "medium")
+                                     
+                                     
                     # Give the full annotation information in the margin
                     # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
+                    
+                    found_word_info.append({"found_word" : found_word, "largest_y" : largest_y, "largest_x" : largest_x, "smallest_x" : smallest_x, \
+                                           "smallest_y": smallest_y, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, \
+                                           "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr
+                                           })
+                    
+                    """
                     uncertainty_to_print = 100 - int(100*(round(float(most_uncertain_words[found_word][0]),2)))
                     y_cord = largest_y - self.TITLE_MARGIN - int(most_uncertain_words[found_word][1])*9
                     plt.annotate("(" + found_word + ")", \
@@ -487,12 +522,52 @@ class ProcessMonitor():
                         bar_x = bar_x+1
                     plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, y_cord),\
                                  xytext=(smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, y_cord), color = "black", fontsize=8)
+                          """
+            chosen_terms = main_fig.add_subplot(1, 2, 2)
+            max_y = 150
+            plt.xlim(0, 500)
+            plt.ylim(0, max_y)
+            title_space = 20
+            for el in found_word_info:
+                self.list_chosen_words(most_uncertain_words, el["found_word"], el["largest_y"], el["largest_x"], el["smallest_x"], el["smallest_y"], el["color_to_use"], \
+                                       el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y, title_space)
+
+
+            plt.annotate("Classification uncertainty remaining for the top most uncertain words in data pool", (0, max_y - title_space), \
+                         xytext=(0,max_y - 5), color = "black", fontsize=8)
+                         
+            plt.subplots_adjust(wspace = 0.05)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
-            plt.savefig(save_figure_file_name, dpi = 700) #, bbox_inches='tight')
+            plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 
+            print(suffixes_for_run_1)
+            html_for_show_plots = self.create_html(suffixes_for_run_1)
+            save_html_in = os.path.join(self.get_full_process_monitoring_dir_path(), self.HTML_NAME)
+            print(html_for_show_plots)
+            print(save_html_in)
+
+    def list_chosen_words(self, most_uncertain_words, found_word, largest_y, largest_x, smallest_x, smallest_y, color_to_use, color_to_use_background, color_to_use_background_last, word_nr, max_y, title_space):
+        uncertainty_to_print = 100 - int(100*(round(float(most_uncertain_words[found_word][0]),2)))
+        y_cord = largest_y - int(most_uncertain_words[found_word][1])*5
+        plt.annotate("(" + found_word + ")", \
+        (170, y_cord),\
+        xytext=(170, y_cord), color = "black", fontsize=8)
+        
+        bar_x = 60
+        print_color = color_to_use
+        marker_to_use = "|"
+        for i in range(0, 100):
+            if i > uncertainty_to_print:
+                print_color = color_to_use_background
+            if i == 99:
+                print_color = color_to_use_background_last
+            plt.scatter(bar_x, y_cord+1, color = print_color, marker = marker_to_use)
+            bar_x = bar_x+1
+        plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
+                         xytext=(0, y_cord), color = "black", fontsize=8)
 
 
 if __name__ == "__main__":
@@ -500,7 +575,7 @@ if __name__ == "__main__":
     properties, path_slash_format, path_dot_format = active_learning_preannotation.load_properties(parser)
     process_monitor_instance =  ProcessMonitor(path_slash_format, properties, True)
     process_monitor_instance.analyse_saved_files()
-    
+
 
 
 
