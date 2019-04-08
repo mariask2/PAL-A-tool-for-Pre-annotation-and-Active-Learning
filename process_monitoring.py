@@ -50,10 +50,11 @@ class ProcessMonitor():
         self.VECTORIZER_NAME = "vectorizer"
         self.PREDICTION = "PREDICTION"
         self.SCORE = "SCORE"
-        self.MOST_COMMON_PREDICTION = "P"
-        self.MEAN_SCORE = "M"
-        self.PREDICTION_STATISTICS = "S"
-        self.VARIANCE_SCORE = "V"
+        self.MOST_COMMON_PREDICTION = "MOST_COMMON_PREDICTION"
+        self.MEAN_SCORE = "MEAN_SCORE"
+        self.PREDICTION_STATISTICS = "PREDICTION_STATISTICS"
+        self.VARIANCE_SCORE = "VARIANCE_SCORE"
+        self.LOWEST_SCORE = "LOWEST_SCORE"
         self.MINORITY_CLASSES = "MINORITY_CLASSES"
         self.FOLDER_FOR_WORD2VEC_TRUE = "word2vec_true"
         self.FOLDER_FOR_WORD2VEC_FALSE = "word2vec_false"
@@ -186,9 +187,9 @@ class ProcessMonitor():
                 text_concatenated = np.concatenate(unlabelled_text_vector)
                 # To save storage space, only include types occurring at least three time in the statistics
                 # or more than three times, if
-                #word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
-                        #max_df = properties.max_df_current)
-                word_vectorizer = CountVectorizer(binary = True, min_df=1, max_df = properties.max_df_current)
+                word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
+                        max_df = properties.max_df_current)
+                #word_vectorizer = CountVectorizer(binary = True, min_df=1, max_df = properties.max_df_current)
                 word_vectorizer.fit_transform(text_concatenated)
                 
                 os.mkdir(full_process_monitoring_dir_path)
@@ -215,6 +216,9 @@ class ProcessMonitor():
 
     def get_mean_conf_from_lst(self, conf_lst):
          return sum(conf_lst)/len(conf_lst)
+
+    def get_lowest_conf_from_lst(self, conf_lst):
+        return min(conf_lst)
 
     def get_variance_from_lst(self, conf_lst):
         return np.var(conf_lst)
@@ -288,11 +292,12 @@ class ProcessMonitor():
         final_hash = {}
         for key, item in word_hash.items():
             mean_conf = self.get_mean_conf_from_lst(item[self.SCORE])
+            lowest_conf = self.get_lowest_conf_from_lst(item[self.SCORE])
             variance_conf = self.get_variance_from_lst(item[self.SCORE])
             most_common_predicted = self.get_most_common_predicted(item[self.PREDICTION], majority_class, inv_labelled_dict)
             stat_dict = self.get_stat_dictionary(item[self.PREDICTION], inv_labelled_dict)
             final_hash[key] = {self.MOST_COMMON_PREDICTION: most_common_predicted, self.MEAN_SCORE: mean_conf,\
-                self.PREDICTION_STATISTICS:stat_dict, self.VARIANCE_SCORE: variance_conf}
+                self.PREDICTION_STATISTICS:stat_dict, self.VARIANCE_SCORE: variance_conf, self.LOWEST_SCORE: lowest_conf}
 
         self.current_file_name = self.get_file_to_save_in()
         #print("Saving in " + file_to_save_in)
@@ -411,11 +416,11 @@ class ProcessMonitor():
 
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
-                        if result_dict[found_word][self.MEAN_SCORE] < 0.9:
-                            alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
-                            print(str(alfa) + " " + found_word)
-                            color_to_use = (0,0,0,alfa)
-                            plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
+
+                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
+                        print(str(alfa) + " " + found_word)
+                        color_to_use = (0,0,0,alfa)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
                 if smallest_x != float("inf"): # Not first time in loop
                     #"Plot to make sure that the image has the same size"
@@ -467,7 +472,7 @@ class ProcessMonitor():
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
-                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
+                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         print(str(alfa) + " " + found_word + " " + "minority" )
                         color_to_use = (1,0,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
@@ -491,9 +496,9 @@ class ProcessMonitor():
                     
                     word_nr = str(int(most_uncertain_words[found_word][1]) + 1)
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=7, weight = "bold")
+                                 fontsize=10, weight = "bold")
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=7, weight = "medium")
+                                     fontsize=10, weight = "semibold")
                                      
                                      
                     # Give the full annotation information in the margin
