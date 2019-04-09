@@ -86,6 +86,7 @@ class ProcessMonitor():
         self.vector_length = properties.semantic_vector_length
         self.model_path = properties.model_path
         self.majority_class = properties.outside_class
+        self.entity_class = properties.minority_classes[0].split("-")[1]
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
 
@@ -519,11 +520,12 @@ class ProcessMonitor():
                     color_to_use_background = (0, 0, 1, 0.02)
                     color_to_use_background_last = (0, 0, 1, 0.1)
                     color_to_use = (0, 0, 1, 1 - float(word_info[1]))
+                    f_weight = "normal"
                 else:
                     color_to_use_background = (1, 0, 0, 0.02)
                     color_to_use_background_last = (1, 0, 0, 0.1)
                     color_to_use = (1, 0, 0, 1 - float(word_info[1]))
-                
+                    f_weight = "medium"
                 # if there is a vector corresponding to the word
                 # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
                 # If there is no corresponding vector, there are only three elements in word_info
@@ -540,7 +542,8 @@ class ProcessMonitor():
                 # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
                 # Regardless if found in vector space
                 found_word_info.append({"word" : word, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, \
-                                           "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr, "confidence" : word_info[1]})
+                                           "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr,\
+                                       "confidence" : word_info[1], "f_weight": f_weight})
 
 
             print("found_word_info", found_word_info)
@@ -555,12 +558,18 @@ class ProcessMonitor():
             title_space = 20
             for el in found_word_info:
                 self.list_chosen_words(el["word"], el["color_to_use"], \
-                                       el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y, title_space, el["confidence"])
+                                       el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y,\
+                                       title_space, el["confidence"], el["f_weight"])
 
 
-            plt.annotate(str(nr_ending) + ": Classification uncertainty remaining\nfor most uncertain words in data pool", (0, max_y - title_space), \
+            plt.annotate(nr_ending.split("_")[0] + ": Classification uncertainty remaining\nfor the most uncertain tokens in the data pool", (0, max_y - title_space), \
                          xytext=(0,max_y - 10), color = "black", fontsize=12)
-                         
+
+            explanation_y = max_y - 14 - (len(found_word_info) + 2)*5 - 3
+
+            plt.annotate("Red: Tokens classified as " + self.entity_class[0].upper() + self.entity_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
+                         xytext=(0,explanation_y), color = "black", fontsize=11)
+
             plt.subplots_adjust(wspace = 0.0)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
@@ -574,13 +583,14 @@ class ProcessMonitor():
             print(html_for_show_plots)
             print(save_html_in)
 
-    def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last, word_nr, max_y, title_space, confidence):
+    def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
+                          word_nr, max_y, title_space, confidence, f_weight):
         print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - 14 - int(word_nr)*5
         plt.annotate("(" + found_word + ")", \
         (170, y_cord),\
-        xytext=(170, y_cord), color = "black", fontsize=11)
+        xytext=(170, y_cord), color = "black", fontsize=11, weight = f_weight)
         
         bar_x = 60
         print_color = color_to_use
@@ -593,7 +603,7 @@ class ProcessMonitor():
             plt.scatter(bar_x, y_cord+1, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=11)
+                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight)
 
 
 if __name__ == "__main__":
