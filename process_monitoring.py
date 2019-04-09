@@ -255,19 +255,20 @@ class ProcessMonitor():
 
         min_words_in_selected_sentences = []
         for el in sentence_index_selected_in_active_selection:
-            (min_prop_value, word_with_lowest_prob, y, index_in_sentence_with_min_prob) = self.current_selected_indeces_min_prob_word_hash[el]
+            (min_prop_value, word_with_lowest_prob, y, index_in_sentence_with_min_prob, sentence_before, sentence_after) =\
+                self.current_selected_indeces_min_prob_word_hash[el]
             classification_for_min = y[index_in_sentence_with_min_prob]
             if classification_for_min == self.current_majority_class:
                 classification_to_write = "O"
             else:
                 classification_to_write = "E"
-            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_to_write))
+            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_to_write, sentence_before, sentence_after))
 
         min_words_in_selected_sentences.sort()
 
         open_file = open(file_to_save_in, "w")
         for order, word in enumerate(min_words_in_selected_sentences):
-            open_file.write(str(word[1]) + "\t" + str(word[0]) + "\t" + str(order) + "\t" + str(word[2]) + "\n")
+            open_file.write(str(word[1]) + "\t" + str(word[0]) + "\t" + str(order) + "\t" + str(word[2]) + "\t" + str(word[3]) + "\t" + str(word[4]) + "\n")
         open_file.close()
 
 
@@ -286,8 +287,12 @@ class ProcessMonitor():
             zip(selected_indeces, all_index_for_min_probabilities, min_probability_differences, ys):
             sentence = list(sentences_unlabelled[sentence_nr])
             word_with_lowest_prob = sentence[index_in_sentence_with_min_prop]
+            sentence_before = " ".join(sentence[:index_in_sentence_with_min_prop])
+            sentence_after = " ".join(sentence[index_in_sentence_with_min_prop + 1 :])
+            
             #print(sentence, word_with_lowest_prob)
-            self.current_selected_indeces_min_prob_word_hash[sentence_nr] = (min_prop_value, word_with_lowest_prob, y, index_in_sentence_with_min_prop)
+            self.current_selected_indeces_min_prob_word_hash[sentence_nr] = (min_prop_value, word_with_lowest_prob, y,\
+                                                                             index_in_sentence_with_min_prop, sentence_before, sentence_after)
             #self.current_selected_indeces_min_prob_hash[nr] =
             #print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
         
