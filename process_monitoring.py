@@ -259,9 +259,10 @@ class ProcessMonitor():
                 self.current_selected_indeces_min_prob_word_hash[el]
             classification_for_min = y[index_in_sentence_with_min_prob]
             if classification_for_min == self.current_majority_class:
-                classification_to_write = "O"
+                classification_to_write = self.MOST_COMMON_PREDICTION
             else:
-                classification_to_write = "E"
+                classification_to_write = self.MINORITY_CLASSES
+            
             min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_to_write, sentence_before, sentence_after))
 
         min_words_in_selected_sentences.sort()
@@ -401,9 +402,17 @@ class ProcessMonitor():
         
             main_fig = plt.figure()
             main_fig.set_size_inches(15, 7)
+            
+
+
             fig = main_fig.add_subplot(1, 2, 1)
 
-            
+
+
+            plt.axis('off')
+            plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
+                            labelleft='off', labeltop='off', labelright='off', labelbottom='off')
+                            
             #splitted = nr.split("_")
             #if splitted[1] == "1":
             #suffixes_for_run_1.append(splitted[0])
@@ -413,10 +422,7 @@ class ProcessMonitor():
             nr_ending = sp[-2] + "_" + sp[-1]
             result_dict = pickle.load(open(filename, "rb"))
         
-            #plt.clf()
-            #plt.axis('off')
-            #plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
-                #            labelleft='off', labeltop='off', labelright='off', labelbottom='off')
+        
 
 
             saved_in = os.path.split(filename)
@@ -426,7 +432,7 @@ class ProcessMonitor():
             most_uncertain_words_set = set()
             for row in most_uncertain_words_file:
                 sp = row.strip().split("\t")
-                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2]])
+                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3]])
                 most_uncertain_words_set.add(self.remove_underscore(sp[0]))
             
             most_uncertain_words_file.close()
@@ -450,9 +456,8 @@ class ProcessMonitor():
 
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
-                        #alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
-                        alfa = 1 - result_dict[found_word][self.LOWEST_SCORE]
-                        color_to_use = (0,0,0,alfa)
+                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
+                        color_to_use = (0,0,1,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
                 if smallest_x != float("inf"): # Not first time in loop
@@ -496,8 +501,7 @@ class ProcessMonitor():
                 if found_word in result_dict:
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
-                        #alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
-                        alfa = 1 - result_dict[found_word][self.LOWEST_SCORE]
+                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         print(str(alfa) + " " + found_word + " " + "minority" )
                         color_to_use = (1,0,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
@@ -508,28 +512,26 @@ class ProcessMonitor():
             for word_info in most_uncertain_words:
                 word = word_info[0]
                 word_nr = str(int(word_info[2]) + 1)
+                y_prediction = word_info[3]
                 
-                # Todo: this should take the value from the point, not the default
-                color_to_use_background = (0, 0, 0, 0.02)
-                color_to_use_background_last = (0, 0, 0, 0.1)
-                color_to_use = (0, 0, 0, 1 - float(word_info[1]))
-
-                if word in result_dict and word in found_words:
-                    point = DX[word_info[3]] # most_uncertain_words has save the index, where the vector of this word is stored
-                    if result_dict[word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                        color_to_use_background = (0, 0, 0, 0.02)
-                        color_to_use_background_last = (0, 0, 0, 0.1)
-                        color_to_use = (0, 0, 0, 1 - float(word_info[1]))
-                        make_it_striped = True
-                    else:
-                        color_to_use_background = (1, 0, 0, 0.02)
-                        color_to_use_background_last = (1, 0, 0, 0.1)
-                        color_to_use = (1, 0, 0, 1 - float(word_info[1]))
-                        make_it_striped = False
-                    
-                    
+                
+                if y_prediction == self.MOST_COMMON_PREDICTION:
+                    color_to_use_background = (0, 0, 1, 0.02)
+                    color_to_use_background_last = (0, 0, 1, 0.1)
+                    color_to_use = (0, 0, 1, 1 - float(word_info[1]))
+                else:
+                    color_to_use_background = (1, 0, 0, 0.02)
+                    color_to_use_background_last = (1, 0, 0, 0.1)
+                    color_to_use = (1, 0, 0, 1 - float(word_info[1]))
+                
+                # if there is a vector corresponding to the word
+                # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
+                # If there is no corresponding vector, there are only three elements in word_info
+                # and nothing can be plotted for this point
+                if len(word_info) == 5:
+                    point = DX[word_info[4]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=16, weight = "bold")
+                                 fontsize=12, weight = "bold")
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
                                      fontsize=12, weight = "semibold")
                                      
@@ -537,26 +539,29 @@ class ProcessMonitor():
                 # Give the full annotation information in the margin
                 # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
                 # Regardless if found in vector space
-                found_word_info.append({"word" : word, "largest_y" : largest_y, "largest_x" : largest_x, "smallest_x" : smallest_x, \
-                                           "smallest_y": smallest_y, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, \
+                found_word_info.append({"word" : word, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, \
                                            "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr, "confidence" : word_info[1]})
 
 
             print("found_word_info", found_word_info)
             chosen_terms = main_fig.add_subplot(1, 2, 2)
+            plt.axis('off')
+            plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
+                labelleft='off', labeltop='off', labelright='off', labelbottom='off')
+
             max_y = 150
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
             title_space = 20
             for el in found_word_info:
-                self.list_chosen_words(el["word"], el["largest_y"], el["largest_x"], el["smallest_x"], el["smallest_y"], el["color_to_use"], \
+                self.list_chosen_words(el["word"], el["color_to_use"], \
                                        el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y, title_space, el["confidence"])
 
 
-            plt.annotate("Classification uncertainty remaining for the top most uncertain words in data pool", (0, max_y - title_space), \
-                         xytext=(0,max_y - 5), color = "black", fontsize=8)
+            plt.annotate(str(nr_ending) + ": Classification uncertainty remaining\nfor most uncertain words in data pool", (0, max_y - title_space), \
+                         xytext=(0,max_y - 10), color = "black", fontsize=12)
                          
-            plt.subplots_adjust(wspace = 0.05)
+            plt.subplots_adjust(wspace = 0.0)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + self.PLOT_FILE_ENDING)
@@ -569,13 +574,13 @@ class ProcessMonitor():
             print(html_for_show_plots)
             print(save_html_in)
 
-    def list_chosen_words(self, found_word, largest_y, largest_x, smallest_x, smallest_y, color_to_use, color_to_use_background, color_to_use_background_last, word_nr, max_y, title_space, confidence):
+    def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last, word_nr, max_y, title_space, confidence):
         print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
-        y_cord = max_y - 7 - int(word_nr)*5
+        y_cord = max_y - 14 - int(word_nr)*5
         plt.annotate("(" + found_word + ")", \
         (170, y_cord),\
-        xytext=(170, y_cord), color = "black", fontsize=8)
+        xytext=(170, y_cord), color = "black", fontsize=11)
         
         bar_x = 60
         print_color = color_to_use
@@ -588,7 +593,7 @@ class ProcessMonitor():
             plt.scatter(bar_x, y_cord+1, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=8)
+                         xytext=(0, y_cord), color = "black", fontsize=11)
 
 
 if __name__ == "__main__":
