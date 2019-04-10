@@ -525,7 +525,7 @@ class ProcessMonitor():
                     color_to_use_background = (1, 0, 0, 0.02)
                     color_to_use_background_last = (1, 0, 0, 0.1)
                     color_to_use = (1, 0, 0, 1 - float(word_info[1]))
-                    f_weight = "medium"
+                    f_weight = "semibold"
                 # if there is a vector corresponding to the word
                 # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
                 # If there is no corresponding vector, there are only three elements in word_info
@@ -588,11 +588,10 @@ class ProcessMonitor():
         print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - 14 - int(word_nr)*5
-        plt.annotate("(" + found_word + ")", \
-        (170, y_cord),\
-        xytext=(170, y_cord), color = "black", fontsize=11, weight = f_weight)
+        plt.annotate("(" + found_word + ")", (180, y_cord),\
+        xytext=(180, y_cord), color = "black", fontsize=11, weight = f_weight)
         
-        bar_x = 60
+        bar_x = 65
         print_color = color_to_use
         marker_to_use = "|"
         for i in range(0, 100):
