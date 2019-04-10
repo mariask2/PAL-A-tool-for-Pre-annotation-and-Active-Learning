@@ -588,10 +588,10 @@ class ProcessMonitor():
         print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - 14 - int(word_nr)*5
-        plt.annotate("(" + found_word + ")", (180, y_cord),\
-        xytext=(180, y_cord), color = "black", fontsize=11, weight = f_weight)
+        plt.annotate("(" + found_word + ")", (195, y_cord),\
+        xytext=(195, y_cord), color = "black", fontsize=11, weight = f_weight)
         
-        bar_x = 65
+        bar_x = 75
         print_color = color_to_use
         marker_to_use = "|"
         for i in range(0, 100):
