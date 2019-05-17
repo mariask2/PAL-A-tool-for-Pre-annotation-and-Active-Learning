@@ -89,6 +89,12 @@ c_value = 1
 
 write_process_monitoring = False
 
+
+###
+# Set to true if the gensim format for the word vectors is to be used
+####
+gensim_format = False
+
 # Settings, typically not changed
 #################################
 

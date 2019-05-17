@@ -473,6 +473,14 @@ class PropertiesContainer:
             self.process_monitoring_dir = properties.process_monitoring_dir
         except AttributeError:
             self.process_monitoring_dir = default_settings.process_monitoring_dir
+        
+        
+        try:
+            self.gensim_format = properties.gensim_format
+        except AttributeError:
+            self.gensim_format = default_settings.gensim_format
+        
+        
 
         # Only implemented for NonStructuredLogisticRegression so far
         if self.model_type == classify_and_select.NonStructuredLogisticRegression and hasattr(properties, 'max_iterations'):
@@ -484,7 +492,7 @@ class PropertiesContainer:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     properties_main, path_slash_format_main, path_dot_format = load_properties(parser)
-    word2vecwrapper = vectorize_data.Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length)
+    word2vecwrapper = vectorize_data.Word2vecWrapper(properties_main.model_path, properties_main.semantic_vector_length, properties_main.gensim_format)
 
 
     

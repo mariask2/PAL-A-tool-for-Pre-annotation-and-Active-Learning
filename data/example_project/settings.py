@@ -157,7 +157,7 @@ semantic_vector_length = 300
 ###
 # Whether process monitoring data should be recorded
 ####
-write_process_monitoring = False
+write_process_monitoring = True
 
 #######
 # This is to be set to False when active learning is to be applied 
