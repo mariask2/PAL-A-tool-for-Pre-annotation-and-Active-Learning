@@ -30,7 +30,7 @@ import active_learning_preannotation
 ## For saving the data, the 'write_process_monitoring' variable in 'settings.py' must be set to True.
 ## The settings.py file is also used for loading other kinds of information, e.g. where the word2vec-space needed
 ## for the visualisation is stored.
-## Note that is the process is run as a simulation, then the data in the 'different_sizes_simulation_settings.py'
+## Note that when the process is run as a simulation, then the data in the 'different_sizes_simulation_settings.py'
 ## is what governs what will happen regarding the saving of the data. However, for then using the
 ## saved data for visualisation, 'settings.py' is used. So make sure that the info in these two are consistent.
 ## (Some kind of automatic check should be added in the future.)
@@ -63,6 +63,8 @@ class ProcessMonitor():
         self.PLOT_PREFIX = "plot_"
         self.PLOT_FILE_ENDING = ".png"
         self.WORD_PREFIX = "most_uncertain_words_"
+        self.SAVED_TSNE = "SAVED_TSNE"
+        self.SAVED_FOUND_TSNE_WORDS = "SAVED_FOUND_TSNE_WORDS"
         
         """
             self.PLOT_LEFT_MARGIN = -20
@@ -87,6 +89,7 @@ class ProcessMonitor():
         self.model_path = properties.model_path
         self.majority_class = properties.outside_class
         self.entity_class = properties.minority_classes[0].split("-")[1]
+        self.gensim_format = properties.gensim_format
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
 
@@ -344,16 +347,33 @@ class ProcessMonitor():
         count_vectorizer = joblib.load(os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.VECTORIZER_NAME))
         print(count_vectorizer)
         types_at_process_start = count_vectorizer.get_feature_names()
-        self.plot(types_at_process_start)
+        DX, found_words = self.get_tsne_info(types_at_process_start)
+        self.plot_each_state(DX, found_words, whether_to_use_word2vec = True)
+        self.plot_each_state(DX, found_words, whether_to_use_word2vec = False)
 
-
-    def plot(self, word_list):
-        word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True, unicode_errors='ignore')
+    def get_tsne_info(self, word_list):
+        
+        tsne_name = os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.SAVED_TSNE)
+        saved_found_words_name = os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), self.SAVED_FOUND_TSNE_WORDS)
+        print(tsne_name)
+        print(saved_found_words_name)
+        
+        if os.path.exists(tsne_name) and os.path.exists(saved_found_words_name):
+            print("Model already created")
+            DX = joblib.load(tsne_name)
+            found_words = joblib.load(saved_found_words_name)
+            return DX, found_words
+            #return here, if false continue
+            
+        print("TSNE model of words not previously created. Create new model")
+        if self.gensim_format:
+            word2vec_model = gensim.models.KeyedVectors.load(self.model_path)
+        else:
+            word2vec_model = gensim.models.KeyedVectors.load_word2vec_format(self.model_path, binary=True, unicode_errors='ignore')
         all_vectors_list = []
         found_words = []
         for word in word_list:
             word = self.remove_underscore(word)
-            print(word)
             try:
                 vec_raw  = word2vec_model[word]
                 norm_vector = list(preprocessing.normalize(np.reshape(vec_raw, newshape = (1, self.vector_length)), norm='l2')[0])
@@ -367,8 +387,12 @@ class ProcessMonitor():
         tsne_model = TSNE(n_components=2, random_state=0)
         DX_pca = pca_model.fit_transform(all_vectors_np)
         DX = tsne_model.fit_transform(DX_pca)
-        self.plot_each_state(DX, found_words, whether_to_use_word2vec = True)
-        self.plot_each_state(DX, found_words, whether_to_use_word2vec = False)
+
+        joblib.dump(DX, tsne_name, compress=9)
+        joblib.dump(found_words, saved_found_words_name, compress=9)
+
+        return DX, found_words
+
 
     def plot_each_state(self, DX, found_words, whether_to_use_word2vec):
         self.whether_to_use_word2vec = whether_to_use_word2vec
@@ -503,7 +527,7 @@ class ProcessMonitor():
                     if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
                         alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
-                        print(str(alfa) + " " + found_word + " " + "minority" )
+                        #print(str(alfa) + " " + found_word + " " + "minority" )
                         color_to_use = (1,0,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
@@ -546,7 +570,7 @@ class ProcessMonitor():
                                        "confidence" : word_info[1], "f_weight": f_weight})
 
 
-            print("found_word_info", found_word_info)
+            #print("found_word_info", found_word_info)
             chosen_terms = main_fig.add_subplot(1, 2, 2)
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
@@ -585,7 +609,7 @@ class ProcessMonitor():
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           word_nr, max_y, title_space, confidence, f_weight):
-        print("confidence", confidence)
+        #print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - 14 - int(word_nr)*5
         plt.annotate("(" + found_word + ")", (195, y_cord),\
