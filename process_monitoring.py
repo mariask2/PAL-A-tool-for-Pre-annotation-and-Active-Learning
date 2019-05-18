@@ -400,8 +400,6 @@ class ProcessMonitor():
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
         
-
-        
         if len(previously_saved_files) == 0:
             print("No saved files were found in. " + self.get_full_process_monitoring_dir_path() +\
                   " Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
@@ -410,29 +408,31 @@ class ProcessMonitor():
         
         suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
         
-      
-      
-        
-        print(suffixes_names)
-
-        smallest_x = float("inf")
-        smallest_y = float("inf")
-        largest_x = -1*float("inf")
-        largest_y = -1*float("inf")
-
-
         suffixes_for_run_1 = []
         
         for (nr, filename) in suffixes_names:
+            
+            saved_in = os.path.split(filename)
+            most_uncertain_words_file_name = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
+            most_uncertain_words_file = open(most_uncertain_words_file_name)
+            most_uncertain_words = []
+            most_uncertain_words_set = set()
+            for row in most_uncertain_words_file:
+                sp = row.strip().split("\t")
+                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3]])
+                most_uncertain_words_set.add(self.remove_underscore(sp[0]))
         
+            most_uncertain_words_file.close()
+            result_dict = pickle.load(open(filename, "rb"))
+            self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
+                                         most_uncertain_words_set, filename, suffixes_for_run_1, "dummy")
+        
+    def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
+                                most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
+        if True: #remove
             main_fig = plt.figure()
             main_fig.set_size_inches(15, 7)
-            
-
-
             fig = main_fig.add_subplot(1, 2, 1)
-
-
 
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
@@ -445,26 +445,15 @@ class ProcessMonitor():
             annotated_points = set()
             sp = filename.split("_")
             nr_ending = sp[-2] + "_" + sp[-1]
-            result_dict = pickle.load(open(filename, "rb"))
-        
-        
-
-
-            saved_in = os.path.split(filename)
-            most_uncertain_words_file_name = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
-            most_uncertain_words_file = open(most_uncertain_words_file_name)
-            most_uncertain_words = []
-            most_uncertain_words_set = set()
-            for row in most_uncertain_words_file:
-                sp = row.strip().split("\t")
-                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3]])
-                most_uncertain_words_set.add(self.remove_underscore(sp[0]))
             
-            most_uncertain_words_file.close()
-        
-            # outside class plot
+            smallest_x = float("inf")
+            smallest_y = float("inf")
+            largest_x = -1*float("inf")
+            largest_y = -1*float("inf")
+                        
+
+            # outside current class plot
             for word_index, (point, found_word) in enumerate(zip(DX, found_words)):
-                
                 if found_word in most_uncertain_words_set:
                     for nr, uncertain_word_info in enumerate(most_uncertain_words):
                         if uncertain_word_info[0] == found_word:
@@ -479,18 +468,19 @@ class ProcessMonitor():
                     if point[1] > largest_y:
                         largest_y = point[1]
 
+    #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
                         # Make sure its visible even if it certain
                         alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         color_to_use = (0,0,1,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
-                if smallest_x != float("inf"): # Not first time in loop
-                    #"Plot to make sure that the image has the same size"
-                    plt.scatter(smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, 0, color = "white", marker = "o", s=1)
-                    plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
-                    plt.scatter(largest_x+self.PLOT_RIGHT_MARGIN, 0, color = "white", marker = "o", s=1)
-                    plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
+            if smallest_x != float("inf"): # Not first time in loop
+                #"Plot to make sure that the image has the same size"
+                plt.scatter(smallest_x-self.PLOT_LEFT_MARGIN-self.LEFT_FOR_LEFT_MARGIN, 0, color = "white", marker = "o", s=1)
+                plt.scatter(0, smallest_y, color = "white", marker = "o", s=1)
+                plt.scatter(largest_x+self.PLOT_RIGHT_MARGIN, 0, color = "white", marker = "o", s=1)
+                plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
 
             print(smallest_x, smallest_y, largest_x, largest_y)
             print("most_uncertain_words", most_uncertain_words)
@@ -597,11 +587,11 @@ class ProcessMonitor():
             plt.subplots_adjust(wspace = 0.0)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
-                                                 nr_ending + self.PLOT_FILE_ENDING)
+                                                 nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
             plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 
-            print(suffixes_for_run_1)
+            print("suffixes_for_run_1", suffixes_for_run_1)
             html_for_show_plots = self.create_html(suffixes_for_run_1)
             save_html_in = os.path.join(self.get_full_process_monitoring_dir_path(), self.HTML_NAME)
             print(html_for_show_plots)
