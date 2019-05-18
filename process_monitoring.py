@@ -88,7 +88,14 @@ class ProcessMonitor():
         self.vector_length = properties.semantic_vector_length
         self.model_path = properties.model_path
         self.majority_class = properties.outside_class
-        self.entity_class = properties.minority_classes[0].split("-")[1]
+        self.entities = []
+        for c in properties.minority_classes:
+            if "-" in c:
+                self.entities.append(c.split("-")[1])
+            else:
+                self.entities.append(c)
+        self.entities = list(set(self.entities))
+        #self.entity_class = properties.minority_classes[0].split("-")[1]
         self.gensim_format = properties.gensim_format
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
@@ -261,7 +268,7 @@ class ProcessMonitor():
     
     #print("min_probability_differences", min_probability_differences)
 
-    def write_process_monitoring_selected_words(self, sentence_index_selected_in_active_selection):
+    def write_process_monitoring_selected_words(self, sentence_index_selected_in_active_selection, inv_labelled_dict):
         
         if not self.write_process_monitoring:
             return
@@ -269,19 +276,13 @@ class ProcessMonitor():
         saved_in = os.path.split(self.current_file_name)
         file_to_save_in = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
 
-
-
         min_words_in_selected_sentences = []
         for el in sentence_index_selected_in_active_selection:
             (min_prop_value, word_with_lowest_prob, y, index_in_sentence_with_min_prob, sentence_before, sentence_after) =\
                 self.current_selected_indeces_min_prob_word_hash[el]
-            classification_for_min = y[index_in_sentence_with_min_prob]
-            if classification_for_min == self.current_majority_class:
-                classification_to_write = self.MOST_COMMON_PREDICTION
-            else:
-                classification_to_write = self.MINORITY_CLASSES
-            
-            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_to_write, sentence_before, sentence_after))
+            classification_for_min = inv_labelled_dict[y[index_in_sentence_with_min_prob]]
+
+            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_for_min, sentence_before, sentence_after))
 
         min_words_in_selected_sentences.sort()
 
@@ -438,8 +439,10 @@ class ProcessMonitor():
         
             most_uncertain_words_file.close()
             result_dict = pickle.load(open(filename, "rb"))
-            self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
-                                         most_uncertain_words_set, filename, suffixes_for_run_1, "dummy")
+
+            for ent in self.entities:
+                self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
+                                         most_uncertain_words_set, filename, suffixes_for_run_1, ent)
         
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
                                 most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
@@ -482,8 +485,8 @@ class ProcessMonitor():
                     if point[1] > largest_y:
                         largest_y = point[1]
 
-    #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
-                    if result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
+                    #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
+                    if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
                         alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         color_to_use = (0,0,1,alfa)
@@ -528,7 +531,8 @@ class ProcessMonitor():
             # minority class plot
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
-                    if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
+                    if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
+                        print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
                         alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         #print(str(alfa) + " " + found_word + " " + "minority" )
@@ -537,14 +541,14 @@ class ProcessMonitor():
 
             # chosen word annotation
             found_word_info = []
-                #for point, found_word in zip(DX, found_words):
             for word_info in most_uncertain_words:
                 word = word_info[0]
                 word_nr = str(int(word_info[2]) + 1)
                 y_prediction = word_info[3]
+                if "-" in y_prediction:
+                    y_prediction = y_prediction.split("-")[1]
                 
-                
-                if y_prediction == self.MOST_COMMON_PREDICTION:
+                if y_prediction != minority_class:
                     color_to_use_background = (0, 0, 1, 0.02)
                     color_to_use_background_last = (0, 0, 1, 0.1)
                     color_to_use = (0, 0, 1, 1 - float(word_info[1]))
@@ -595,13 +599,14 @@ class ProcessMonitor():
 
             explanation_y = max_y - 14 - (len(found_word_info) + 2)*5 - 3
 
-            plt.annotate("Red: Tokens classified as " + self.entity_class[0].upper() + self.entity_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
+            plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
                          xytext=(0,explanation_y), color = "black", fontsize=11)
 
             plt.subplots_adjust(wspace = 0.0)
 
             save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                                  nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
+
             plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 

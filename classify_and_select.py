@@ -692,7 +692,7 @@ class ModelWrapperBase:
         sentences_unlabelled = np.delete(sentences_unlabelled, index_to_select_among_checked, 0)
         to_select_X = np.array(to_select_X)
 
-        process_monitoring_instance.write_process_monitoring_selected_words(index_to_select_among_checked)
+        process_monitoring_instance.write_process_monitoring_selected_words(index_to_select_among_checked, self.inv_label_dict)
         
         return to_select_X, unlabelled_x, to_select_text, sentences_unlabelled, predicted_for_selected
 
