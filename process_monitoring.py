@@ -228,13 +228,27 @@ class ProcessMonitor():
         return np.var(conf_lst)
     
     def get_most_common_predicted(self, predicted_lst, majority_class, inv_labelled_dict):
-        nr_of_majority = predicted_lst.count(majority_class)
-        half_length = len(predicted_lst)/2
-        if nr_of_majority > half_length:
-            most_common_predicted = inv_labelled_dict[majority_class]
-        else:
-            most_common_predicted = self.MINORITY_CLASSES
-        return most_common_predicted
+        predicted_bag = {}
+        for p in predicted_lst:
+            p_inv = inv_labelled_dict[p]
+            if "-" in p_inv: # not majority class, then only use the part not includeing B- and I-
+                p_inv = p_inv.split("-")[1]
+            if p_inv not in predicted_bag:
+                predicted_bag[p_inv] = 1
+            else:
+                predicted_bag[p_inv] = predicted_bag[p_inv] + 1
+        
+        most_common_pred = None
+        occurrences_most_common = 0
+        for key, item in predicted_bag.items():
+            if key != inv_labelled_dict[majority_class]:
+                if item >= occurrences_most_common:
+                    most_common_pred = key
+            else: # Always prefer the none-majority classes, if same amount of occurrences
+                if item > occurrences_most_common:
+                    most_common_pred = key
+                        
+        return most_common_pred
     
     def get_stat_dictionary(self, predicted_lst, inv_labelled_dict):
         stat_dict = {}
