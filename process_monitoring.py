@@ -447,9 +447,12 @@ class ProcessMonitor():
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
                                 most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
         if True: #remove
+            mean_uncertainty_list = []
+            
             main_fig = plt.figure()
             main_fig.set_size_inches(15, 7)
             fig = main_fig.add_subplot(1, 2, 1)
+            matplotlib.rc('font', family='Hiragino')
 
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
@@ -475,7 +478,8 @@ class ProcessMonitor():
                     for nr, uncertain_word_info in enumerate(most_uncertain_words):
                         if uncertain_word_info[0] == found_word:
                             most_uncertain_words[nr].append(word_index)
-                if found_word in result_dict:
+                #
+                if True:
                     if point[0] < smallest_x:
                         smallest_x = point[0]
                     if point[1] < smallest_y:
@@ -484,7 +488,10 @@ class ProcessMonitor():
                         largest_x = point[0]
                     if point[1] > largest_y:
                         largest_y = point[1]
-
+                
+                # If a word is in result_dict, it is still in the pool of unlabelled data
+                if found_word in result_dict:
+                    mean_uncertainty_list.append(result_dict[found_word][self.MEAN_SCORE])
                     #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
@@ -499,8 +506,8 @@ class ProcessMonitor():
                 plt.scatter(largest_x+self.PLOT_RIGHT_MARGIN, 0, color = "white", marker = "o", s=1)
                 plt.scatter(0, largest_y, color = "white", marker = "o", s=1)
 
-            print(smallest_x, smallest_y, largest_x, largest_y)
-            print("most_uncertain_words", most_uncertain_words)
+            #print(smallest_x, smallest_y, largest_x, largest_y)
+            #print("most_uncertain_words", most_uncertain_words)
 
             """
                 # minority class annotation
@@ -532,7 +539,7 @@ class ProcessMonitor():
             for point, found_word in zip(DX, found_words):
                 if found_word in result_dict:
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
-                        print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
+                        #print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
                         alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
                         #print(str(alfa) + " " + found_word + " " + "minority" )
@@ -610,11 +617,14 @@ class ProcessMonitor():
             plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 
-            print("suffixes_for_run_1", suffixes_for_run_1)
+            #print("suffixes_for_run_1", suffixes_for_run_1)
             html_for_show_plots = self.create_html(suffixes_for_run_1)
             save_html_in = os.path.join(self.get_full_process_monitoring_dir_path(), self.HTML_NAME)
-            print(html_for_show_plots)
-            print(save_html_in)
+
+
+            print("Mean uncertainty left in data pool", 1-sum(mean_uncertainty_list)/len(mean_uncertainty_list))
+            #print(html_for_show_plots)
+            #print(save_html_in)
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           word_nr, max_y, title_space, confidence, f_weight):
