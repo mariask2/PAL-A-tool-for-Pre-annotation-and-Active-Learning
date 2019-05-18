@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from sklearn.feature_extraction.text import CountVectorizer
 import os
 import joblib
@@ -7,6 +9,7 @@ import argparse
 from matplotlib.pyplot import plot, show, bar, grid, axis, savefig, clf
 import matplotlib.markers
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as mfm
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn import preprocessing
@@ -196,10 +199,9 @@ class ProcessMonitor():
 
             if not os.path.exists(full_process_monitoring_dir_path):
                 text_concatenated = np.concatenate(unlabelled_text_vector)
-                # To save storage space, only include types occurring at least three time in the statistics
-                # or more than three times, if
-                word_vectorizer = CountVectorizer(binary = True, min_df=max([properties.min_df_current, 3]), \
-                        max_df = properties.max_df_current)
+                # To save storage space, only include the 10000 most frequent types
+                word_vectorizer = CountVectorizer(binary = True, min_df=properties.min_df_current, \
+                        max_df = properties.max_df_current, max_features = 10000)
                 #word_vectorizer = CountVectorizer(binary = True, min_df=1, max_df = properties.max_df_current)
                 word_vectorizer.fit_transform(text_concatenated)
                 
@@ -452,7 +454,8 @@ class ProcessMonitor():
             main_fig = plt.figure()
             main_fig.set_size_inches(15, 7)
             fig = main_fig.add_subplot(1, 2, 1)
-            matplotlib.rc('font', family='Hiragino')
+            jp_font = mfm.FontProperties(fname="/System/Library/Fonts/ヒラギノ角ゴシック W4.ttc")
+            #matplotlib.rc('font', family='Hiragino')
 
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
@@ -572,9 +575,9 @@ class ProcessMonitor():
                 if len(word_info) == 5:
                     point = DX[word_info[4]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=12, weight = "bold")
+                                 fontsize=12, weight = "bold", fontproperties=jp_font)
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=12, weight = "semibold")
+                                     fontsize=12, weight = "semibold", fontproperties=jp_font)
                                      
                                      
                 # Give the full annotation information in the margin
@@ -598,7 +601,7 @@ class ProcessMonitor():
             for el in found_word_info:
                 self.list_chosen_words(el["word"], el["color_to_use"], \
                                        el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y,\
-                                       title_space, el["confidence"], el["f_weight"])
+                                       title_space, el["confidence"], el["f_weight"], jp_font)
 
 
             plt.annotate(nr_ending.split("_")[0] + ": Classification uncertainty remaining\nfor the most uncertain tokens in the data pool", (0, max_y - title_space), \
@@ -607,7 +610,7 @@ class ProcessMonitor():
             explanation_y = max_y - 14 - (len(found_word_info) + 2)*5 - 3
 
             plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
-                         xytext=(0,explanation_y), color = "black", fontsize=11)
+                         xytext=(0,explanation_y), color = "black", fontsize=11, fontproperties=jp_font)
 
             plt.subplots_adjust(wspace = 0.0)
 
@@ -627,12 +630,12 @@ class ProcessMonitor():
             #print(save_html_in)
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
-                          word_nr, max_y, title_space, confidence, f_weight):
+                          word_nr, max_y, title_space, confidence, f_weight, jp_font):
         #print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - 14 - int(word_nr)*5
         plt.annotate("(" + found_word + ")", (195, y_cord),\
-        xytext=(195, y_cord), color = "black", fontsize=11, weight = f_weight)
+        xytext=(195, y_cord), color = "black", fontsize=11, weight = f_weight, fontproperties=jp_font)
         
         bar_x = 75
         print_color = color_to_use
@@ -645,7 +648,7 @@ class ProcessMonitor():
             plt.scatter(bar_x, y_cord+1, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight)
+                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight, fontproperties=jp_font)
 
 
 if __name__ == "__main__":
