@@ -134,6 +134,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
     # Create the file for annotation data
     for texts in new_sentences_unlabelled:
         for text in texts:
+            if len(text) == 3 and text[1] == "_":
+                text = text[0]
             unlabelled_data_path_file.write(text + "\n")
         unlabelled_data_path_file.write("\n")
     unlabelled_data_path_file.close()
