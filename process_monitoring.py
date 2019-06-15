@@ -448,7 +448,14 @@ class ProcessMonitor():
         
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
                                 most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
-        if True: #remove
+        sp = filename.split("_")
+        nr_ending = sp[-2] + "_" + sp[-1]
+        save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
+                                             nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
+        if os.path.exists(save_figure_file_name):
+            print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
+        else:
+            print("Creates plot for " + save_figure_file_name)
             mean_uncertainty_list = []
             
             main_fig = plt.figure()
@@ -466,8 +473,8 @@ class ProcessMonitor():
             #suffixes_for_run_1.append(splitted[0])
 
             annotated_points = set()
-            sp = filename.split("_")
-            nr_ending = sp[-2] + "_" + sp[-1]
+
+            
             
             smallest_x = float("inf")
             smallest_y = float("inf")
@@ -613,9 +620,6 @@ class ProcessMonitor():
                          xytext=(0,explanation_y), color = "black", fontsize=11, fontproperties=jp_font)
 
             plt.subplots_adjust(wspace = 0.0)
-
-            save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
-                                                 nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
 
             plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
