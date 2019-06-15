@@ -152,7 +152,7 @@ class Word2vecWrapper:
     A class for storing the information regarding the distributional semantics space
     """
 
-    def __init__(self, model_path, semantic_vector_length, gensim_format):
+    def __init__(self, model_path, semantic_vector_length, gensim_format=False):
         self.word2vec_model = None
         self.model_path = model_path
         self.semantic_vector_length = semantic_vector_length
