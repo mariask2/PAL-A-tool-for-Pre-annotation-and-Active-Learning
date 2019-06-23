@@ -602,7 +602,7 @@ class ProcessMonitor():
                 labelleft='off', labeltop='off', labelright='off', labelbottom='off')
 
             max_y = 150
-            row_height = 5.5
+            row_height = 5
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
             title_space = 15
@@ -622,13 +622,19 @@ class ProcessMonitor():
                          xytext=(0,explanation_y), color = "black", fontsize=12)
 
 
-
+            # Plot mean uncertainty in data pool
             mean_uncertainty =  1-sum(mean_uncertainty_list)/len(mean_uncertainty_list)
             print("Mean uncertainty left in data pool", mean_uncertainty)
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
-
-            # Plot mean uncertainty in data pool
             mean_pool_y = explanation_y-10
+            plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
+                         xytext=(0, mean_pool_y), color = "black", fontsize=12, weight = f_weight)
+            plt.annotate("Mean uncertainty", (195, mean_pool_y + 2.5 ),\
+                                        color = "black", fontsize=12, weight = f_weight)
+            plt.annotate("left in data pool", (195, mean_pool_y - 2.5 ),\
+                                        color = "black", fontsize=12, weight = f_weight)
+                         
+
             bar_x = 75
             print_color = (0.1,0,0.1,0.5)
             for i in range(0, 100):
@@ -639,12 +645,7 @@ class ProcessMonitor():
                 plt.scatter(bar_x, mean_pool_y + 0.7 , color = print_color, marker = "|")
                 plt.scatter(bar_x, mean_pool_y + 3 , color = print_color, marker = "|")
                 bar_x = bar_x+1
-            plt.annotate("|c|" + ": " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
-             xytext=(0, mean_pool_y), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-            plt.annotate("Mean uncertainty", (195, mean_pool_y + 2.5 ),\
-             color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("left in data pool", (195, mean_pool_y - 2.5 ),\
-                 color = "black", fontsize=12, weight = f_weight)
+           
 
 
             plt.subplots_adjust(wspace = 0.0)
