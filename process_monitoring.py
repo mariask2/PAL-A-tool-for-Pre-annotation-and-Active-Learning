@@ -701,7 +701,7 @@ class ProcessMonitor():
             save_html_in = os.path.join(self.get_full_process_monitoring_dir_path(), self.HTML_NAME)
 
 
-
+            plt.close('all')
             #print(html_for_show_plots)
             #print(save_html_in)
 
