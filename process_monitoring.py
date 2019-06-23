@@ -456,7 +456,7 @@ class ProcessMonitor():
         color_range_cutoff = 0.95
         if uncertainty < color_range_cutoff:
             internal_uncertainty = uncertainty/color_range_cutoff
-            other_colors = min(1 - internal_uncertainty, 0.95) #
+            other_colors = min(1 - internal_uncertainty, 0.80) #
             if base_color == "blue":
                 color_to_use = (other_colors, other_colors, 1, 1)
             elif base_color == "red":
@@ -547,7 +547,7 @@ class ProcessMonitor():
                         
                         color_to_use = self.get_color_to_use(confidence, "blue")
 
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=2)
 
             if smallest_x != float("inf"): # Not first time in loop
                 #"Plot to make sure that the image has the same size"
@@ -596,7 +596,7 @@ class ProcessMonitor():
                         
                         color_to_use = self.get_color_to_use(confidence, "red")
                         
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=2)
 
             # chosen word annotation
             found_word_info = []
