@@ -505,7 +505,7 @@ class ProcessMonitor():
                     #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
-                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
+                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
                         color_to_use = (0,0,1,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
@@ -551,7 +551,7 @@ class ProcessMonitor():
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
                         #print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
-                        alfa = max((1 - result_dict[found_word][self.LOWEST_SCORE]),0.1)
+                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
                         #print(str(alfa) + " " + found_word + " " + "minority" )
                         color_to_use = (1,0,0,alfa)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
