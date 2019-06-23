@@ -582,9 +582,9 @@ class ProcessMonitor():
                 if len(word_info) == 5:
                     point = DX[word_info[4]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=12, weight = "bold", fontproperties=jp_font)
+                                 fontsize=13, weight = "bold", fontproperties=jp_font)
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=12, weight = "semibold", fontproperties=jp_font)
+                                     fontsize=13, weight = "semibold", fontproperties=jp_font)
                                      
                                      
                 # Give the full annotation information in the margin
@@ -602,22 +602,24 @@ class ProcessMonitor():
                 labelleft='off', labeltop='off', labelright='off', labelbottom='off')
 
             max_y = 150
+            row_height = 5.5
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
-            title_space = 20
+            title_space = 15
             for el in found_word_info:
                 self.list_chosen_words(el["word"], el["color_to_use"], \
                                        el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y,\
-                                       title_space, el["confidence"], el["f_weight"], jp_font)
+                                       title_space, el["confidence"], el["f_weight"], jp_font, row_height)
 
+            plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
+              color = "black", fontsize=14)
+            plt.annotate("Classification uncertainty remaining\nfor the most uncertain tokens in the data pool", (0, max_y - title_space), \
+                          color = "black", fontsize=12)
 
-            plt.annotate(nr_ending.split("_")[0] + ": Classification uncertainty remaining\nfor the most uncertain tokens in the data pool", (0, max_y - title_space), \
-                         xytext=(0,max_y - 10), color = "black", fontsize=12)
-
-            explanation_y = max_y - 14 - (len(found_word_info) + 2)*5 - 3
+            explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
 
             plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
-                         xytext=(0,explanation_y), color = "black", fontsize=11, fontproperties=jp_font)
+                         xytext=(0,explanation_y), color = "black", fontsize=12, fontproperties=jp_font)
 
             plt.subplots_adjust(wspace = 0.0)
 
@@ -634,12 +636,12 @@ class ProcessMonitor():
             #print(save_html_in)
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
-                          word_nr, max_y, title_space, confidence, f_weight, jp_font):
+                          word_nr, max_y, title_space, confidence, f_weight, jp_font, row_height):
         #print("confidence", confidence)
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
-        y_cord = max_y - 14 - int(word_nr)*5
-        plt.annotate("(" + found_word + ")", (195, y_cord),\
-        xytext=(195, y_cord), color = "black", fontsize=11, weight = f_weight, fontproperties=jp_font)
+        y_cord = max_y - title_space - 4 - int(word_nr)*row_height
+        plt.annotate(found_word, (195, y_cord),\
+        xytext=(195, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
         
         bar_x = 75
         print_color = color_to_use
@@ -649,10 +651,10 @@ class ProcessMonitor():
                 print_color = color_to_use_background
             if i == 99:
                 print_color = color_to_use_background_last
-            plt.scatter(bar_x, y_cord+1, color = print_color, marker = marker_to_use)
+            plt.scatter(bar_x, y_cord+1.5, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight, fontproperties=jp_font)
+                         xytext=(0, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
 
 
 if __name__ == "__main__":
