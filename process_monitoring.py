@@ -452,8 +452,10 @@ class ProcessMonitor():
         nr_ending = sp[-2] + "_" + sp[-1]
         save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                              nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
-        if os.path.exists(save_figure_file_name):
-            print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
+            #if os.path.exists(save_figure_file_name):
+            #print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
+        if False:
+            pass
         else:
             print("Creates plot for " + save_figure_file_name)
             mean_uncertainty_list = []
@@ -503,10 +505,24 @@ class ProcessMonitor():
                 if found_word in result_dict:
                     mean_uncertainty_list.append(result_dict[found_word][self.MEAN_SCORE])
                     #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
+                    
+                    # "alfa" calcultations
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
-                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
-                        color_to_use = (0,0,1,alfa)
+                        confidence = result_dict[found_word][self.MEAN_SCORE]
+                        uncertainty = 1 - confidence
+                        print("uncertainty", uncertainty)
+                        color_range_cutoff = 0.8
+                        #alfa = max((1 - confidence),0.1)
+                        if uncertainty < color_range_cutoff:
+                            internal_uncertainty = uncertainty/color_range_cutoff
+                            other_colors = min(1 - internal_uncertainty, 0.95) #
+                            color_to_use = (other_colors,other_colors, 1, 1)
+                        
+                        if uncertainty >= color_range_cutoff:
+                            internal_uncertainty = (uncertainty - color_range_cutoff)/(1 - color_range_cutoff)
+                            color_to_use = (0, 0, 1 - internal_uncertainty, 1)
+                        print(color_to_use)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
             if smallest_x != float("inf"): # Not first time in loop
@@ -551,9 +567,11 @@ class ProcessMonitor():
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
                         #print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
-                        alfa = max((1 - result_dict[found_word][self.MEAN_SCORE]),0.1)
+                        confidence = result_dict[found_word][self.MEAN_SCORE]
+                        alfa = max((1 - confidence),0.1)
+                        other_colors = max(0, alfa - 0.5)
                         #print(str(alfa) + " " + found_word + " " + "minority" )
-                        color_to_use = (1,0,0,alfa)
+                        color_to_use = (1,0,0,1)
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
 
             # chosen word annotation
