@@ -268,7 +268,6 @@ class ProcessMonitor():
         return stat_dict
     
     
-    #print("min_probability_differences", min_probability_differences)
 
     def write_process_monitoring_selected_words(self, sentence_index_selected_in_active_selection, inv_labelled_dict):
         
@@ -312,11 +311,10 @@ class ProcessMonitor():
             sentence_before = " ".join(sentence[:index_in_sentence_with_min_prop])
             sentence_after = " ".join(sentence[index_in_sentence_with_min_prop + 1 :])
             
-            #print(sentence, word_with_lowest_prob)
             self.current_selected_indeces_min_prob_word_hash[sentence_nr] = (min_prop_value, word_with_lowest_prob, y,\
                                                                              index_in_sentence_with_min_prop, sentence_before, sentence_after)
             #self.current_selected_indeces_min_prob_hash[nr] =
-            #print(sentences_unlabelled[index], all_index_for_min_probabilities[index])
+
         
         
         word_hash = {}
@@ -339,7 +337,7 @@ class ProcessMonitor():
                 self.PREDICTION_STATISTICS:stat_dict, self.VARIANCE_SCORE: variance_conf, self.LOWEST_SCORE: lowest_conf}
 
         self.current_file_name = self.get_file_to_save_in()
-        #print("Saving in " + file_to_save_in)
+
         pickle.dump(final_hash, open(self.current_file_name, "wb"))
 
     def get_file_to_save_in(self):
@@ -445,7 +443,36 @@ class ProcessMonitor():
             for ent in self.entities:
                 self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
                                          most_uncertain_words_set, filename, suffixes_for_run_1, ent)
-        
+
+    """
+    def get_mean_from_result_dict(self, found_word, result_dict):
+        if found_word in result_dict:
+            return result_dict[found_word][self.MEAN_SCORE]
+        else:
+            return 0
+    """
+    def get_color_to_use(self, confidence, base_color):
+        uncertainty = 1 - confidence
+        color_range_cutoff = 0.95
+        if uncertainty < color_range_cutoff:
+            internal_uncertainty = uncertainty/color_range_cutoff
+            other_colors = min(1 - internal_uncertainty, 0.95) #
+            if base_color == "blue":
+                color_to_use = (other_colors, other_colors, 1, 1)
+            elif base_color == "red":
+                color_to_use = (1, other_colors, other_colors, 1)
+            else:
+                raise ValueError("Unknown color")
+        if uncertainty >= color_range_cutoff:
+            internal_uncertainty = (uncertainty - color_range_cutoff)/(1 - color_range_cutoff)
+            if base_color == "blue":
+                color_to_use = (0, 0, 1 - internal_uncertainty, 1)
+            elif base_color == "red":
+                color_to_use = (1 - internal_uncertainty, 0, 0 , 1)
+            else:
+                raise ValueError("Unknown color")
+        return color_to_use
+
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
                                 most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
         sp = filename.split("_")
@@ -477,15 +504,22 @@ class ProcessMonitor():
             annotated_points = set()
 
             
-            
             smallest_x = float("inf")
             smallest_y = float("inf")
             largest_x = -1*float("inf")
             largest_y = -1*float("inf")
                         
 
+            # A list of all points that are in result_dict and thereby still in the pool
+            res_tuple = [(result_dict[found_word][self.MEAN_SCORE], word_index, point, found_word)\
+                         for word_index, (point, found_word) in enumerate(zip(DX, found_words)) if found_word in result_dict]
+            
+            print("Started sorting list")
+            res_tuple.sort(reverse = True)
+            print("Done sorting")
+            
             # outside current class plot
-            for word_index, (point, found_word) in enumerate(zip(DX, found_words)):
+            for mean_score, word_index, point, found_word in res_tuple:
                 if found_word in most_uncertain_words_set:
                     for nr, uncertain_word_info in enumerate(most_uncertain_words):
                         if uncertain_word_info[0] == found_word:
@@ -504,26 +538,16 @@ class ProcessMonitor():
                 # If a word is in result_dict, it is still in the pool of unlabelled data
                 if found_word in result_dict:
                     mean_uncertainty_list.append(result_dict[found_word][self.MEAN_SCORE])
-                    #print("result_dict[found_word][self.MOST_COMMON_PREDICTION]", result_dict[found_word][self.MOST_COMMON_PREDICTION])
+                  
                     
                     # "alfa" calcultations
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
                         confidence = result_dict[found_word][self.MEAN_SCORE]
-                        uncertainty = 1 - confidence
-                        print("uncertainty", uncertainty)
-                        color_range_cutoff = 0.8
-                        #alfa = max((1 - confidence),0.1)
-                        if uncertainty < color_range_cutoff:
-                            internal_uncertainty = uncertainty/color_range_cutoff
-                            other_colors = min(1 - internal_uncertainty, 0.95) #
-                            color_to_use = (other_colors,other_colors, 1, 1)
                         
-                        if uncertainty >= color_range_cutoff:
-                            internal_uncertainty = (uncertainty - color_range_cutoff)/(1 - color_range_cutoff)
-                            color_to_use = (0, 0, 1 - internal_uncertainty, 1)
-                        print(color_to_use)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
+                        color_to_use = self.get_color_to_use(confidence, "blue")
+
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
 
             if smallest_x != float("inf"): # Not first time in loop
                 #"Plot to make sure that the image has the same size"
@@ -562,17 +586,17 @@ class ProcessMonitor():
                 """
 
             # minority class plot
-            for point, found_word in zip(DX, found_words):
+            #for point, found_word in zip(DX, found_words):
+            for mean_score, word_index, point, found_word in res_tuple:
                 if found_word in result_dict:
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
                         #print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
                         confidence = result_dict[found_word][self.MEAN_SCORE]
-                        alfa = max((1 - confidence),0.1)
-                        other_colors = max(0, alfa - 0.5)
-                        #print(str(alfa) + " " + found_word + " " + "minority" )
-                        color_to_use = (1,0,0,1)
-                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=3)
+                        
+                        color_to_use = self.get_color_to_use(confidence, "red")
+                        
+                        plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=1)
 
             # chosen word annotation
             found_word_info = []
@@ -586,13 +610,15 @@ class ProcessMonitor():
                 if y_prediction != minority_class:
                     color_to_use_background = (0, 0, 1, 0.02)
                     color_to_use_background_last = (0, 0, 1, 0.1)
-                    color_to_use = (0, 0, 1, 1 - float(word_info[1]))
+                    color_to_use = self.get_color_to_use(float(word_info[1]), "blue")
+                        #(0, 0, 1, 1 - float(word_info[1]))
                     f_weight = "normal"
                 else:
                     color_to_use_background = (1, 0, 0, 0.02)
                     color_to_use_background_last = (1, 0, 0, 0.1)
-                    color_to_use = (1, 0, 0, 1 - float(word_info[1]))
-                    f_weight = "semibold"
+                    color_to_use = self.get_color_to_use(float(word_info[1]), "red")
+                    #color_to_use = (1, 0, 0, 1 - float(word_info[1]))
+                    f_weight = "normal"
                 # if there is a vector corresponding to the word
                 # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
                 # If there is no corresponding vector, there are only three elements in word_info
@@ -613,7 +639,6 @@ class ProcessMonitor():
                                        "confidence" : word_info[1], "f_weight": f_weight})
 
 
-            #print("found_word_info", found_word_info)
             chosen_terms = main_fig.add_subplot(1, 2, 2)
             plt.axis('off')
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
@@ -642,7 +667,7 @@ class ProcessMonitor():
 
             # Plot mean uncertainty in data pool
             mean_uncertainty =  1-sum(mean_uncertainty_list)/len(mean_uncertainty_list)
-            print("Mean uncertainty left in data pool", mean_uncertainty)
+
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
             mean_pool_y = explanation_y-10
             plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
@@ -682,7 +707,7 @@ class ProcessMonitor():
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           word_nr, max_y, title_space, confidence, f_weight, jp_font, row_height):
-        #print("confidence", confidence)
+
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
         plt.annotate(found_word, (195, y_cord),\
