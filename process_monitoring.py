@@ -511,7 +511,7 @@ class ProcessMonitor():
                         
 
             # A list of all points that are in result_dict and thereby still in the pool
-            res_tuple = [(result_dict[found_word][self.MEAN_SCORE], word_index, point, found_word)\
+            res_tuple = [(result_dict[found_word][self.LOWEST_SCORE], word_index, point, found_word)\
                          for word_index, (point, found_word) in enumerate(zip(DX, found_words)) if found_word in result_dict]
             
             print("Started sorting list")
@@ -543,7 +543,7 @@ class ProcessMonitor():
                     # "alfa" calcultations
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] != minority_class:
                         # Make sure its visible even if it certain
-                        confidence = result_dict[found_word][self.MEAN_SCORE]
+                        confidence = result_dict[found_word][self.LOWEST_SCORE]
                         
                         color_to_use = self.get_color_to_use(confidence, "blue")
 
@@ -592,7 +592,7 @@ class ProcessMonitor():
                     if result_dict[found_word][self.MOST_COMMON_PREDICTION] == minority_class:
                         #print("found", result_dict[found_word][self.MOST_COMMON_PREDICTION])
                         # Make sure its visible even if it certain
-                        confidence = result_dict[found_word][self.MEAN_SCORE]
+                        confidence = result_dict[found_word][self.LOWEST_SCORE]
                         
                         color_to_use = self.get_color_to_use(confidence, "red")
                         
@@ -625,8 +625,6 @@ class ProcessMonitor():
                 # and nothing can be plotted for this point
                 if len(word_info) == 5:
                     point = DX[word_info[4]]
-                    plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "white",\
-                                 fontsize=13, weight = "bold", fontproperties=jp_font)
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
                                      fontsize=13, weight = "semibold", fontproperties=jp_font)
                                      
