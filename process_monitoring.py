@@ -479,10 +479,8 @@ class ProcessMonitor():
         nr_ending = sp[-2] + "_" + sp[-1]
         save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                              nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
-            #if os.path.exists(save_figure_file_name):
-            #print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
-        if False:
-            pass
+        if os.path.exists(save_figure_file_name):
+            print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
         else:
             print("Creates plot for " + save_figure_file_name)
             mean_uncertainty_list = []
