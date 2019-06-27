@@ -475,6 +475,8 @@ class ProcessMonitor():
 
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
                                 most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
+        print("minority_class", minority_class)
+        print("-------")
         sp = filename.split("_")
         nr_ending = sp[-2] + "_" + sp[-1]
         save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
@@ -519,6 +521,7 @@ class ProcessMonitor():
             # outside current class plot
             for mean_score, word_index, point, found_word in res_tuple:
                 if found_word in most_uncertain_words_set:
+                    print("found_word", found_word)
                     for nr, uncertain_word_info in enumerate(most_uncertain_words):
                         if uncertain_word_info[0] == found_word:
                             most_uncertain_words[nr].append(word_index)
@@ -621,7 +624,7 @@ class ProcessMonitor():
                 # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
                 # If there is no corresponding vector, there are only three elements in word_info
                 # and nothing can be plotted for this point
-                if len(word_info) == 5:
+                if len(word_info) >= 5:
                     point = DX[word_info[4]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
                                      fontsize=13, weight = "semibold", fontproperties=jp_font)
