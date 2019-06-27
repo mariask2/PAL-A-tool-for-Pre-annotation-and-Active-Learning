@@ -821,6 +821,12 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
             for m in self.minority_classes:
                 if m.startswith(self.beginning_prefix):
                     beginning_classes.append(self.label_dict[m])
+        
+            temp_min = "temp_min"
+            for m in self.minority_classes:
+                if m.startswith(self.beginning_prefix):
+                    temp_min = m.replace(self.beginning_prefix, "")
+
             if len(beginning_classes) > 1:
                 print("Cross validation not applicable when having many classes")
                 exit(1)
@@ -845,7 +851,7 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
             self.C = self.model.C
             
             if self.process_monitor_instance:
-                self.process_monitor_instance.write_score_process_monitoring(len(X), grid_search_clf.best_score_)
+                self.process_monitor_instance.write_score_process_monitoring(len(X), grid_search_clf.best_score_, temp_min)
     
         else:
             print("No cross-validation")

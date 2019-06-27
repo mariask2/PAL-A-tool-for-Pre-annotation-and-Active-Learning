@@ -211,14 +211,14 @@ class ProcessMonitor():
             
             full_process_monitoring_dir_path_word2vec_info = self.get_full_process_monitoring_dir_path()
             print("Will write process monitoring info in ", full_process_monitoring_dir_path_word2vec_info)
-            score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), "scores.csv")
+            #score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), "scores.csv")
  
             if not os.path.exists(full_process_monitoring_dir_path_word2vec_info):
                 os.mkdir(full_process_monitoring_dir_path_word2vec_info)
-                self.score_file = open(score_file_name, "w")
+                #self.score_file = open(score_file_name, "w")
                 return True
             else:
-                self.score_file = open(score_file_name, "a")
+                #self.score_file = open(score_file_name, "a")
                 return False
 
     def set_number_of_labelled(self, number_of_labelled):
@@ -271,11 +271,16 @@ class ProcessMonitor():
         return stat_dict
     
     
-    def write_score_process_monitoring(self, nr_samples, score):
+    def write_score_process_monitoring(self, nr_samples, score, minority_class):
         print('str(nr_samples) + "\t" + str(score) + "\n"' +  str(nr_samples) + "\t" + str(score) + "\n")
-        self.score_file.write(str(nr_samples) + "\t" + str(score) + "\n")
-        self.score_file.flush()
-        self.score_file.close()
+        score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), minority_class + "_scores.csv")
+        if os.path.isfile(score_file_name):
+            score_file = open(score_file_name, "a")
+        else:
+            score_file = open(score_file_name, "w")
+        score_file.write(str(nr_samples) + "\t" + str(score) + "\n")
+        score_file.flush()
+        score_file.close()
     
 
     def write_process_monitoring_selected_words(self, sentence_index_selected_in_active_selection, inv_labelled_dict):
