@@ -803,12 +803,13 @@ class StructuredModelFrankWolfeSSVM(ModelWrapperBase):
 
 class NonStructuredLogisticRegression(ModelWrapperBase):
     def __init__(self, label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations,  \
-                     use_cross_validation, nr_of_cross_validation_splits, c_value):
+                     use_cross_validation, nr_of_cross_validation_splits, c_value, process_monitor_instance = None):
         # max_iter not used by the liblinear solver
         self.model = LogisticRegression(verbose=0, penalty='l1', solver='liblinear', C=c_value, random_state = 1)
         self.__name__ = "NonStructuredLogisticRegression"
         self.init_params(label_dict, minority_classes, outside_class, beginning_prefix, inside_prefix, max_iterations, \
                              use_cross_validation, nr_of_cross_validation_splits, c_value)
+        self.process_monitor_instance = process_monitor_instance
      
     def fit(self, X, Y):
         X_flat = np.concatenate(X)
@@ -842,6 +843,10 @@ class NonStructuredLogisticRegression(ModelWrapperBase):
             grid_search_clf.fit(X_flat, Y_flat_remove_bi_dist)
             self.model = grid_search_clf.best_estimator_
             self.C = self.model.C
+            
+            if self.process_monitor_instance:
+                self.process_monitor_instance.write_score_process_monitoring(len(X), grid_search_clf.best_score_)
+    
         else:
             print("No cross-validation")
         ret = self.model.fit(X_flat, Y_flat)

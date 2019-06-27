@@ -617,7 +617,7 @@ def askConllScript(outputdata, category):
 
 
 def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, properties, word2vecwrapper, \
-                                      project_path, whether_to_use_word2vec, selection_type, fold_nr):
+                                      project_path, whether_to_use_word2vec, selection_type, fold_nr, process_monitor_instance = None):
     print("start train and evaluate method")
     print("whether_to_use_word2vec", whether_to_use_word2vec)
     nr_of_samples = len(x_train_sentences)
@@ -644,7 +644,7 @@ def train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, 
 
     model = properties.model_type(label_dict, properties.minority_classes, properties.outside_class, properties.beginning_prefix, \
                                           properties.inside_prefix, properties.max_iterations, properties.use_cross_validation, \
-                                          properties.nr_of_cross_validation_splits, properties.c_value)
+                                          properties.nr_of_cross_validation_splits, properties.c_value, process_monitor_instance)
 
     print(model)
     test_sentences = x_test_sentences  # not really need a new variable
@@ -763,7 +763,7 @@ def run_active_selection(labelled_text_vector, labelled_label_vector, train_inde
         nr_of_samples = len(used_indeces)
         train_and_evaluate_simulation(x_train_sentences, y_train, x_test_sentences, y_test, label_dict, classes, \
                                           properties, word2vecwrapper, project_path, whether_to_use_word2vec, \
-                                          selection_type = "active", fold_nr = fold_nr)
+                                          "active", fold_nr, process_monitor_instance)
                   
         seed_set_run = False
 
