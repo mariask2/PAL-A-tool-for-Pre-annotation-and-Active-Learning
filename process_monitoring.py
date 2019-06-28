@@ -535,7 +535,6 @@ class ProcessMonitor():
             # outside current class plot
             for mean_score, word_index, point, found_word in res_tuple:
                 if found_word in most_uncertain_words_set:
-                    print("found_word", found_word)
                     for nr, uncertain_word_info in enumerate(most_uncertain_words):
                         if uncertain_word_info[0] == found_word:
                             most_uncertain_words[nr].append(word_index)

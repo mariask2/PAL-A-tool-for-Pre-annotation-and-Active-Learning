@@ -97,7 +97,7 @@ class HtmlCreator():
                                             background-repeat: no-repeat;
                                             background-size: 1500px;
                                             width: 1500px;
-                                            height: 1000px;
+                                            height: 650px;
                                             border-radius: 25px;
                                             }
                                             .sliderStyle{
