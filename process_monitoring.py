@@ -406,7 +406,7 @@ class ProcessMonitor():
                     except TypeError:
                         classification_score = 0
                 else:
-                    error_rate = None
+                    classification_score = None
                 
                 self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
                                              most_uncertain_words_set, filename, suffixes_for_run_1, ent,\
