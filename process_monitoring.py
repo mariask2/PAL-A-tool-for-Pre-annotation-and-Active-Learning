@@ -617,9 +617,9 @@ class ProcessMonitor():
 
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
             mean_pool_y = explanation_y-8
-            plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
-                         xytext=(0, mean_pool_y), color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("Mean uncertainty left", (185, mean_pool_y), color = "black", fontsize=11, weight = f_weight)
+            plt.annotate("Data pool:" , (0, mean_pool_y),\
+                         xytext=(0, mean_pool_y), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty", (185, mean_pool_y), color = "black", fontsize=9.5, weight = f_weight)
 
             bar_x = 75
             grey = (0,0,0,0.2)
@@ -642,9 +642,9 @@ class ProcessMonitor():
 
             # Plot error rate
             error_rate_y = mean_pool_y - 7
-            plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, error_rate_y),\
-                 xytext=(0, error_rate_y), color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("Error in training data", (185, error_rate_y), color = "black", fontsize=11, weight = f_weight)
+            plt.annotate("Training set: ", (0, error_rate_y),\
+                 xytext=(0, error_rate_y), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate(str(mean_uncertainty_rounded) + "%" + " classification errors", (185, error_rate_y), color = "black", fontsize=9.5, weight = f_weight)
                      
             bar_x = 75
             print_color = self.get_color_to_use(mean_uncertainty_rounded, "black")
