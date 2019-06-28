@@ -392,6 +392,13 @@ class ProcessMonitor():
             most_uncertain_words_set = set()
             for row in most_uncertain_words_file:
                 sp = row.strip().split("\t")
+                before_raw = " "
+                after_raw = " "
+                if len(sp) >= 5:
+                    before_raw = sp[4]
+                if len(sp) >= 6:
+                    before_raw = sp[5]
+                
                 most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3], sp[4], sp[5]])
                 most_uncertain_words_set.add(self.remove_underscore(sp[0]))
         
@@ -582,9 +589,14 @@ class ProcessMonitor():
                 after_str = word_info[5]
                 # TODO: Use feauture context length instead
                 before_to_write = self.remove_underscore(before_str.split(" ")[-1]).replace("'", "' ")
-                after_to_write = "(" + self.remove_underscore(after_str.split(" ")[0]) + "..)"
+                after_to_write = self.remove_underscore(after_str.split(" ")[0])
                 
-                before_to_write = (10 - len(before_to_write))* " " + "(.." + before_to_write + ")"
+                if len(after_to_write) + len(before_to_write) > 10:
+                    if len(after_to_write) > 4:
+                        after_to_write = after_to_write[:4] + ".."
+                    else:
+                        before_to_write = before_to_write[:4] + ".."
+                after_to_write = after_to_write
 
                 if "-" in y_prediction:
                     y_prediction = y_prediction.split("-")[1]
@@ -610,7 +622,7 @@ class ProcessMonitor():
                 if len(word_info) >= 7:
                     point = DX[word_info[6]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=13, weight = "semibold", fontproperties=jp_font)
+                                     fontsize=13, weight = "normal")
                                      
                                      
                 # Give the full annotation information in the margin
@@ -718,8 +730,11 @@ class ProcessMonitor():
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
-        plt.annotate(before_to_write  + " " + found_word + " " + after_to_write, (195, y_cord),\
-        xytext=(195, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+        plt.annotate(found_word,  (330, y_cord), xytext=(330, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+        
+        plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
+
+        #plt.annotate(after_to_write, (340, y_cord), xytext=(340, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
         
         bar_x = 75
         print_color = color_to_use
