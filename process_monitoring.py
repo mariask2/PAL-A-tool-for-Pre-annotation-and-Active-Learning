@@ -689,10 +689,10 @@ class ProcessMonitor():
             mean_uncertainty =  1-sum(mean_uncertainty_list)/len(mean_uncertainty_list)
 
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
-            mean_pool_y = explanation_y-10
+            mean_pool_y = explanation_y-8
             plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
                          xytext=(0, mean_pool_y), color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("Mean uncertainty left", (195, mean_pool_y), color = "black", fontsize=11, weight = f_weight)
+            plt.annotate("Mean uncertainty left", (185, mean_pool_y), color = "black", fontsize=11, weight = f_weight)
 
             bar_x = 75
             grey = (0,0,0,0.2)
@@ -717,7 +717,7 @@ class ProcessMonitor():
             error_rate_y = mean_pool_y - 7
             plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, error_rate_y),\
                  xytext=(0, error_rate_y), color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("Error in training data", (195, error_rate_y), color = "black", fontsize=11, weight = f_weight)
+            plt.annotate("Error in training data", (185, error_rate_y), color = "black", fontsize=11, weight = f_weight)
                      
             bar_x = 75
             print_color = self.get_color_to_use(mean_uncertainty_rounded, "black")
