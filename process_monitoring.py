@@ -392,7 +392,7 @@ class ProcessMonitor():
             most_uncertain_words_set = set()
             for row in most_uncertain_words_file:
                 sp = row.strip().split("\t")
-                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3]])
+                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3], sp[4], sp[5]])
                 most_uncertain_words_set.add(self.remove_underscore(sp[0]))
         
             most_uncertain_words_file.close()
@@ -578,6 +578,14 @@ class ProcessMonitor():
                 word = word_info[0]
                 word_nr = str(int(word_info[2]) + 1)
                 y_prediction = word_info[3]
+                before_str = word_info[4]
+                after_str = word_info[5]
+                # TODO: Use feauture context length instead
+                before_to_write = self.remove_underscore(before_str.split(" ")[-1]).replace("'", "' ")
+                after_to_write = "(" + self.remove_underscore(after_str.split(" ")[0]) + "..)"
+                
+                before_to_write = (10 - len(before_to_write))* " " + "(.." + before_to_write + ")"
+
                 if "-" in y_prediction:
                     y_prediction = y_prediction.split("-")[1]
                 
@@ -599,8 +607,8 @@ class ProcessMonitor():
                 # then most_uncertain_words has saved the index, where the vector of this word is stored in place 4
                 # If there is no corresponding vector, there are only three elements in word_info
                 # and nothing can be plotted for this point
-                if len(word_info) >= 5:
-                    point = DX[word_info[4]]
+                if len(word_info) >= 7:
+                    point = DX[word_info[6]]
                     plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
                                      fontsize=13, weight = "semibold", fontproperties=jp_font)
                                      
@@ -610,7 +618,10 @@ class ProcessMonitor():
                 # Regardless if found in vector space
                 found_word_info.append({"word" : word, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, "color_to_use_end_bar" : color_to_use_end_bar, \
                                            "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr,\
-                                       "confidence" : word_info[1], "f_weight": f_weight})
+                                       "confidence" : word_info[1], "f_weight": f_weight,\
+                                       "before_to_write" : before_to_write,\
+                                       "after_to_write" : after_to_write
+                                       })
 
 
             chosen_terms = main_fig.add_subplot(1, 2, 2)
@@ -627,7 +638,8 @@ class ProcessMonitor():
                 self.list_chosen_words(el["word"], el["color_to_use"], \
                                        el["color_to_use_background"], el["color_to_use_background_last"],\
                                        el["color_to_use_end_bar"], el["word_nr"], max_y,\
-                                       title_space, el["confidence"], el["f_weight"], jp_font, row_height)
+                                       title_space, el["confidence"], el["f_weight"], jp_font, row_height,\
+                                       el["before_to_write"], el["after_to_write"])
 
             plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
               color = "black", fontsize=12)
@@ -702,11 +714,11 @@ class ProcessMonitor():
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           color_to_use_end_bar, word_nr, max_y, title_space, confidence,\
-                          f_weight, jp_font, row_height):
+                          f_weight, jp_font, row_height, before_to_write, after_to_write):
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
-        plt.annotate(found_word, (195, y_cord),\
+        plt.annotate(before_to_write  + " " + found_word + " " + after_to_write, (195, y_cord),\
         xytext=(195, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
         
         bar_x = 75
