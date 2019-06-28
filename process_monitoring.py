@@ -68,6 +68,7 @@ class ProcessMonitor():
         self.WORD_PREFIX = "most_uncertain_words_"
         self.SAVED_TSNE = "SAVED_TSNE"
         self.SAVED_FOUND_TSNE_WORDS = "SAVED_FOUND_TSNE_WORDS"
+        self.SCORES_SUFFIX = "_scores.csv"
         
         """
             self.PLOT_LEFT_MARGIN = -20
@@ -200,7 +201,7 @@ class ProcessMonitor():
     
     def write_score_process_monitoring(self, nr_samples, score, minority_class):
         print('str(nr_samples) + "\t" + str(score) + "\n"' +  str(nr_samples) + "\t" + str(score) + "\n")
-        score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), minority_class + "_scores.csv")
+        score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), minority_class + self.SCORES_SUFFIX)
         if os.path.isfile(score_file_name):
             score_file = open(score_file_name, "a")
         else:
@@ -365,9 +366,26 @@ class ProcessMonitor():
         
         suffixes_for_run_1 = []
         
+        # classification results when run cross-validation on trained data
+        score_dict_dict = {}
+        for ent in self.entities:
+            score_file_name = os.path.join(self.get_full_process_monitoring_dir_path_word2vec_or_not(whether_to_use_word2vec), ent + self.SCORES_SUFFIX)
+            score_dict = None
+            if os.path.isfile(score_file_name):
+                score_dict = {}
+                f = open(score_file_name)
+                for line in f:
+                    sp = line.strip().split("\t")
+                    score_dict[int(sp[0])] = float(sp[1])
+            score_dict_dict[ent] = score_dict
+                
         for (nr, filename) in suffixes_names:
             
             saved_in = os.path.split(filename)
+            classification_nr = saved_in[1].split("_")[2]
+         
+            
+            
             most_uncertain_words_file_name = os.path.join(saved_in[0], self.WORD_PREFIX + saved_in[1])
             most_uncertain_words_file = open(most_uncertain_words_file_name)
             most_uncertain_words = []
@@ -380,9 +398,19 @@ class ProcessMonitor():
             most_uncertain_words_file.close()
             result_dict = pickle.load(open(filename, "rb"))
 
+
             for ent in self.entities:
+                if score_dict_dict[ent]:
+                    try:
+                        classification_score = score_dict_dict[ent][int(classification_nr)]
+                    except TypeError:
+                        classification_score = 0
+                else:
+                    error_rate = None
+                
                 self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
-                                         most_uncertain_words_set, filename, suffixes_for_run_1, ent, whether_to_use_word2vec)
+                                             most_uncertain_words_set, filename, suffixes_for_run_1, ent,\
+                                             whether_to_use_word2vec, classification_score)
 
     """
     def get_mean_from_result_dict(self, found_word, result_dict):
@@ -418,7 +446,8 @@ class ProcessMonitor():
         return color_to_use
 
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
-                                most_uncertain_words_set, filename, suffixes_for_run_1, minority_class, whether_to_use_word2vec):
+                                most_uncertain_words_set, filename, suffixes_for_run_1, \
+                                minority_class, whether_to_use_word2vec, classification_score):
         print("minority_class", minority_class)
         print("-------")
         
@@ -426,11 +455,13 @@ class ProcessMonitor():
         nr_ending = sp[-2] + "_" + sp[-1]
         save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path_word2vec_or_not(whether_to_use_word2vec), self.PLOT_PREFIX +\
                                              nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
-        #if os.path.exists(save_figure_file_name):
-        if False:
+        if os.path.exists(save_figure_file_name):
             print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
         else:
             print("Creates plot for " + save_figure_file_name)
+            
+            
+            
             mean_uncertainty_list = []
             
             main_fig = plt.figure()
@@ -443,9 +474,6 @@ class ProcessMonitor():
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
                             labelleft='off', labeltop='off', labelright='off', labelbottom='off')
                             
-            #splitted = nr.split("_")
-            #if splitted[1] == "1":
-            #suffixes_for_run_1.append(splitted[0])
 
             annotated_points = set()
 
@@ -617,9 +645,9 @@ class ProcessMonitor():
 
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
             mean_pool_y = explanation_y-8
-            plt.annotate("Data pool:" , (0, mean_pool_y),\
-                         xytext=(0, mean_pool_y), color = "black", fontsize=9.5, weight = f_weight)
-            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty", (185, mean_pool_y), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate("Data pool:" , (0, mean_pool_y+0.5),\
+                         xytext=(0, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty", (179, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
 
             bar_x = 75
             grey = (0,0,0,0.2)
@@ -641,23 +669,27 @@ class ProcessMonitor():
 
 
             # Plot error rate
-            error_rate_y = mean_pool_y - 7
-            plt.annotate("Training set: ", (0, error_rate_y),\
-                 xytext=(0, error_rate_y), color = "black", fontsize=9.5, weight = f_weight)
-            plt.annotate(str(mean_uncertainty_rounded) + "%" + " classification errors", (185, error_rate_y), color = "black", fontsize=9.5, weight = f_weight)
+            if classification_score: #should work also when this has not been recorded
+                error_left = 1 - classification_score
+                error_left_rounded = int(100*(round(float(error_left), 2)))
+                
+                error_rate_y = mean_pool_y - 7
+                plt.annotate("Training set: ", (0, error_rate_y+0.5),\
+                             xytext=(0, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+                plt.annotate(str(error_left_rounded) + "%" + " missclassifications", (179, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
                      
-            bar_x = 75
-            print_color = self.get_color_to_use(mean_uncertainty_rounded, "black")
-            for i in range(0, 100):
-                if i == mean_uncertainty_rounded:
-                    print_color = middle_grey
-                if i > mean_uncertainty_rounded:
-                    print_color = light_grey
-                if i == 99:
-                    print_color = almost_light_grey
-                plt.scatter(bar_x, error_rate_y + 0.7 , color = print_color, marker = "|")
-                plt.scatter(bar_x, error_rate_y + 3 , color = print_color, marker = "|")
-                bar_x = bar_x+1
+                bar_x = 75
+                print_color = self.get_color_to_use(classification_score, "black")
+                for i in range(0, 100):
+                    if i == error_left_rounded:
+                        print_color = middle_grey
+                    if i > error_left_rounded:
+                        print_color = light_grey
+                    if i == 99:
+                        print_color = almost_light_grey
+                    plt.scatter(bar_x, error_rate_y + 0.7 , color = print_color, marker = "|")
+                    plt.scatter(bar_x, error_rate_y + 3 , color = print_color, marker = "|")
+                    bar_x = bar_x+1
 
 
             plt.subplots_adjust(wspace = 0.0)
