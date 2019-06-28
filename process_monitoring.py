@@ -104,83 +104,7 @@ class ProcessMonitor():
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
 
 
-        self.first_part_html = \
-        """
-            <!doctype html>
-                <html lang="en">
-                    <head>
-                        <meta charset="utf-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1">
-                                <title>Annotation status</title>
-                                    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-                                        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-                                        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-                                        <style type="text/css">
-                                            .currentImage {
-                                            margin-top: 20px;
-                                            margin-left: 20px;
-                                            margin-bottom: 5px;
-                                            border-style: solid;
-                                            border-color: lightgrey;
-                                            border-width: 1px;
-                                            background-image: url("plot_34_1.png");
-                                            background-repeat: no-repeat;
-                                            background-size: 1500px;
-                                            width: 1500px;
-                                            height: 1000px;
-                                            border-radius: 25px;
-                                            }
-                                            .sliderStyle{
-                                            margin-left: 20px;
-                                            margin-top; 20px;
-                                            color: lightgrey;
-                                            background-color: red;
-                                            border-radius: 25px;
-                                            }
-            
-                                    </style>
-                                    <script>
-            """
-        
-        self.second_part_html = \
-        """
-                                    $( function() {
-                                    $( "#slider" ).slider({
-                                    disabled: false,
-                                    range: "min",
-                                    animate: "slow",
-                                    value: 0,
-                                    min: 0,
-                                    max: suffixes.length,
-                                    step: 1,
-                                    slide: function(event, ui){
-                                    $(".currentImage").css("background-image", "url('plot_" + suffixes[ui.value] + "_1.png')");
-                                    }});
-                                    });
-            
-                                    $( document ).ready(function() {
-                                    $(".sliderStyle").css("width", suffixes.length + 100 + "px");
-                                    });
-                                    </script>
-                                </head>
-                                <body>
-                                    <div id = "results" class = "currentImage"></div>
-                                    <div id="slider" class = "sliderStyle"></div>
-                                </body>
-                            </html>
-
-        """
- 
-        self.suffixes_text = "\t\t\t\t\tvar suffixes = ["
-            
-    def create_html(self, number_list):
-        array_string = self.suffixes_text
-        for number in number_list:
-            array_string = array_string + '"' + str(number) + '", '
-
-        array_string = array_string + "];"
-        return self.first_part_html + "\n" + array_string + "\n" + self.second_part_html
-    
+     
     def get_full_process_monitoring_dir_path_no_word2vec_info(self):
         full_process_monitoring_dir = os.path.join(self.path_slash_format, self.process_monitoring_dir)
         return full_process_monitoring_dir
@@ -192,6 +116,12 @@ class ProcessMonitor():
             sub_dir_name = self.FOLDER_FOR_WORD2VEC_FALSE
         return os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), sub_dir_name)
 
+    def get_full_process_monitoring_dir_path_word2vec_or_not(self, whether_to_use_word2vec):
+        if whether_to_use_word2vec == True:
+            sub_dir_name = self.FOLDER_FOR_WORD2VEC_TRUE
+        else:
+            sub_dir_name = self.FOLDER_FOR_WORD2VEC_FALSE
+        return os.path.join(self.get_full_process_monitoring_dir_path_no_word2vec_info(), sub_dir_name)
 
     def init_process_monitoring(self, path_slash_format, properties, unlabelled_text_vector):
         if self.write_process_monitoring:
@@ -211,14 +141,11 @@ class ProcessMonitor():
             
             full_process_monitoring_dir_path_word2vec_info = self.get_full_process_monitoring_dir_path()
             print("Will write process monitoring info in ", full_process_monitoring_dir_path_word2vec_info)
-            #score_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), "scores.csv")
  
             if not os.path.exists(full_process_monitoring_dir_path_word2vec_info):
                 os.mkdir(full_process_monitoring_dir_path_word2vec_info)
-                #self.score_file = open(score_file_name, "w")
                 return True
             else:
-                #self.score_file = open(score_file_name, "a")
                 return False
 
     def set_number_of_labelled(self, number_of_labelled):
@@ -424,13 +351,12 @@ class ProcessMonitor():
 
 
     def plot_each_state(self, DX, found_words, whether_to_use_word2vec):
-        self.whether_to_use_word2vec = whether_to_use_word2vec
-        path_and_prefix_states = os.path.join(self.get_full_process_monitoring_dir_path(),\
+        path_and_prefix_states = os.path.join(self.get_full_process_monitoring_dir_path_word2vec_or_not(whether_to_use_word2vec),\
                                self.SAVED_DICTIONARY_PREFIX)
         previously_saved_files = glob.glob(path_and_prefix_states + "*")
         
         if len(previously_saved_files) == 0:
-            print("No saved files were found in. " + self.get_full_process_monitoring_dir_path() +\
+            print("No saved files were found in. " + self.get_full_process_monitoring_dir_path_word2vec_or_not(whether_to_use_word2vec) +\
                   " Probably, no active learning process have been run with the setting 'whether_to_use_word2vec' = "\
                   + str(whether_to_use_word2vec))
             return
@@ -456,7 +382,7 @@ class ProcessMonitor():
 
             for ent in self.entities:
                 self.plot_for_minority_class(result_dict, DX, found_words, most_uncertain_words,\
-                                         most_uncertain_words_set, filename, suffixes_for_run_1, ent)
+                                         most_uncertain_words_set, filename, suffixes_for_run_1, ent, whether_to_use_word2vec)
 
     """
     def get_mean_from_result_dict(self, found_word, result_dict):
@@ -492,12 +418,13 @@ class ProcessMonitor():
         return color_to_use
 
     def plot_for_minority_class(self, result_dict, DX, found_words, most_uncertain_words,\
-                                most_uncertain_words_set, filename, suffixes_for_run_1, minority_class):
+                                most_uncertain_words_set, filename, suffixes_for_run_1, minority_class, whether_to_use_word2vec):
         print("minority_class", minority_class)
         print("-------")
+        
         sp = filename.split("_")
         nr_ending = sp[-2] + "_" + sp[-1]
-        save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
+        save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path_word2vec_or_not(whether_to_use_word2vec), self.PLOT_PREFIX +\
                                              nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
         #if os.path.exists(save_figure_file_name):
         if False:
@@ -738,14 +665,8 @@ class ProcessMonitor():
             plt.savefig(save_figure_file_name, dpi = 300, orientation = "landscape") #, bbox_inches='tight')
             print("Saved plot in " + save_figure_file_name)
 
-            #print("suffixes_for_run_1", suffixes_for_run_1)
-            html_for_show_plots = self.create_html(suffixes_for_run_1)
-            save_html_in = os.path.join(self.get_full_process_monitoring_dir_path(), self.HTML_NAME)
-
-
             plt.close('all')
-            #print(html_for_show_plots)
-            #print(save_html_in)
+
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           color_to_use_end_bar, word_nr, max_y, title_space, confidence,\

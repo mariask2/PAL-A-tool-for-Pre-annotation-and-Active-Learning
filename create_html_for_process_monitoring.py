@@ -19,33 +19,10 @@ import pickle
 import active_learning_preannotation
 
 ############
-## The ProcessMonitor class has quite specialised functionality, and is still under development
-## so its functionality is not yet described in the general readme file.
-## The aim of the functionality is to monitor the state of the data pool during the
-## active learning process.
-## For the process monitoring  to work, the directory "process_monitoring" most be deleted (or renamed to a new name)
-## before the active learning process starts
-## The first thing that will happen is then that a directory with the name 'process_monitoring' is created
-## in the folder where you have your project. In this directory, the 'vectorizer' file will be saved
-## Which contains information of all types included in the pool when the process starts
-## The actual state of the pool during the active learning process is save in pickled python dictionaries
-## in the two folders 'word2vec_false' and 'word2vec_true', depending on the settings.
-## For saving the data, the 'write_process_monitoring' variable in 'settings.py' must be set to True.
-## The settings.py file is also used for loading other kinds of information, e.g. where the word2vec-space needed
-## for the visualisation is stored.
-## Note that when the process is run as a simulation, then the data in the 'different_sizes_simulation_settings.py'
-## is what governs what will happen regarding the saving of the data. However, for then using the
-## saved data for visualisation, 'settings.py' is used. So make sure that the info in these two are consistent.
-## (Some kind of automatic check should be added in the future.)
-## Also, note that the visualisation treats tokens as either 'an entity' or 'not an entity', disregarding
-## which kind of entities there are, if there are many. (This should be made configurable in the future.)
-## Therefore, if you use the monitoring in the simulation process, where you use one entity at a time. The practical way to do it is to,
-## when the process is simulation process finished for one entity, rename the 'process_monitoring' folder to
-## 'process_monitoring_my_entity_type_1', do the simulation of the next entity type and rename the folder to
-## 'process_monitoring' to 'process_monitorin_my_entity_type_2' and so on.
+
 ##
-## To visualise the states the pool in the active learning process, write
-## python process_monitoring.py --project=data.example_project
+## To create a html-file which shows changes in states in the process,  write
+## python create_html_for_process_monitoring.py --project=data.example_project
 
 
 class HtmlCreator():
