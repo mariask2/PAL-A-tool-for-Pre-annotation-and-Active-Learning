@@ -147,7 +147,7 @@ class HtmlCreator():
         dir_with_word2vec = self.get_full_process_monitoring_dir_path_word2vec_or_not(True)
         if os.path.isdir(dir_with_word2vec):
             for c in self.entities:
-                save_in = os.path.join(dir_with_word2vec, c + "_" + self.HTML_NAME)
+                save_in = os.path.join(dir_with_word2vec, c + "_with_word2vec_" + self.HTML_NAME)
                 print("Creating html for process using word2vec in " + save_in)
                 self.create_html(save_in, c, dir_with_word2vec)
         else:
@@ -157,7 +157,7 @@ class HtmlCreator():
         
         if os.path.isdir(dir_without_word2vec):
             for c in self.entities:
-                save_in = os.path.join(dir_without_word2vec, c + "_" + self.HTML_NAME)
+                save_in = os.path.join(dir_without_word2vec, c + "_without_word2vec_" + self.HTML_NAME)
                 print("Creating html for process without using word2vec in " + save_in)
                 self.create_html(save_in, c, dir_without_word2vec)
         else:
@@ -167,13 +167,13 @@ class HtmlCreator():
     def create_html(self, file_to_save_in, entity_category, glob_dir):
         glob_exp = os.path.join(glob_dir, self.PLOT_PREFIX + "*" + entity_category + self.PLOT_FILE_ENDING)
         category_plots = glob.glob(glob_exp)
-        category_plots_base = sorted([os.path.basename(el) for el in category_plots])
-    
+        category_plots_base_tuple = [(int(os.path.basename(el).split("_")[1]), os.path.basename(el))for el in category_plots]
+        category_plots_base = [name for (nr, name) in sorted(category_plots_base_tuple)]
+        
         plot_str = self.suffixes_text
         for plot in category_plots_base:
             plot_str = plot_str + '"' + plot + '", '
         plot_str = plot_str + "];"
-        print(plot_str)
         
         html = self.first_part_html + self.start_image_prefix + category_plots_base[0] + self.start_image_suffix + self.first_part_html_after_image + "\n" + plot_str + "\n" + self.second_part_html
         f = open(file_to_save_in, "w")
