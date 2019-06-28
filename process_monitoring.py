@@ -475,6 +475,8 @@ class ProcessMonitor():
                 color_to_use = (other_colors, other_colors, 1, 1)
             elif base_color == "red":
                 color_to_use = (1, other_colors, other_colors, 1)
+            elif base_color == "black":
+                color_to_use = (other_colors, other_colors, other_colors, 1)
             else:
                 raise ValueError("Unknown color")
         if uncertainty >= color_range_cutoff:
@@ -483,6 +485,8 @@ class ProcessMonitor():
                 color_to_use = (0, 0, 1 - internal_uncertainty, 1)
             elif base_color == "red":
                 color_to_use = (1 - internal_uncertainty, 0, 0 , 1)
+            elif base_color == "black":
+                color_to_use = (1 - internal_uncertainty, 1 - internal_uncertainty, 1 - internal_uncertainty , 1)
             else:
                 raise ValueError("Unknown color")
         return color_to_use
@@ -495,7 +499,8 @@ class ProcessMonitor():
         nr_ending = sp[-2] + "_" + sp[-1]
         save_figure_file_name = os.path.join(self.get_full_process_monitoring_dir_path(), self.PLOT_PREFIX +\
                                              nr_ending + "_" + minority_class + self.PLOT_FILE_ENDING)
-        if os.path.exists(save_figure_file_name):
+        #if os.path.exists(save_figure_file_name):
+        if False:
             print("Figure " + save_figure_file_name + " has already been created. Delete the file to re-create the plot.")
         else:
             print("Creates plot for " + save_figure_file_name)
@@ -623,13 +628,15 @@ class ProcessMonitor():
                 
                 if y_prediction != minority_class:
                     color_to_use_background = (0, 0, 1, 0.02)
-                    color_to_use_background_last = (0, 0, 1, 0.1)
+                    color_to_use_end_bar = (0, 0, 1, 0.1)
+                    color_to_use_background_last = (0, 0, 1, 0.05)
                     color_to_use = self.get_color_to_use(float(word_info[1]), "blue")
                         #(0, 0, 1, 1 - float(word_info[1]))
                     f_weight = "normal"
                 else:
                     color_to_use_background = (1, 0, 0, 0.02)
-                    color_to_use_background_last = (1, 0, 0, 0.1)
+                    color_to_use_end_bar = (1, 0, 0, 0.1)
+                    color_to_use_background_last = (1, 0, 0, 0.05)
                     color_to_use = self.get_color_to_use(float(word_info[1]), "red")
                     #color_to_use = (1, 0, 0, 1 - float(word_info[1]))
                     f_weight = "normal"
@@ -646,7 +653,7 @@ class ProcessMonitor():
                 # Give the full annotation information in the margin
                 # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
                 # Regardless if found in vector space
-                found_word_info.append({"word" : word, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, \
+                found_word_info.append({"word" : word, "color_to_use" : color_to_use, "color_to_use_background" : color_to_use_background, "color_to_use_end_bar" : color_to_use_end_bar, \
                                            "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr,\
                                        "confidence" : word_info[1], "f_weight": f_weight})
 
@@ -660,15 +667,16 @@ class ProcessMonitor():
             row_height = 5
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
-            title_space = 15
+            title_space = 12
             for el in found_word_info:
                 self.list_chosen_words(el["word"], el["color_to_use"], \
-                                       el["color_to_use_background"], el["color_to_use_background_last"], el["word_nr"], max_y,\
+                                       el["color_to_use_background"], el["color_to_use_background_last"],\
+                                       el["color_to_use_end_bar"], el["word_nr"], max_y,\
                                        title_space, el["confidence"], el["f_weight"], jp_font, row_height)
 
             plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
-              color = "black", fontsize=14)
-            plt.annotate("Classification uncertainty remaining\nfor the most uncertain tokens in the data pool", (0, max_y - title_space), \
+              color = "black", fontsize=12)
+            plt.annotate("Classification uncertainty for the\nmost uncertain tokens in data pool", (0, max_y - title_space), \
                           color = "black", fontsize=12)
 
             explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
@@ -684,23 +692,45 @@ class ProcessMonitor():
             mean_pool_y = explanation_y-10
             plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, mean_pool_y),\
                          xytext=(0, mean_pool_y), color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("Mean uncertainty", (195, mean_pool_y + 2.5 ),\
-                                        color = "black", fontsize=12, weight = f_weight)
-            plt.annotate("left in data pool", (195, mean_pool_y - 2.5 ),\
-                                        color = "black", fontsize=12, weight = f_weight)
-                         
+            plt.annotate("Mean uncertainty left", (195, mean_pool_y), color = "black", fontsize=11, weight = f_weight)
 
             bar_x = 75
-            print_color = (0.1,0,0.1,0.5)
+            grey = (0,0,0,0.2)
+            light_grey = (0.01,0.01,0.01,0.01)
+            almost_light_grey = (0.04,0.04,0.04,0.04)
+            middle_grey = (0.9,0.9,0.9,0.9)
+            
+            print_color = self.get_color_to_use(mean_uncertainty_rounded, "black")
             for i in range(0, 100):
+                if i == mean_uncertainty_rounded:
+                    print_color = middle_grey
                 if i > mean_uncertainty_rounded:
-                    print_color = (0.01,0.01,0.01,0.01)
+                    print_color = light_grey
                 if i == 99:
-                    print_color = (0.9,0.9,0.9,0.9)
+                    print_color = almost_light_grey
                 plt.scatter(bar_x, mean_pool_y + 0.7 , color = print_color, marker = "|")
                 plt.scatter(bar_x, mean_pool_y + 3 , color = print_color, marker = "|")
                 bar_x = bar_x+1
-           
+
+
+            # Plot error rate
+            error_rate_y = mean_pool_y - 7
+            plt.annotate("  " + str(mean_uncertainty_rounded) + "%", (0, error_rate_y),\
+                 xytext=(0, error_rate_y), color = "black", fontsize=12, weight = f_weight)
+            plt.annotate("Error in training data", (195, error_rate_y), color = "black", fontsize=11, weight = f_weight)
+                     
+            bar_x = 75
+            print_color = self.get_color_to_use(mean_uncertainty_rounded, "black")
+            for i in range(0, 100):
+                if i == mean_uncertainty_rounded:
+                    print_color = middle_grey
+                if i > mean_uncertainty_rounded:
+                    print_color = light_grey
+                if i == 99:
+                    print_color = almost_light_grey
+                plt.scatter(bar_x, error_rate_y + 0.7 , color = print_color, marker = "|")
+                plt.scatter(bar_x, error_rate_y + 3 , color = print_color, marker = "|")
+                bar_x = bar_x+1
 
 
             plt.subplots_adjust(wspace = 0.0)
@@ -718,7 +748,8 @@ class ProcessMonitor():
             #print(save_html_in)
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
-                          word_nr, max_y, title_space, confidence, f_weight, jp_font, row_height):
+                          color_to_use_end_bar, word_nr, max_y, title_space, confidence,\
+                          f_weight, jp_font, row_height):
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
@@ -729,6 +760,8 @@ class ProcessMonitor():
         print_color = color_to_use
         marker_to_use = "|"
         for i in range(0, 100):
+            if i == uncertainty_to_print:
+                print_color = color_to_use_end_bar
             if i > uncertainty_to_print:
                 print_color = color_to_use_background
             if i == 99:
