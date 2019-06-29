@@ -362,7 +362,17 @@ class ProcessMonitor():
                   + str(whether_to_use_word2vec))
             return
         
-        suffixes_names = sorted([(int(el[-1]), el) for el in previously_saved_files])
+        suffixes_names_sorted = sorted([(int(el[-1]), el) for el in previously_saved_files])
+        
+        # Temporary hack, to save time, as the 500 and 1000 images are needed for a paper
+        # TODO: Remove
+        suffixes_names = []
+        for (suffix, all_name) in suffixes_names_sorted:
+            if "500" in all_name or "1000" in all_name:
+                suffixes_names.insert(0, (suffix, all_name))
+            else:
+                suffixes_names.append((suffix, all_name))
+
         
         suffixes_for_run_1 = []
         
@@ -591,12 +601,10 @@ class ProcessMonitor():
                 before_to_write = self.remove_underscore(before_str.split(" ")[-1]).replace("'", "' ")
                 after_to_write = self.remove_underscore(after_str.split(" ")[0])
                 
-                if len(after_to_write) + len(before_to_write) > 10:
-                    if len(after_to_write) > 4:
-                        after_to_write = after_to_write[:4] + ".."
-                    else:
-                        before_to_write = before_to_write[:4] + ".."
-                after_to_write = after_to_write
+                context_to_write = "(" + before_to_write + "," + after_to_write + ")"
+                if len(context_to_write) > 13:
+                    context_to_write = context_to_write[:13] + "..)"
+
 
                 if "-" in y_prediction:
                     y_prediction = y_prediction.split("-")[1]
@@ -632,7 +640,8 @@ class ProcessMonitor():
                                            "color_to_use_background_last" : color_to_use_background_last, "word_nr" : word_nr,\
                                        "confidence" : word_info[1], "f_weight": f_weight,\
                                        "before_to_write" : before_to_write,\
-                                       "after_to_write" : after_to_write
+                                       "after_to_write" : after_to_write,\
+                                       "context_to_write" : context_to_write
                                        })
 
 
@@ -651,7 +660,7 @@ class ProcessMonitor():
                                        el["color_to_use_background"], el["color_to_use_background_last"],\
                                        el["color_to_use_end_bar"], el["word_nr"], max_y,\
                                        title_space, el["confidence"], el["f_weight"], jp_font, row_height,\
-                                       el["before_to_write"], el["after_to_write"])
+                                       el["before_to_write"], el["after_to_write"], el["context_to_write"])
 
             plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
               color = "black", fontsize=12)
@@ -726,7 +735,7 @@ class ProcessMonitor():
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           color_to_use_end_bar, word_nr, max_y, title_space, confidence,\
-                          f_weight, jp_font, row_height, before_to_write, after_to_write):
+                          f_weight, jp_font, row_height, before_to_write, after_to_write, context_to_write):
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
@@ -734,11 +743,11 @@ class ProcessMonitor():
         japanese = False
     
         if japanese:
-            plt.annotate(found_word,  (330, y_cord), xytext=(330, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-            plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(found_word,  (320, y_cord), xytext=(320, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
         else:
-            plt.annotate(found_word,  (290, y_cord), xytext=(290, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-            plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
+            plt.annotate(found_word,  (280, y_cord), xytext=(280, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
 
         
         bar_x = 75
@@ -754,7 +763,7 @@ class ProcessMonitor():
             plt.scatter(bar_x, y_cord+1.5, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+                         xytext=(0, y_cord), color = "black", fontsize=12, weight = f_weight)
 
 
 if __name__ == "__main__":
