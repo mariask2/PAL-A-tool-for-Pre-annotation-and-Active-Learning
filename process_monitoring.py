@@ -441,7 +441,7 @@ class ProcessMonitor():
         color_range_cutoff = 0.95
         if uncertainty < color_range_cutoff:
             internal_uncertainty = uncertainty/color_range_cutoff
-            other_colors = min(1 - internal_uncertainty, 0.95) #
+            other_colors = min(1 - internal_uncertainty, 0.85) #
             if base_color == "blue":
                 color_to_use = (other_colors, other_colors, 1, 1)
             elif base_color == "red":
@@ -664,20 +664,20 @@ class ProcessMonitor():
 
             plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
               color = "black", fontsize=12)
-            plt.annotate("Classification uncertainty for the\nmost uncertain tokens in data pool", (0, max_y - title_space), \
+            plt.annotate("Classification uncertainty for the\nmost uncertain tokens in data pool:", (0, max_y - title_space), \
                           color = "black", fontsize=12)
 
-            explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
+            #explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
+            mean_pool_y = max_y - 15 - (len(found_word_info) + 2)*row_height
 
-            plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
-                         xytext=(0,explanation_y), color = "black", fontsize=12)
+
 
 
             # Plot mean uncertainty in data pool
             mean_uncertainty =  1-sum(mean_uncertainty_list)/len(mean_uncertainty_list)
 
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
-            mean_pool_y = explanation_y-8
+            #mean_pool_y = explanation_y-8
             plt.annotate("Data pool:" , (0, mean_pool_y+0.5),\
                          xytext=(0, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
             plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty left", (179, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
@@ -709,7 +709,7 @@ class ProcessMonitor():
                 error_rate_y = mean_pool_y - 7
                 plt.annotate("Training set: ", (0, error_rate_y+0.5),\
                              xytext=(0, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
-                plt.annotate(str(error_left_rounded) + "%" + " missclassifications left", (179, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+                plt.annotate(str(error_left_rounded) + "%" + " incorrect classifications", (179, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
                      
                 bar_x = 75
                 print_color = self.get_color_to_use(classification_score, "black")
@@ -723,6 +723,10 @@ class ProcessMonitor():
                     plt.scatter(bar_x, error_rate_y + 0.7 , color = print_color, marker = "|")
                     plt.scatter(bar_x, error_rate_y + 3 , color = print_color, marker = "|")
                     bar_x = bar_x+1
+
+            explanation_y = error_rate_y - 13
+            plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
+             xytext=(0,explanation_y), color = "black", fontsize=12)
 
 
             plt.subplots_adjust(wspace = 0.0)
