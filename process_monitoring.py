@@ -441,7 +441,7 @@ class ProcessMonitor():
         color_range_cutoff = 0.95
         if uncertainty < color_range_cutoff:
             internal_uncertainty = uncertainty/color_range_cutoff
-            other_colors = min(1 - internal_uncertainty, 0.85) #
+            other_colors = min(1 - internal_uncertainty, 0.90) #
             if base_color == "blue":
                 color_to_use = (other_colors, other_colors, 1, 1)
             elif base_color == "red":
