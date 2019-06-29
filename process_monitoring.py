@@ -392,14 +392,14 @@ class ProcessMonitor():
             most_uncertain_words_set = set()
             for row in most_uncertain_words_file:
                 sp = row.strip().split("\t")
-                before_raw = " "
-                after_raw = " "
+                before_raw = ""
+                after_raw = ""
                 if len(sp) >= 5:
                     before_raw = sp[4]
                 if len(sp) >= 6:
-                    before_raw = sp[5]
+                    after_raw = sp[5]
                 
-                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3], sp[4], sp[5]])
+                most_uncertain_words.append([self.remove_underscore(sp[0]), sp[1], sp[2], sp[3], before_raw, after_raw])
                 most_uncertain_words_set.add(self.remove_underscore(sp[0]))
         
             most_uncertain_words_file.close()
@@ -671,7 +671,7 @@ class ProcessMonitor():
             mean_pool_y = explanation_y-8
             plt.annotate("Data pool:" , (0, mean_pool_y+0.5),\
                          xytext=(0, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
-            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty", (179, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty left", (179, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
 
             bar_x = 75
             grey = (0,0,0,0.2)
@@ -700,7 +700,7 @@ class ProcessMonitor():
                 error_rate_y = mean_pool_y - 7
                 plt.annotate("Training set: ", (0, error_rate_y+0.5),\
                              xytext=(0, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
-                plt.annotate(str(error_left_rounded) + "%" + " missclassifications", (179, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+                plt.annotate(str(error_left_rounded) + "%" + " missclassifications left", (179, error_rate_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
                      
                 bar_x = 75
                 print_color = self.get_color_to_use(classification_score, "black")
@@ -730,11 +730,16 @@ class ProcessMonitor():
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
         y_cord = max_y - title_space - 4 - int(word_nr)*row_height
-        plt.annotate(found_word,  (330, y_cord), xytext=(330, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-        
-        plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
 
-        #plt.annotate(after_to_write, (340, y_cord), xytext=(340, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
+        japanese = False
+    
+        if japanese:
+            plt.annotate(found_word,  (330, y_cord), xytext=(330, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
+        else:
+            plt.annotate(found_word,  (290, y_cord), xytext=(290, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate("(" + before_to_write + ", " + after_to_write + ")", (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
+
         
         bar_x = 75
         print_color = color_to_use
