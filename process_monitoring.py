@@ -723,6 +723,8 @@ class ProcessMonitor():
                     plt.scatter(bar_x, error_rate_y + 0.7 , color = print_color, marker = "|")
                     plt.scatter(bar_x, error_rate_y + 3 , color = print_color, marker = "|")
                     bar_x = bar_x+1
+            else:
+                error_rate_y = mean_pool_y
 
             explanation_y = error_rate_y - 13
             plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
