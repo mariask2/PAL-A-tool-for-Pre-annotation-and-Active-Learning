@@ -95,7 +95,7 @@ class HtmlCreator():
                                     $( "#slider" ).slider({
                                     disabled: false,
                                     range: "min",
-                                    animate: "slow",
+                                    animate: "fast",
                                     value: 0,
                                     min: 0,
                                     max: suffixes.length,
@@ -106,7 +106,7 @@ class HtmlCreator():
                                     });
             
                                     $( document ).ready(function() {
-                                    $(".sliderStyle").css("width", suffixes.length + 100 + "px");
+                                    $(".sliderStyle").css("width", 1500 + "px");
                                     });
                                     </script>
                                 </head>

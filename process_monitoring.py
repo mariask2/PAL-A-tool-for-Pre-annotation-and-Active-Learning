@@ -749,7 +749,7 @@ class ProcessMonitor():
         japanese = False
     
         if japanese:
-            plt.annotate(found_word,  (320, y_cord), xytext=(320, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(found_word,  (260, y_cord), xytext=(260, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
             plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
         else:
             plt.annotate(found_word,  (280, y_cord), xytext=(280, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
