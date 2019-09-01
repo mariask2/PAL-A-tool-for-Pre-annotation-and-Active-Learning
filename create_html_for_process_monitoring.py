@@ -106,7 +106,7 @@ class HtmlCreator():
                                     });
             
                                     $( document ).ready(function() {
-                                    $(".sliderStyle").css("width", 1500 + "px");
+                                    $(".sliderStyle").css("width", 1150 + "px");
                                     });
                                     </script>
                                 </head>
