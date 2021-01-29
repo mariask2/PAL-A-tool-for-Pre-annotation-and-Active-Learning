@@ -120,8 +120,15 @@ def select_new_data(properties, project_path, word2vecwrapper):
         except AssertionError:
             print("different length on labels and text")
             exit(1)
+        last_label = properties.outside_class
         for text, label in zip(texts, labels):
-            to_annotate_file.write("\t".join([text, label_dict_inv[label]]) + "\n")
+            inv_label = label_dict_inv[label]
+            # The first label in a labelled chunk must be a B-tag
+            if last_label == properties.outside_class and inv_label != properties.outside_class and not inv_label.startswith(properties.beginning_prefix):
+                    inv_label = properties.beginning_prefix + inv_label.split(u"-")[1]
+                    print(inv_label)
+            last_label = inv_label
+            to_annotate_file.write("\t".join([text, inv_label]) + "\n")
         to_annotate_file.write("\n")
     to_annotate_file.close()
 

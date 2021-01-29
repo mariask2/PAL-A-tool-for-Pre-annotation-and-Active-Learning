@@ -103,6 +103,8 @@ class ProcessMonitor():
         self.gensim_format = properties.gensim_format
         if unlabelled_text_vector: # If used during data selection
             self.init_process_monitoring(path_slash_format, properties, unlabelled_text_vector)
+        self.number_of_previous_words = properties.number_of_previous_words
+        self.number_of_following_words = properties.number_of_following_words
 
 
      
@@ -225,7 +227,14 @@ class ProcessMonitor():
                 self.current_selected_indeces_min_prob_word_hash[el]
             classification_for_min = inv_labelled_dict[y[index_in_sentence_with_min_prob]]
 
-            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_for_min, sentence_before, sentence_after))
+            #HERE
+            sentence_before_list = [self.remove_underscore(el.strip()) for el in sentence_before.split(" ")]
+            sentence_after_list = [self.remove_underscore(el.strip()) for el in sentence_after.split(" ")]
+            
+            before_to_write = " ".join(sentence_before_list [-self.number_of_previous_words:]).replace("'", "' ")
+            after_to_write = " ".join(sentence_after_list[:self.number_of_following_words]).replace("'", "' ")
+            
+            min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_for_min, before_to_write, after_to_write))
 
         min_words_in_selected_sentences.sort()
 
@@ -590,20 +599,21 @@ class ProcessMonitor():
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=2)
 
             # chosen word annotation
+            NR_OF_CHOSEN_WORDS_TO_SHOW = 20
             found_word_info = []
-            for word_info in most_uncertain_words:
+            for word_info in most_uncertain_words[:NR_OF_CHOSEN_WORDS_TO_SHOW]:
                 word = word_info[0]
                 word_nr = str(int(word_info[2]) + 1)
                 y_prediction = word_info[3]
-                before_str = word_info[4]
-                after_str = word_info[5]
+                before_to_write = word_info[4]
+                after_to_write = word_info[5]
                 # TODO: Use feauture context length instead
-                before_to_write = self.remove_underscore(before_str.split(" ")[-1]).replace("'", "' ")
-                after_to_write = self.remove_underscore(after_str.split(" ")[0])
+                #before_to_write = self.remove_underscore(before_str.split(" ")[-1]).replace("'", "' ")
+                #after_to_write = self.remove_underscore(after_str.split(" ")[0])
                 
                 context_to_write = "(" + before_to_write + "," + after_to_write + ")"
-                if len(context_to_write) > 13:
-                    context_to_write = context_to_write[:13] + "..)"
+                if len(context_to_write) > 20:
+                    context_to_write = context_to_write[:20] + "..)"
 
 
                 if "-" in y_prediction:
@@ -752,8 +762,15 @@ class ProcessMonitor():
             plt.annotate(found_word,  (260, y_cord), xytext=(260, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
             plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
         else:
-            plt.annotate(found_word,  (280, y_cord), xytext=(280, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-            plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
+            #HERE
+            if len(before_to_write) > 30:
+                before_to_write = ".." + before_to_write[-28:]
+            if len(after_to_write) > 30:
+                after_to_write = after_to_write[:28] + ".."
+            #plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
+            plt.annotate(found_word,  (360, y_cord+0.2), xytext=(360, y_cord+0.2), color = "black", fontsize=10, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(before_to_write, (180, y_cord+0.4), xytext=(180, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
+            plt.annotate(after_to_write, (460, y_cord+0.4), xytext=(460, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
 
         
         bar_x = 75
