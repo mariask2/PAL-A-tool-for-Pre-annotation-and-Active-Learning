@@ -573,7 +573,7 @@ class ProcessMonitor():
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=2)
 
             # chosen word annotation
-            MAX_NR_OF_CHOSEN_WORDS_TO_SHOW = 50
+            MAX_NR_OF_CHOSEN_WORDS_TO_SHOW = 40
             found_word_info = []
             for word_info in most_uncertain_words[:MAX_NR_OF_CHOSEN_WORDS_TO_SHOW]:
                 word = word_info[0]
@@ -613,9 +613,9 @@ class ProcessMonitor():
                 # and nothing can be plotted for this point
                 if len(word_info) >= 7:
                     point = DX[word_info[6]]
-                    plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 1, point[1] + 1), color = "black",\
-                                     fontsize=13, weight = "normal")
-                                     
+                    plt.annotate(word_nr, (point[0], point[1]), xytext=(point[0] + 0.1, point[1] + 0.1), color = "black",\
+                        fontsize=9, weight = "normal", alpha=0.4  )
+                   
                                      
                 # Give the full annotation information in the margin
                 # Sort them verticaly by their uncertainty order, i.e., as given by most_uncertain_words[found_word][1]
@@ -640,10 +640,10 @@ class ProcessMonitor():
             
             row_height = 5
   
-            title_space = 14
-            word_bar_space = 10
+            title_space = 16
+            word_bar_space = 11
   
-            max_y = row_height*words_to_show + title_space + word_bar_space
+            max_y = row_height*words_to_show + title_space + word_bar_space + 4
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
 
@@ -670,7 +670,7 @@ class ProcessMonitor():
             #explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
             #mean_pool_y = max_y - 15 - (len(found_word_info) + 2)*row_height
 
-            mean_pool_y = max_y - 10
+            mean_pool_y = max_y - word_bar_space
 
 
             # Plot mean uncertainty in data pool
@@ -746,7 +746,9 @@ class ProcessMonitor():
                           f_weight, jp_font, row_height, before_to_write, after_to_write, context_to_write, word_bar_space):
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
-        y_cord = max_y - title_space - word_bar_space - int(word_nr)*row_height
+        #HERE
+        y_cord_bar = max_y - title_space - word_bar_space - int(word_nr)*row_height
+        y_cord = y_cord_bar - 2.5
 
         japanese = False
     
@@ -761,9 +763,9 @@ class ProcessMonitor():
                 before_to_write = ".." + before_to_write[-28:]
             if len(after_to_write) > 30:
                 after_to_write = after_to_write[:28] + ".."
-            plt.annotate(found_word,  (360, y_cord+0.2), xytext=(360, y_cord+0.2), color = "black", fontsize=10, weight = f_weight, fontproperties=jp_font)
-            plt.annotate(before_to_write, (180, y_cord+0.4), xytext=(180, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
-            plt.annotate(after_to_write, (460, y_cord+0.4), xytext=(460, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
+            plt.annotate(found_word,  (360, y_cord), xytext=(360, y_cord), color = "black", fontsize=9.5, weight = f_weight, fontproperties=jp_font, va='bottom')
+            plt.annotate(before_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.0, weight = f_weight, va='bottom')
+            plt.annotate(after_to_write, (460, y_cord), xytext=(460, y_cord), color = "gray", fontsize=9.0, weight = f_weight, va='bottom')
 
         
         bar_x = 75
@@ -776,10 +778,10 @@ class ProcessMonitor():
                 print_color = color_to_use_background
             if i == 99:
                 print_color = color_to_use_background_last
-            plt.scatter(bar_x, y_cord+1.5, color = print_color, marker = marker_to_use)
+            plt.scatter(bar_x, y_cord_bar, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight)
+                         xytext=(0, y_cord), color = "black", fontsize=9, weight = f_weight, va='bottom')
 
 
 if __name__ == "__main__":
