@@ -758,6 +758,9 @@ class ProcessMonitor():
 
         japanese = False
     
+        before_to_write = before_to_write.replace(" .", ".").replace(" ,", ",").strip()
+        after_to_write = after_to_write.replace(" .", ".").replace(" ,", ",").strip()
+        
         if japanese:
             plt.annotate(found_word,  (260, y_cord), xytext=(260, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
             plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
