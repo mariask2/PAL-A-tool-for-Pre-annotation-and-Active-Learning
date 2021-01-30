@@ -227,12 +227,11 @@ class ProcessMonitor():
                 self.current_selected_indeces_min_prob_word_hash[el]
             classification_for_min = inv_labelled_dict[y[index_in_sentence_with_min_prob]]
 
-            #HERE
             sentence_before_list = [self.remove_underscore(el.strip()) for el in sentence_before.split(" ")]
             sentence_after_list = [self.remove_underscore(el.strip()) for el in sentence_after.split(" ")]
             
-            before_to_write = " ".join(sentence_before_list [-self.number_of_previous_words:]).replace("'", "' ")
-            after_to_write = " ".join(sentence_after_list[:self.number_of_following_words]).replace("'", "' ")
+            before_to_write = " ".join(sentence_before_list [-self.number_of_previous_words:])
+            after_to_write = " ".join(sentence_after_list[:self.number_of_following_words])
             
             min_words_in_selected_sentences.append((min_prop_value, word_with_lowest_prob, classification_for_min, before_to_write, after_to_write))
 
@@ -559,31 +558,6 @@ class ProcessMonitor():
             #print(smallest_x, smallest_y, largest_x, largest_y)
             #print("most_uncertain_words", most_uncertain_words)
 
-            """
-                # minority class annotation
-                for point, found_word in zip(DX, found_words):
-                    if found_word in result_dict:
-                    if not result_dict[found_word][self.MOST_COMMON_PREDICTION] == self.majority_class:
-                    rounded_tuple = (round(point[0]), round(point[0]))
-                    if rounded_tuple not in annotated_points: # not to many annotations close in the plot
-                        annotated_points.add(rounded_tuple)
-            
-                    # TODO. Make this code smarter. The point is that the labels are not supposed to overlap
-            # but they do anyway
-            annotated_points.add((rounded_tuple[0] + 1, rounded_tuple[1]))
-            annotated_points.add((rounded_tuple[0] - 1, rounded_tuple[1]))
-            annotated_points.add((rounded_tuple[0], rounded_tuple[1] + 1))
-            annotated_points.add((rounded_tuple[0], rounded_tuple[1] - 1))
-            
-            annotated_points.add((rounded_tuple[0] + 2, rounded_tuple[1]))
-            annotated_points.add((rounded_tuple[0] + 3, rounded_tuple[1]))
-            annotated_points.add((rounded_tuple[0] + 4, rounded_tuple[1]))
-            annotated_points.add((rounded_tuple[0] + 5, rounded_tuple[1]))
-            
-                    annotated_points.add(rounded_tuple)
-                    #plt.annotate(found_word, (point[0], point[1]), xytext=(point[0], point[1]), color = "black", fontsize=9)
-                    #arrowprops=dict(facecolor="gray", shrink=0.05, frac=0.05)
-                """
 
             # minority class plot
             #for point, found_word in zip(DX, found_words):
@@ -599,9 +573,9 @@ class ProcessMonitor():
                         plt.scatter(point[0], point[1], color = color_to_use, marker = "o", s=2)
 
             # chosen word annotation
-            NR_OF_CHOSEN_WORDS_TO_SHOW = 20
+            MAX_NR_OF_CHOSEN_WORDS_TO_SHOW = 50
             found_word_info = []
-            for word_info in most_uncertain_words[:NR_OF_CHOSEN_WORDS_TO_SHOW]:
+            for word_info in most_uncertain_words[:MAX_NR_OF_CHOSEN_WORDS_TO_SHOW]:
                 word = word_info[0]
                 word_nr = str(int(word_info[2]) + 1)
                 y_prediction = word_info[3]
@@ -660,27 +634,43 @@ class ProcessMonitor():
             plt.tick_params(axis='both', left='off', top='off', right='off', bottom='off',\
                 labelleft='off', labeltop='off', labelright='off', labelbottom='off')
 
-            max_y = 150
+            words_to_show = len(found_word_info)
+            if words_to_show > MAX_NR_OF_CHOSEN_WORDS_TO_SHOW:
+                words_to_show = MAX_NR_OF_CHOSEN_WORDS_TO_SHOW
+            
             row_height = 5
+  
+            title_space = 14
+            word_bar_space = 10
+  
+            max_y = row_height*words_to_show + title_space + word_bar_space
             plt.xlim(0, 500)
             plt.ylim(0, max_y)
-            title_space = 12
+
+            #Plot the words and bars
             for el in found_word_info:
                 self.list_chosen_words(el["word"], el["color_to_use"], \
                                        el["color_to_use_background"], el["color_to_use_background_last"],\
                                        el["color_to_use_end_bar"], el["word_nr"], max_y,\
                                        title_space, el["confidence"], el["f_weight"], jp_font, row_height,\
-                                       el["before_to_write"], el["after_to_write"], el["context_to_write"])
+                                       el["before_to_write"], el["after_to_write"], el["context_to_write"], word_bar_space)
 
-            plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (0, max_y), \
-              color = "black", fontsize=12)
-            plt.annotate("Classification uncertainty for the\nmost uncertain tokens in data pool:", (0, max_y - title_space), \
-                          color = "black", fontsize=12)
+            second_column_x = 280
+            
+            plt.annotate("Classification uncertainty for the\nmost uncertain tokens in data pool:", (0, max_y), \
+                          color = "black", fontsize=11, va='top')
+                          
+            plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, max_y - title_space), \
+            xytext=(0, max_y - title_space), color = "black", fontsize=9.5, va='top')
+              
+            plt.annotate(minority_class[0].upper() + minority_class[1:] + " model trained on " + nr_ending.split("_")[0] + " samples", (second_column_x, max_y), \
+              color = "black", fontsize=11, va='top')
+
 
             #explanation_y = max_y - 14 - (len(found_word_info) + 2)*row_height - 6
-            mean_pool_y = max_y - 15 - (len(found_word_info) + 2)*row_height
+            #mean_pool_y = max_y - 15 - (len(found_word_info) + 2)*row_height
 
-
+            mean_pool_y = max_y - 10
 
 
             # Plot mean uncertainty in data pool
@@ -688,11 +678,13 @@ class ProcessMonitor():
 
             mean_uncertainty_rounded = int(100*(round(float(mean_uncertainty),2)))
             #mean_pool_y = explanation_y-8
-            plt.annotate("Data pool:" , (0, mean_pool_y+0.5),\
-                         xytext=(0, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
-            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty left", (179, mean_pool_y+0.5), color = "black", fontsize=9.5, weight = f_weight)
+            plt.annotate("Data pool:" , (second_column_x, mean_pool_y),\
+                         xytext=(second_column_x, mean_pool_y), color = "black", fontsize=11, weight = f_weight)
 
-            bar_x = 75
+            bar_x = second_column_x +75
+            plt.annotate(str(mean_uncertainty_rounded) + "%" + " mean uncertainty left", (bar_x, mean_pool_y-title_space/2), color = "black", fontsize=9.5, weight = f_weight)
+
+            
             grey = (0,0,0,0.2)
             light_grey = (0.01,0.01,0.01,0.01)
             almost_light_grey = (0.04,0.04,0.04,0.04)
@@ -712,6 +704,7 @@ class ProcessMonitor():
 
 
             # Plot error rate
+            """ # Remove error rate plot, as this is not very informative
             if classification_score: #should work also when this has not been recorded
                 error_left = 1 - classification_score
                 error_left_rounded = int(100*(round(float(error_left), 2)))
@@ -735,10 +728,9 @@ class ProcessMonitor():
                     bar_x = bar_x+1
             else:
                 error_rate_y = mean_pool_y
-
-            explanation_y = error_rate_y - 13
-            plt.annotate("Red: Tokens classified as " + minority_class[0].upper() + minority_class[1:] + "\nBlue: Other tokens.", (0, explanation_y), \
-             xytext=(0,explanation_y), color = "black", fontsize=12)
+            """
+            
+ 
 
 
             plt.subplots_adjust(wspace = 0.0)
@@ -751,26 +743,24 @@ class ProcessMonitor():
 
     def list_chosen_words(self, found_word, color_to_use, color_to_use_background, color_to_use_background_last,\
                           color_to_use_end_bar, word_nr, max_y, title_space, confidence,\
-                          f_weight, jp_font, row_height, before_to_write, after_to_write, context_to_write):
+                          f_weight, jp_font, row_height, before_to_write, after_to_write, context_to_write, word_bar_space):
 
         uncertainty_to_print = 100 - int(100*(round(float(confidence),2)))
-        y_cord = max_y - title_space - 4 - int(word_nr)*row_height
+        y_cord = max_y - title_space - word_bar_space - int(word_nr)*row_height
 
         japanese = False
     
-        before_to_write = before_to_write.replace(" .", ".").replace(" ,", ",").strip()
-        after_to_write = after_to_write.replace(" .", ".").replace(" ,", ",").strip()
+        before_to_write = before_to_write.replace(" .", ".").replace(" ,", ",").replace("'", "' ").strip()
+        after_to_write = after_to_write.replace(" .", ".").replace(" ,", ",").replace("'", "' ").strip()
         
         if japanese:
-            plt.annotate(found_word,  (260, y_cord), xytext=(260, y_cord), color = "black", fontsize=13, weight = f_weight, fontproperties=jp_font)
-            plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=13, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(found_word,  (260, y_cord), xytext=(260, y_cord), color = "black", fontsize=12, weight = f_weight, fontproperties=jp_font)
+            plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=12, weight = f_weight, fontproperties=jp_font)
         else:
-            #HERE
             if len(before_to_write) > 30:
                 before_to_write = ".." + before_to_write[-28:]
             if len(after_to_write) > 30:
                 after_to_write = after_to_write[:28] + ".."
-            #plt.annotate(context_to_write, (180, y_cord), xytext=(180, y_cord), color = "gray", fontsize=9.5, weight = f_weight)
             plt.annotate(found_word,  (360, y_cord+0.2), xytext=(360, y_cord+0.2), color = "black", fontsize=10, weight = f_weight, fontproperties=jp_font)
             plt.annotate(before_to_write, (180, y_cord+0.4), xytext=(180, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
             plt.annotate(after_to_write, (460, y_cord+0.4), xytext=(460, y_cord+0.4), color = "gray", fontsize=9.0, weight = f_weight)
@@ -789,7 +779,7 @@ class ProcessMonitor():
             plt.scatter(bar_x, y_cord+1.5, color = print_color, marker = marker_to_use)
             bar_x = bar_x+1
         plt.annotate(word_nr + ": " + str(uncertainty_to_print) + "%", (0, y_cord),\
-                         xytext=(0, y_cord), color = "black", fontsize=12, weight = f_weight)
+                         xytext=(0, y_cord), color = "black", fontsize=11, weight = f_weight)
 
 
 if __name__ == "__main__":
