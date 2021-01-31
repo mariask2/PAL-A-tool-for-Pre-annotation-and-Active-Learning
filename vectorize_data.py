@@ -72,7 +72,7 @@ def read_file_labelled_data(file_path, data_file_extension, minority_classes, ou
                         if word.strip() != "": #omit when there is nothing associated with the label
                             if len(word) == 1:
                                 word = word + "_" + word  # to cover for a bug in scikit learn's tokenization 
-                            current_text.append(word.lower())
+                            current_text.append(word)
                             label = sp[1]
                             if label not in minority_classes:
                                 label = outside_class
@@ -128,7 +128,7 @@ def read_file_unlabelled_data(file_name):
         if word != "":
             if len(word) == 1:
                 word = word + "_" + word # to cover for a bug in scikit learn's tokenization
-            current_text.append(word.lower())
+            current_text.append(word)
         else:
             if len(current_text) != 0: # end of sentence
                 text_vector.append(current_text)
@@ -598,13 +598,13 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
             vocabulary.add(line.strip())
         vocabulary_to_use = []
         for word in temp_word_vectorizer.get_feature_names():
-            if word in vocabulary or word.split("_")[0] in vocabulary:
+            if word.lower() in vocabulary or word.lower().split("_")[0] in vocabulary:
                 vocabulary_to_use.append(word)
         
     # Create a vectorizer for all words that are included (fit on training data)    
     # (min_df ignored when vocabulary is not none)
     current_word_vectorizer = CountVectorizer(binary = True, min_df=min_df_current, \
-                                              max_df = max_df_current, vocabulary = vocabulary_to_use)
+                                              max_df = max_df_current, vocabulary = vocabulary_to_use, lowercase=False)
 
     # only include features that have occurred min_df_current in the labelled data
     vectorized_data_labelled = current_word_vectorizer.fit_transform(text_concatenated_labelled)
@@ -625,11 +625,11 @@ def vectorize_data(text_vector_labelled, text_vector_unlabelled, label_vector_la
             vocabulary.add(line.strip())
         vocabulary_to_use_context = []
         for word in temp_word_vectorizer.get_feature_names():
-            if word in vocabulary or word.split("_")[0] in vocabulary:
+            if word.lower() in vocabulary or word.lower().split("_")[0] in vocabulary:
                 vocabulary_to_use_context.append(word)
 
     context_word_vectorizer = CountVectorizer(binary = True, min_df = min_df_context,\
-                                              max_df = max_df_context, vocabulary = vocabulary_to_use_context)
+                                              max_df = max_df_context, vocabulary = vocabulary_to_use_context, lowercase=False)
 
     # include features that have occurred at least min_df_context in the labelled data
     vectorized_data_labelled_context = context_word_vectorizer.fit_transform(text_concatenated_labelled)

@@ -128,6 +128,8 @@ def select_new_data(properties, project_path, word2vecwrapper):
                     inv_label = properties.beginning_prefix + inv_label.split(u"-")[1]
                     print(inv_label)
             last_label = inv_label
+            if len(text) == 3 and text[1] == "_":
+                text = text[0] # To cover for a bug in scikit learn, one char tokens have been transformed to longer. These are here transformed back
             to_annotate_file.write("\t".join([text, inv_label]) + "\n")
         to_annotate_file.write("\n")
     to_annotate_file.close()

@@ -1038,8 +1038,6 @@ def get_selected_sentences_with_different_vocabulary(sorted_score_index, sorted_
     if prefer_predicted_chunks:
         indeces_to_use = indeces_to_use + [el[1] for el in sorted_indeces_no_predicted_chunks]
         print("The best candidates without a predicted chunk")        
-        for el in sorted_indeces_no_predicted_chunks:
-            print(el)
         print("indeces_to_use with chunks all", indeces_to_use)
 
     return indeces_to_use
